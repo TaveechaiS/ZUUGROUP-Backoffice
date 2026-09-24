@@ -5,8 +5,11 @@
 ## สถานะปัจจุบัน
 
 - Project Specs รุ่น 0.2 และ Project Plan รุ่น 0.1 ได้รับอนุมัติแล้วเมื่อ 2026-09-23
-- ยังไม่มีโค้ด, ฐานข้อมูล, Migration, Seed หรือ Docker ใน Repository นี้
-- ก่อนเริ่มพัฒนา ให้ลงทะเบียน Task และยืนยัน Gate/OPEN ที่เกี่ยวข้องก่อน
+- Phase 1 กำลังทำใน `TASK-006`; ยังไม่มีตารางธุรกิจ, Migration หรือ Seed
+- Supabase Mock เป็น Cloud project `zuugroup-web`, Region Singapore (`ap-southeast-1`), Project Ref `wiikzseotpjxssbcdayk`
+- Project URL: `https://wiikzseotpjxssbcdayk.supabase.co`
+- Runtime: Node.js 24.21.0, npm 11.x, Next.js 16.x, Prisma 7.x
+- ห้าม Commit password, Secret key หรือ connection string ที่มี password
 
 ## เอกสารที่ต้องอ่านก่อนทำงาน
 
@@ -40,3 +43,17 @@
 - [ ] ระบุ Gate และ `OPEN` ที่เกี่ยวข้องแล้ว; ถ้าติดรายการใด ได้บันทึกสถานะหรือหยุดส่วนนั้นไว้โดยไม่เดากฎ
 - [ ] บันทึกรหัส Task, ผู้รับผิดชอบ, ขอบเขตงาน, ไฟล์ที่กระทบ และสถานะในรายการงานแล้ว
 - [ ] สำหรับงานที่เปลี่ยนพฤติกรรม: เตรียมหัวข้อ **⚠️ ต้องทดสอบโดยคุณ** พร้อมข้อมูลตัวอย่าง ขั้นตอน และผลที่คาดหวังแล้ว
+
+## เริ่มระบบในเครื่อง
+
+1. ติดตั้ง Node.js `24.21.0` และ npm ที่มากับ Node.js รุ่นนี้
+2. คัดลอก `.env.example` เป็น `.env.local`
+3. เปิด Supabase Dashboard ของ `zuugroup-web` → **Connect** แล้วใส่ Publishable key และ connection strings ที่ได้ลงใน `.env.local` ด้วยตนเอง ห้ามส่ง password หรือ Secret key ในแชต
+4. รัน `npm ci` เพื่อใช้รุ่นตาม `package-lock.json`; Prisma Client จะถูกสร้างหลังติดตั้ง
+5. รัน `npm run dev` แล้วเปิด `http://localhost:5000`
+
+Runtime `DATABASE_URL` ใช้ Session Pooler สำหรับการพัฒนาจากเครื่องที่อาจเป็น IPv4-only; `DIRECT_URL` ใช้สำหรับ Prisma CLI/Migration หากเครือข่ายเข้า Direct connection ไม่ได้ ให้ใช้ Session Pooler ตามคำแนะนำของ Supabase แทน
+
+ใช้ Docker Compose ได้ด้วย `docker compose up --build` หลังเตรียม `.env.local` แล้ว บริการเว็บเชื่อมกับ Supabase Cloud โดยตรง ไม่มี PostgreSQL container แยก
+
+ยังไม่สร้าง Migration เพราะยังไม่มี Model ที่ได้รับอนุมัติให้สร้างใน Phase 1

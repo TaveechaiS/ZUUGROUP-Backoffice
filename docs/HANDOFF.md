@@ -12,8 +12,9 @@
 
 - Project Specs และ Project Plan ได้รับอนุมัติจากเจ้าของโครงการเมื่อ 2026-09-23
 - Repository อยู่บน Branch `AI`; ใช้ได้เฉพาะ `AI`, `Dev`, `Main`
-- ยังไม่มีโค้ดแอป ฐานข้อมูล Migration Seed Docker หรือ Package Manager ใน Repository
-- รายการ OPEN-01 ถึง OPEN-15 อยู่ใน [DECISIONS.md](DECISIONS.md) และรอคำตอบจากผู้ใช้ทั้งหมด
+- ยังไม่มีโค้ดแอป Schema/Migration/Seed หรือ Docker ใน Repository; มี Supabase Cloud project `zuugroup-web` ในองค์กร `zuugroup`, Region Singapore (`ap-southeast-1`), Project Ref `wiikzseotpjxssbcdayk`, URL `https://wiikzseotpjxssbcdayk.supabase.co`
+- G-02 ผ่านแล้ว: ใช้ npm, Node.js 24.21.0 LTS, Next.js 16.x stable ล่าสุด, Prisma 7.x stable ล่าสุด และ Supabase Cloud; ให้ล็อกรุ่นแพ็กเกจจริงใน `package-lock.json`
+- OPEN-09 ปิดแล้ว; password, Secret key และ connection string ที่มีรหัสผ่านต้องเก็บใน Environment เฉพาะเครื่อง ห้ามบันทึกใน Git หรือแชต
 
 ## วิธีรับงานต่อ
 
@@ -25,6 +26,6 @@
 
 ## งานที่ควรทำต่อ
 
-- ยืนยัน G-02: Package Manager, รุ่นเครื่องมือ, รูปแบบ Supabase Mock และค่าการเชื่อมต่อ (OPEN-09)
+- TASK-006 Phase 1 foundation is implemented and the app/database connection have been verified; status is READY_FOR_USER_TEST. Phase 2 waits for G-03 Figma/UI assets and access details.
 - จัดทำ Specs รายโมดูลของระบบ/ผู้ใช้งานเมื่อ OPEN-14 พร้อมตอบ
 - ระบุแหล่ง Figma/Asset/Component ตาม G-03 ก่อนงาน UI
