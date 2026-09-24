@@ -20,11 +20,11 @@
   --line: #e8edf3;
   --surface: #fff;
   --canvas: #f7f9fc;
-  --expanded-sidebar-width: 326px;
+  --expanded-sidebar-width: 300px;
   --collapsed-sidebar-width: 104px;
   --primary-rail-width: 104px;
-  --secondary-sidebar-width: 326px;
-  font-family: 'Noto Sans Thai', 'Leelawadee UI', Tahoma, sans-serif;
+  --secondary-sidebar-width: 250px;
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -53,4 +53,57 @@ a {
   *::after {
     scroll-behavior: auto !important;
   }
+}
+.poppins-thin {
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  font-weight: 100;
+  font-style: normal;
+}
+
+.poppins-extralight {
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  font-weight: 200;
+  font-style: normal;
+}
+
+.poppins-light {
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.poppins-regular {
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.poppins-medium {
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.poppins-semibold {
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.poppins-bold {
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.poppins-extrabold {
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.poppins-black {
+  font-family: var(--font-poppins), var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  font-weight: 900;
+  font-style: normal;
 }

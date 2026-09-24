@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/config/app';
 import {
@@ -55,7 +54,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
         className={`flex h-auto w-full min-w-0 flex-col overflow-visible md:h-full md:overflow-hidden ${collapsed ? 'md:items-center' : ''}`}
       >
         <div
-          className={`flex min-h-16 flex-row items-center justify-start px-4 ${collapsed ? 'md:min-h-[120px] md:flex-col md:justify-center md:gap-2 md:px-[10px] md:py-2' : 'md:min-h-[100px] md:justify-between md:px-5'}`}
+          className={`flex min-h-16 flex-row items-center justify-start px-4 ${collapsed ? 'md:min-h-30 md:flex-col md:justify-center md:gap-2 md:px-2.5 md:py-2' : 'md:min-h-25 md:justify-between md:px-5'}`}
         >
           <div
             className={`flex min-w-0 items-center gap-3 ${collapsed ? 'md:justify-center' : ''}`}
@@ -69,7 +68,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
             >
               <Image
                 aria-hidden="true"
-                className="block h-[42px] w-[42px] shrink-0 object-contain md:h-[70px] md:w-[70px]"
+                className="block h-10.5 w-10.5 shrink-0 object-contain md:h-17.5 md:w-17.5"
                 src="/logo.png"
                 alt=""
                 width={70}
@@ -77,10 +76,10 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
               />
             </button>
             <span className={`grid gap-1 ${collapsed ? 'md:hidden' : ''}`}>
-              <strong className="text-lg leading-[1.1] font-bold text-white md:text-3xl">
+              <strong className="text-lg leading-[1.1] poppins-bold text-white md:text-3xl">
                 {APP_CONFIG.name}
               </strong>
-              <small className="block text-[10px] leading-[1.3] font-normal text-white md:text-sm">
+              <small className="block text-xs leading-[1.3] poppins-regular text-white md:text-sm">
                 บริษัทจัดการยานำเข้า
               </small>
             </span>
@@ -90,7 +89,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           className={`mb-[13px] ml-5 mr-5 hidden h-px bg-white/[0.15] ${collapsed ? 'md:hidden' : 'md:block'}`}
         />
         <nav
-          className={`${collapsed ? 'hidden' : 'flex'} gap-[5px] overflow-x-auto px-3 pb-[10px] [scrollbar-width:thin] [scrollbar-color:rgb(255_255_255_/_25%)_transparent] md:flex-1 md:overflow-x-visible md:overflow-y-auto md:px-[14px] md:pb-[18px] ${collapsed ? 'md:hidden' : 'md:block'}`}
+          className={`${collapsed ? 'hidden' : 'flex'} gap-[5px] overflow-x-auto px-3 pb-2.5 [scrollbar-width:thin] [scrollbar-color:rgb(255_255_255_/_25%)_transparent] md:flex-1 md:overflow-x-visible md:overflow-y-auto md:px-3.5 md:pb-4.5 ${collapsed ? 'md:hidden' : 'md:block'}`}
           aria-label="เมนูผู้ดูแลระบบ"
         >
           {NAVIGATION_SECTIONS.map((section) => {
@@ -102,7 +101,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
                 className="m-0 flex shrink-0 items-center gap-1 md:mb-[15px] md:block"
                 key={section}
               >
-                <h2 className="hidden text-sm font-semibold text-white md:mx-3 md:mb-[6px] md:block">
+                <h2 className="hidden text-sm poppins-semibold text-white md:mx-3 md:mb-1.5 md:block">
                   {section}
                 </h2>
                 <ul className="m-0 flex list-none gap-1 p-0 md:grid md:gap-[3px]">
@@ -113,7 +112,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
                     return (
                       <li key={page.href}>
                         <Link
-                          className={`flex min-h-[35px] items-center gap-[7px] whitespace-nowrap rounded-md border border-white/[0.15] px-[10px] text-[11px] font-normal text-white md:min-h-[43px] md:gap-[13px] md:rounded-sm md:border-0 md:px-3 md:text-base ${active ? 'border-white bg-white/[0.13] md:shadow-[inset_3px_0_#fff]' : ''}`}
+                          className={`flex min-h-[35px] items-center gap-[7px] whitespace-nowrap rounded-md border border-white/[0.15] px-2.5 text-xs poppins-regular text-white md:min-h-[43px] md:gap-[13px] md:rounded-sm md:border-0 md:px-3 md:text-sm ${active ? 'border-white bg-white/[0.13] md:shadow-[inset_3px_0_#fff]' : ''}`}
                           href={page.href}
                           aria-current={active ? 'page' : undefined}
                         >
@@ -129,7 +128,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           })}
         </nav>
         <nav
-          className={`hidden w-full flex-1 flex-col items-center gap-2 overflow-y-auto px-[10px] py-[14px] ${collapsed ? 'md:flex' : ''}`}
+          className={`hidden w-full flex-1 flex-col items-center gap-2 overflow-y-auto px-2.5 py-3.5 ${collapsed ? 'md:flex' : ''}`}
           aria-label="หมวดเมนู"
         >
           {mainPages.map((page) => {
@@ -138,7 +137,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
               (page.href !== '/' && currentPath.startsWith(`${page.href}/`));
             return (
               <Link
-                className={`grid min-h-12 w-[66px] shrink-0 place-items-center rounded-[5px] text-white hover:bg-white/[0.14] ${active ? 'bg-white/[0.14]' : ''}`}
+                className={`grid min-h-12 w-16.5 shrink-0 place-items-center rounded-[5px] text-white hover:bg-white/[0.14] ${active ? 'bg-white/[0.14]' : ''}`}
                 key={page.href}
                 href={page.href}
                 title={page.label}
@@ -157,41 +156,20 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
 export function CustomerSecondarySidebar() {
   const currentPath = usePathname();
-  const [query, setQuery] = useState('');
-  const filteredPages = CUSTOMER_SECONDARY_NAV.filter((page) =>
-    page.label.toLocaleLowerCase('th').includes(query.trim().toLocaleLowerCase('th')),
-  );
 
   return (
     <aside
-      className="w-full shrink-0 border-b border-[var(--line)] bg-white px-[14px] py-3 text-[var(--ink-950)] xl:w-[var(--secondary-sidebar-width)] xl:border-b-0 xl:border-r xl:py-7"
-      aria-label="เมนูย่อยลูกค้า"
+      className="w-full shrink-0 border-b border-[var(--line)] bg-white px-0 py-2 text-[var(--ink-950)] xl:w-[var(--secondary-sidebar-width)] xl:border-b-0 xl:border-r"
+      aria-label="การนำทางเสริม"
     >
-      <div className="hidden px-4 pb-[15px] pt-px xl:block">
-        <h2 className="text-[19px] font-[650]">ลูกค้า</h2>
-        <p className="mt-1 text-xs font-normal text-[var(--ink-700)]">เมนูย่อย</p>
-      </div>
-      <label className="mb-5 hidden h-11 items-center gap-[10px] rounded-3xl border border-[#d5dce7] px-[14px] shadow-[0_2px_4px_rgb(30_55_90_/_4%)] xl:flex">
-        <span
-          className="relative h-[14px] w-[14px] shrink-0 rounded-full border-[1.7px] border-[#63728a] after:absolute after:-right-[5px] after:-bottom-[3px] after:h-[1.7px] after:w-[6px] after:rotate-[48deg] after:rounded-sm after:bg-[#63728a] after:content-['']"
-          aria-hidden="true"
-        />
-        <input
-          className="w-full min-w-0 border-0 bg-transparent font-[inherit] text-[13px] font-normal text-[var(--ink-950)] outline-0 placeholder:text-[var(--ink-500)]"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="ค้นหาเมนู"
-          aria-label="ค้นหาเมนูย่อย"
-        />
-      </label>
-      <nav aria-label="หน้าลูกค้า">
+      <nav aria-label="รายการหน้าข้อมูล">
         <ul className="m-0 flex list-none gap-1 overflow-x-auto p-0 xl:grid xl:overflow-visible">
-          {filteredPages.map((page) => {
+          {CUSTOMER_SECONDARY_NAV.map((page) => {
             const active = page.href === currentPath;
             return (
               <li key={page.href}>
                 <Link
-                  className={`flex min-h-10 items-center whitespace-nowrap rounded-[2px] px-4 text-sm font-normal xl:min-h-14 ${active ? 'bg-[var(--blue-50)] text-[var(--blue-800)]' : 'text-[#68758b]'}`}
+                  className={`flex min-h-10 items-center whitespace-nowrap rounded-xs px-4 text-sm poppins-regular xl:min-h-14 ${active ? 'bg-[var(--blue-50)] text-[var(--blue-800)]' : 'text-[#68758b]'}`}
                   href={page.href}
                   aria-current={active ? 'page' : undefined}
                 >
@@ -201,9 +179,6 @@ export function CustomerSecondarySidebar() {
             );
           })}
         </ul>
-        {filteredPages.length === 0 && (
-          <p className="px-4 py-3 text-xs font-normal text-[var(--ink-500)]">ไม่พบเมนูที่ค้นหา</p>
-        )}
       </nav>
     </aside>
   );

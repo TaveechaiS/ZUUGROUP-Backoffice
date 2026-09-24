@@ -4,6 +4,8 @@
 
 **Task:** TASK-012
 
+**หมายเหตุปัจจุบัน:** ตารางด้านล่างบันทึกค่าในช่วง TASK-012; ขนาดที่ใช้จริงภายหลังให้ยึด TASK-018 และ [TASK-023](2026-09-24-tailwind-type-scale.md).
+
 ให้กำหนดขนาดและน้ำหนักตัวอักษรของ Sidebar ใน `className` ที่ `src/components/layout/sidebar.tsx` ด้วย Tailwind utility เช่น `<p className="text-sm font-bold">ตัวอย่าง</p>` ไม่กำหนดค่าเหล่านี้ซ้ำใน `src/app/globals.css`
 
 | ส่วน | ตัวอย่าง utility | ผลที่ต้องได้ |

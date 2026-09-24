@@ -18,22 +18,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <section
         className={`${collapsed ? 'min-h-[calc(100vh-64px)]' : 'min-h-[calc(100vh-102px)]'} border-t-[10px] border-[var(--blue-700)] bg-[var(--blue-700)] md:min-h-screen ${collapsed ? 'md:ml-[var(--collapsed-sidebar-width)]' : 'md:ml-[var(--expanded-sidebar-width)]'}`}
       >
-        <header className="relative z-[3] flex min-h-20 items-center justify-between gap-6 border-b border-[#d7e3f0] bg-[var(--blue-50)] px-4 py-[10px] md:sticky md:top-0 md:min-h-[92px] md:rounded-tl-[25px] md:px-[30px] md:py-0">
+        <header className="relative z-[3] flex min-h-20 items-center justify-between gap-6 border-b border-[#d7e3f0] bg-[var(--blue-50)] px-4 py-2.5 md:sticky md:top-0 md:min-h-23 md:rounded-tl-[25px] md:px-7.5 md:py-0">
           <div>
-            <h1 className="m-0 text-lg leading-[1.35] font-bold text-[#111827] md:text-[23px]">
+            <h1 className="m-0 text-lg leading-[1.35] poppins-bold text-[#111827] md:text-xl">
               {page.label}
             </h1>
-            <p className="mt-[2px] max-w-[190px] text-[10px] text-[var(--ink-950)] md:max-w-none md:text-[13px]">
+            <p className="mt-0.5 max-w-47.5 text-xs text-[var(--ink-950)] md:max-w-none md:text-sm">
               {page.description}
             </p>
           </div>
-          <div className="flex items-center gap-2 text-[9px] text-[#59677e] md:gap-5 md:text-xs">
+          <div className="flex items-center gap-2 text-xs text-[#59677e] md:gap-5">
             <time
-              className="flex items-center gap-1 whitespace-nowrap md:gap-[9px]"
+              className="flex items-center gap-1 whitespace-nowrap md:gap-[9px] md:text-sm"
               dateTime={new Date().toISOString().slice(0, 10)}
             >
               <svg
-                className="h-[17px] w-[17px] fill-none stroke-[#5a6982] stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round] md:h-[22px] md:w-[22px]"
+                className="h-[17px] w-[17px] fill-none stroke-[#5a6982] stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round] md:h-5.5 md:w-5.5"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
@@ -47,35 +47,46 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 timeZone: APP_CONFIG.timeZone,
               }).format(new Date())}
             </time>
-            <span className="h-7 w-px bg-[#8994a3] opacity-80 md:h-[46px]" />
+            <span className="h-7 w-px bg-[#8994a3] opacity-80 md:h-11.5" />
             <span
-              className="grid h-8 w-8 place-items-center rounded-full border border-[var(--blue-200)] bg-white md:h-11 md:w-11"
+              className="grid h-6 w-6 place-items-center rounded-full border border-[var(--blue-200)] bg-white md:h-9 md:w-9"
               aria-label="การแจ้งเตือน"
             >
               <svg
-                className="h-[18px] w-[18px] fill-none stroke-[#17263b] stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round] md:h-[22px] md:w-[22px]"
+                className="h-3.5 w-3.5 fill-none stroke-[#17263b] stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round] md:h-4.5 md:w-4.5"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
                 <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
-                <circle className="fill-[#e23535] stroke-white stroke-2" cx="18" cy="6" r="3" />
+                <circle className="fill-[#e23535] stroke-white stroke-2" cx="18" cy="6" r="4" />
               </svg>
             </span>
-            <span className="h-7 w-px bg-[#8994a3] opacity-80 md:h-[46px]" />
-            <span className="flex items-center gap-[10px] font-semibold">
+            <span className="h-7 w-px bg-[#8994a3] opacity-80 md:h-11.5" />
+            <span className="flex items-center gap-2.5 poppins-semibold">
               <span
-                className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full border border-white bg-[#0875bb] text-xs font-[650] text-white md:h-[38px] md:w-[38px]"
+                className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white bg-[#0875bb] text-xs font-[650] text-white md:h-9 md:w-9"
                 aria-hidden="true"
               >
                 A
               </span>
               <span className="hidden gap-px text-xs text-[var(--ink-950)] md:grid">
                 <strong>ผู้ดูแลระบบ</strong>
-                <small className="text-[11px] font-normal text-[var(--ink-700)]">Admin</small>
+                <small className="text-xs poppins-regular text-[var(--ink-700)]">Admin</small>
               </span>
-              <span className="ml-3 hidden text-xl text-[#101820] md:inline" aria-hidden="true">
-                ⌄
-              </span>
+              <svg
+                className="ml-3 hidden h-2 w-3.5 md:block"
+                viewBox="0 0 14 8"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M1 1L7 7L13 1"
+                  stroke="#101828"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </span>
           </div>
         </header>
@@ -83,9 +94,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
           className={`flex flex-col ${collapsed ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-182px)]'} bg-white md:min-h-[calc(100vh-92px)] xl:flex-row`}
         >
           {currentPath.startsWith('/customers') && <CustomerSecondarySidebar />}
-          <div className="flex min-w-0 flex-1 flex-col px-[18px] py-[14px] md:px-[30px] md:pb-[18px] md:pt-6">
+          <div className="flex min-w-0 flex-1 flex-col px-4.5 py-3.5 md:px-7.5 md:pb-4.5 md:pt-6">
             {children}
-            <footer className="flex items-center gap-2 border-t border-[var(--line)] pt-3 text-[10px] text-[#95a1b2]">
+            <footer className="flex items-center gap-2 border-t border-[var(--line)] pt-3 text-xs text-[#95a1b2]">
               เขตเวลา {APP_CONFIG.timeZone} <span>·</span> {APP_CONFIG.name}
             </footer>
           </div>
@@ -112,18 +123,18 @@ export function DashboardPlaceholder() {
           <span className="mt-[3px] block h-1 w-[46px] rounded-[3px] bg-[#e7edf5]" />
           <span className="mt-[3px] block h-1 w-[62px] rounded-[3px] bg-[#e7edf5]" />
         </div>
-        <span className="absolute right-6 top-[15px] text-[21px] text-[var(--blue-500)]">✦</span>
+        <span className="absolute right-6 top-[15px] text-2xl text-[var(--blue-500)]">✦</span>
         <span className="absolute bottom-[19px] left-[15px] text-2xl text-[var(--blue-300)]">
           ✧
         </span>
       </div>
-      <h2 className="m-0 text-[15px] font-[650] text-[var(--ink-950)] md:text-base">
+      <h2 className="m-0 text-base font-[650] text-[var(--ink-950)]">
         Dashboard กำลังเตรียมข้อมูล
       </h2>
-      <p className="mb-[18px] mt-2 max-w-[320px] text-[11px] leading-[1.8] text-[var(--ink-500)] md:max-w-[450px] md:text-xs">
+      <p className="mb-[18px] mt-2 max-w-[320px] text-xs leading-[1.8] text-[var(--ink-500)] md:max-w-[450px]">
         หน้านี้จะสรุปภาพรวมหลังจากจัดทำโมดูลข้อมูลย่อยเรียบร้อยแล้ว
       </p>
-      <span className="inline-flex max-w-full items-center gap-[7px] rounded-[7px] border border-[#e7edf5] bg-white px-3 py-2 text-[9px] text-[var(--ink-700)] md:text-[10px]">
+      <span className="inline-flex max-w-full items-center gap-[7px] rounded-[7px] border border-[#e7edf5] bg-white px-3 py-2 text-xs text-[var(--ink-700)]">
         <span className="h-[6px] w-[6px] rounded-full bg-[var(--blue-500)]" />{' '}
         เริ่มจากจัดทำข้อมูลหลักและการทำงานแต่ละส่วน
       </span>
@@ -142,10 +153,10 @@ export function ModulePlaceholder({ page }: { page: AdminPage }) {
         <span className="h-[34px] w-[5px] rounded bg-[var(--blue-600)]" />
         <span className="h-4 w-[5px] rounded bg-[var(--blue-400)]" />
       </span>
-      <span className="rounded-full border border-[var(--blue-100)] bg-[var(--blue-50)] px-[9px] py-[5px] text-[10px] font-semibold text-[var(--blue-800)]">
+      <span className="rounded-full border border-[var(--blue-100)] bg-[var(--blue-50)] px-[9px] py-[5px] text-xs poppins-semibold text-[var(--blue-800)]">
         เตรียมโครงหน้าแล้ว
       </span>
-      <h2 className="mt-[14px] text-[17px] font-[650] text-[var(--ink-950)]">หน้า{page.label}</h2>
+      <h2 className="mt-[14px] text-lg font-[650] text-[var(--ink-950)]">หน้า{page.label}</h2>
       <p className="mt-2 max-w-[430px] text-xs leading-[1.8] text-[var(--ink-500)]">
         หน้านี้เตรียมไว้สำหรับส่วนงาน{page.label} รายละเอียดและการจัดการข้อมูลจะทำตามลำดับโครงการ
       </p>
