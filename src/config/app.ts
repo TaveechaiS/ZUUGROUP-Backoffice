@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  name: 'ZUUGROUP',
+  name: 'Zuugroup',
   locale: 'th-TH',
   timeZone: 'Asia/Bangkok',
   supabaseProjectRef: 'wiikzseotpjxssbcdayk',
