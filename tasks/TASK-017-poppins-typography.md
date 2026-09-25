@@ -1,6 +1,6 @@
 # TASK-017 — Poppins และน้ำหนักตัวอักษร
 
-**สถานะ:** READY_FOR_USER_TEST
+**สถานะ:** DONE
 
 **Specs:** [Poppins และ fallback ภาษาไทย](../docs/specs/2026-09-24-poppins-typography.md)
 
@@ -24,3 +24,5 @@ ext/font/google อย่างชัดเจน; ยังรอเจ้า�
 - เปิดหน้า Admin บน Desktop: อังกฤษควรใช้ Poppins และข้อความไทยควรใช้ Noto Sans Thai fallback.
 - ตรวจ Sidebar แบบขยาย/ย่อ, Topbar, Dashboard และ module placeholder: น้ำหนักหัวข้อ/เมนูควรตรงกับเดิม ขนาดข้อความและระยะจัดวางไม่ควรเปลี่ยน.
 - Mobile/Responsive จะตรวจภายหลังตามคำขอเจ้าของโครงการ.
+
+**ผล UAT:** เจ้าของโครงการยืนยันว่าผ่านทั้งหมดเมื่อ 2026-09-25.

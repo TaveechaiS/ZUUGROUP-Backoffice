@@ -1,6 +1,6 @@
 # TASK-013 — ย้ายสไตล์ UI ไป className
 
-**สถานะ:** READY_FOR_USER_TEST
+**สถานะ:** DONE
 
 **Specs:** [ข้อกำหนดสั้น](../docs/specs/2026-09-24-ui-inline-utilities.md)
 
@@ -11,3 +11,5 @@
 เกณฑ์รับ: Desktop ขยาย/ย่อ, Mobile, Topbar, Dashboard placeholder และ module placeholder คงรูปแบบเดิม; CSS ไม่มี selector ของ component; lint/type-check/build ผ่าน; ผู้ใช้ตรวจภาพอีกครั้ง.
 
 ผลตรวจโดย AI: ESLint, TypeScript และ production build ผ่าน 2026-09-24. ยังรอเจ้าของโครงการตรวจภาพบน Desktop/Mobile และคลิกย่อ/ขยาย Sidebar.
+
+**ผล UAT:** เจ้าของโครงการยืนยันว่าผ่านทั้งหมดเมื่อ 2026-09-25.

@@ -4,7 +4,7 @@
 |---|---|
 | Phase | 1 — พื้นฐานโครงการ |
 | ผู้รับผิดชอบ | AI |
-| สถานะ | READY_FOR_USER_TEST |
+| สถานะ | DONE |
 | เอกสารอ้างอิง | `SPEC-PROJECT-001` รุ่น 0.2, `PLAN-PROJECT-001` รุ่น 0.1, Code Style Guide |
 | Commit ตั้งต้น | `42a8690` บน Branch `AI` |
 
@@ -68,3 +68,5 @@
 - A read-only `SELECT 1` using the configured `DATABASE_URL` returned `DATABASE_CONNECTED`; no database records were changed.
 - Confirmed `.env.local` is ignored and not tracked by Git.
 - Runtime used for these checks was Node.js 24.11.1; project target remains Node.js 24.21.0 as specified in `.nvmrc`.
+
+**ผล UAT:** เจ้าของโครงการยืนยันว่าผ่านทั้งหมดเมื่อ 2026-09-25.

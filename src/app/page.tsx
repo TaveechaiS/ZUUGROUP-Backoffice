@@ -1,5 +1,5 @@
-import { DashboardPlaceholder } from '@/components/layout/admin-shell';
+import { DashboardPageContent } from './dashboard-page-content';
 
 export default function HomePage() {
-  return <DashboardPlaceholder />;
+  return <DashboardPageContent />;
 }

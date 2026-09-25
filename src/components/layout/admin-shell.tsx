@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { APP_CONFIG } from '@/config/app';
 import { ADMIN_PAGES, getAdminPage, type AdminPage } from '@/config/navigation';
-import { CustomerSecondarySidebar, Sidebar } from '@/components/layout/sidebar';
+import { Sidebar } from '@/components/layout/sidebar';
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -18,16 +18,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <section
         className={`${collapsed ? 'min-h-[calc(100vh-64px)]' : 'min-h-[calc(100vh-102px)]'} border-t-[10px] border-[var(--blue-700)] bg-[var(--blue-700)] md:min-h-screen ${collapsed ? 'md:ml-[var(--collapsed-sidebar-width)]' : 'md:ml-[var(--expanded-sidebar-width)]'}`}
       >
-        <header className="relative z-[3] flex min-h-20 items-center justify-between gap-6 border-b border-[#d7e3f0] bg-[var(--blue-50)] px-4 py-2.5 md:sticky md:top-0 md:min-h-23 md:rounded-tl-[25px] md:px-7.5 md:py-0">
-          <div>
-            <h1 className="m-0 text-lg leading-[1.35] poppins-bold text-[#111827] md:text-xl">
+        <header className="relative z-[3] flex min-h-20 items-center justify-between gap-3 border-b border-[#d7e3f0] bg-[var(--blue-50)] px-4 py-2.5 md:sticky md:top-0 md:min-h-23 md:gap-6 md:rounded-tl-[25px] md:px-7.5 md:py-0">
+          <div className="min-w-0 flex-1">
+            <h1 className="m-0 break-words text-lg leading-[1.35] poppins-bold text-[#111827] md:text-xl">
               {page.label}
             </h1>
             <p className="mt-0.5 max-w-47.5 text-xs text-[var(--ink-950)] md:max-w-none md:text-sm">
               {page.description}
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[#59677e] md:gap-5">
+          <div className="flex shrink-0 items-center gap-1.5 text-xs text-[#59677e] md:gap-5">
             <time
               className="flex items-center gap-1 whitespace-nowrap md:gap-[9px] md:text-sm"
               dateTime={new Date().toISOString().slice(0, 10)}
@@ -62,7 +62,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </svg>
             </span>
             <span className="h-7 w-px bg-[#8994a3] opacity-80 md:h-11.5" />
-            <span className="flex items-center gap-2.5 poppins-semibold">
+            <span className="flex shrink-0 items-center gap-2.5 poppins-semibold">
               <span
                 className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white bg-[#0875bb] text-xs font-[650] text-white md:h-9 md:w-9"
                 aria-hidden="true"
@@ -91,10 +91,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
         </header>
         <div
-          className={`flex flex-col ${collapsed ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-182px)]'} bg-white md:min-h-[calc(100vh-92px)] xl:flex-row`}
+          className={`flex flex-col ${collapsed ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-182px)]'} bg-white md:min-h-[calc(100vh-92px)]`}
         >
-          {currentPath.startsWith('/customers') && <CustomerSecondarySidebar />}
-          <div className="flex min-w-0 flex-1 flex-col px-4.5 py-3.5 md:px-7.5 md:pb-4.5 md:pt-6">
+          <div className="flex min-w-0 flex-1 flex-col">
             {children}
             <footer className="flex items-center gap-2 border-t border-[var(--line)] pt-3 text-xs text-[#95a1b2]">
               เขตเวลา {APP_CONFIG.timeZone} <span>·</span> {APP_CONFIG.name}

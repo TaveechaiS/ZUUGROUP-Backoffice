@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/config/app';
 import {
   ADMIN_PAGES,
-  CUSTOMER_SECONDARY_NAV,
   NAVIGATION_SECTIONS,
   type AdminPage,
 } from '@/config/navigation';
@@ -150,36 +149,6 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           })}
         </nav>
       </div>
-    </aside>
-  );
-}
-
-export function CustomerSecondarySidebar() {
-  const currentPath = usePathname();
-
-  return (
-    <aside
-      className="w-full shrink-0 border-b border-[var(--line)] bg-white px-0 py-2 text-[var(--ink-950)] xl:w-[var(--secondary-sidebar-width)] xl:border-b-0 xl:border-r"
-      aria-label="การนำทางเสริม"
-    >
-      <nav aria-label="รายการหน้าข้อมูล">
-        <ul className="m-0 flex list-none gap-1 overflow-x-auto p-0 xl:grid xl:overflow-visible">
-          {CUSTOMER_SECONDARY_NAV.map((page) => {
-            const active = page.href === currentPath;
-            return (
-              <li key={page.href}>
-                <Link
-                  className={`flex min-h-10 items-center whitespace-nowrap rounded-xs px-4 text-sm poppins-regular xl:min-h-14 ${active ? 'bg-[var(--blue-50)] text-[var(--blue-800)]' : 'text-[#68758b]'}`}
-                  href={page.href}
-                  aria-current={active ? 'page' : undefined}
-                >
-                  {page.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
     </aside>
   );
 }

@@ -4,7 +4,7 @@
 |---|---|
 | Phase | 2 — UI และ Design foundation |
 | ผู้รับผิดชอบ | AI |
-| สถานะ | READY_FOR_USER_TEST |
+| สถานะ | DONE |
 | เอกสารอ้างอิง | Project Specs 0.2, Project Plan 0.1, `.impeccable.md`, Figma `Zuugroup` |
 | Branch / Commit ตั้งต้น | `ai` / `20a4ba0` |
 
@@ -39,3 +39,5 @@
 
 - เปิด `http://localhost:5000` แล้วควรเห็นเมนู Admin ภาษาไทย โทนหลัก `#1A58A7` และ Dashboard placeholder ที่ไม่มี KPI/ข้อมูลสรุป
 - ย่อหน้าจอให้แคบแล้วตรวจว่า navigation และพื้นที่หลักยังอ่าน/ใช้งานได้ โดยไม่มีการตัดข้อมูลสำคัญ
+
+**ผล UAT:** เจ้าของโครงการตรวจแล้วและยืนยันผ่านเมื่อ 2026-09-25.

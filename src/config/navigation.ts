@@ -36,14 +36,6 @@ export const ADMIN_PAGES: AdminPage[] = [
 
 export const NAVIGATION_SECTIONS = ['ภาพรวม', 'จัดการข้อมูล', 'จัดการคำสั่งซื้อ', 'การเงิน', 'จัดการระบบ'] as const;
 
-export const CUSTOMER_SECONDARY_NAV = [
-  { href: '/customers/dashboard', label: 'แดชบอร์ดลูกค้า' },
-  { href: '/customers', label: 'รายชื่อลูกค้า' },
-  { href: '/customers/groups', label: 'กลุ่มลูกค้า' },
-  { href: '/customers/territories', label: 'เขต & ผู้แทนขาย' },
-  { href: '/customers/documents', label: 'เอกสารแนบ' },
-] as const;
-
 export function getAdminPage(path: string): AdminPage | undefined {
   const normalizedPath = path === '' ? '/' : `/${path.replace(/^\/+|\/+$/g, '')}`;
   return ADMIN_PAGES.find((page) => page.href === normalizedPath);
