@@ -6,15 +6,18 @@ import type { ReactNode } from 'react';
 import { APP_CONFIG } from '@/config/app';
 import { ADMIN_PAGES, getAdminPage, type AdminPage } from '@/config/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
+import { logout } from '@/app/login/actions';
 
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({ children, account }: { children: ReactNode; account: { name: string; role: string; roleId: string } | null }) {
   const [collapsed, setCollapsed] = useState(false);
   const currentPath = usePathname();
   const page: AdminPage = getAdminPage(currentPath) ?? ADMIN_PAGES[0];
 
+  if (currentPath === '/login') return <>{children}</>;
+
   return (
     <main className="min-h-screen">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} />
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} roleId={account?.roleId ?? ''} />
       <section
         className={`${collapsed ? 'min-h-[calc(100vh-64px)]' : 'min-h-[calc(100vh-102px)]'} border-t-[10px] border-[var(--blue-700)] bg-[var(--blue-700)] md:min-h-screen ${collapsed ? 'md:ml-[var(--collapsed-sidebar-width)]' : 'md:ml-[var(--expanded-sidebar-width)]'}`}
       >
@@ -67,27 +70,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white bg-[#0875bb] text-xs font-[650] text-white md:h-9 md:w-9"
                 aria-hidden="true"
               >
-                A
+                {account?.name.slice(0, 1) ?? 'U'}
               </span>
               <span className="hidden gap-px text-xs text-[var(--ink-950)] md:grid">
-                <strong>ผู้ดูแลระบบ</strong>
-                <small className="text-xs poppins-regular text-[var(--ink-700)]">Admin</small>
+                <strong>{account?.name ?? 'ผู้ใช้งาน'}</strong>
+                <small className="text-xs poppins-regular text-[var(--ink-700)]">{account?.role ?? ''}</small>
               </span>
-              <svg
-                className="ml-3 hidden h-2 w-3.5 md:block"
-                viewBox="0 0 14 8"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M1 1L7 7L13 1"
-                  stroke="#101828"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
             </span>
+            <form action={logout}><button type="submit" className="rounded-md border border-[#d7e3f0] px-2 py-1.5 text-xs text-[#344256] hover:bg-white">ออกจากระบบ</button></form>
           </div>
         </header>
         <div

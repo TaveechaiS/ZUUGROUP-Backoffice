@@ -40,9 +40,10 @@ function NavigationIcon({ name }: { name: string }) {
   );
 }
 
-export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+export function Sidebar({ collapsed, onToggle, roleId }: { collapsed: boolean; onToggle: () => void; roleId: string }) {
   const currentPath = usePathname();
-  const mainPages = ADMIN_PAGES.filter((page) => !page.secondaryOnly && !page.hiddenFromSidebar);
+  const allowedPages = ADMIN_PAGES.filter((page) => roleId === 'ADMIN' || !['/users', '/audit-logs', '/settings'].includes(page.href));
+  const mainPages = allowedPages.filter((page) => !page.secondaryOnly && !page.hiddenFromSidebar);
 
   return (
     <aside
@@ -92,7 +93,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           aria-label="เมนูผู้ดูแลระบบ"
         >
           {NAVIGATION_SECTIONS.map((section) => {
-            const pages = ADMIN_PAGES.filter(
+            const pages = allowedPages.filter(
               (page) => page.section === section && !page.secondaryOnly && !page.hiddenFromSidebar,
             );
             return (

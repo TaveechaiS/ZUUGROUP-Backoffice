@@ -38,5 +38,7 @@ export const NAVIGATION_SECTIONS = ['ภาพรวม', 'จัดการข
 
 export function getAdminPage(path: string): AdminPage | undefined {
   const normalizedPath = path === '' ? '/' : `/${path.replace(/^\/+|\/+$/g, '')}`;
-  return ADMIN_PAGES.find((page) => page.href === normalizedPath);
+  return ADMIN_PAGES.find((page) => page.href === normalizedPath) ??
+    ADMIN_PAGES.filter((page) => page.href !== '/' && normalizedPath.startsWith(`${page.href}/`))
+      .sort((left, right) => right.href.length - left.href.length)[0];
 }

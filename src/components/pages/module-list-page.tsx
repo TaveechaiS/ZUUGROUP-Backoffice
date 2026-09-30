@@ -1,7 +1,9 @@
 ﻿'use client';
 
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import type { MockModuleConfig, MockRow } from '@/features/mock/mock-config';
+import { readMockDrafts } from '@/features/mock/mock-create-storage';
 
 export function ModuleListPage({ href, config }: { href: string; config: MockModuleConfig }) {
   return <ModuleListContent key={href} href={href} config={config} />;
@@ -17,9 +19,12 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
   const [ownerFilter, setOwnerFilter] = useState('ทุกผู้รับผิดชอบ');
   const [statusFilter, setStatusFilter] = useState('ทุกสถานะ');
   const [currentPage, setCurrentPage] = useState(1);
-  const [formOpen, setFormOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
   const [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setRows([...readMockDrafts(href), ...config.rows]), 0);
+    return () => window.clearTimeout(timeout);
+  }, [href, config.rows]);
 
   const filteredRows = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('th');
@@ -99,31 +104,6 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
         'ค่า / จำนวน',
         'สถานะ',
       ];
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!newTitle.trim()) return;
-    const newRow = {
-      ref: `DEMO-${String(rows.length + 1).padStart(3, '0')}`,
-      title: newTitle.trim(),
-      subtitle: 'รายการสาธิต · ข้อมูลชั่วคราว',
-      owner: 'ผู้ใช้ตัวอย่าง',
-      value: 'ตัวอย่าง',
-      status: 'เพิ่มใน Mock',
-    };
-    setRows((current) => [newRow, ...current]);
-    setSelectedTab(config.tabs[0]);
-    setSearch('');
-    setFilter(config.filters[0]);
-    setTypeFilter('ทั้งหมด');
-    setDetailFilter('ทั้งหมด');
-    setOwnerFilter('ทุกผู้รับผิดชอบ');
-    setStatusFilter('ทุกสถานะ');
-    setCurrentPage(1);
-    setNotice(`เพิ่ม “${newTitle.trim()}” ในตัวอย่างแล้ว ข้อมูลนี้จะหายเมื่อรีเฟรชหน้า`);
-    setNewTitle('');
-    setFormOpen(false);
-  }
 
   return (
     <section
@@ -242,19 +222,15 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             setCurrentPage(1);
           }}
         />
-        <button
-          type="button"
-          onClick={() => {
-            setNotice('');
-            setFormOpen(true);
-          }}
+        <Link
+          href={`${href}/create`}
           className="col-span-2 inline-flex h-10 items-center justify-center gap-1 whitespace-nowrap rounded-md bg-[#1a58a7] px-4 text-sm font-semibold text-white transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7] sm:col-span-1"
         >
           <span className="text-sm leading-none" aria-hidden="true">
             +
           </span>
           {config.action}
-        </button>
+        </Link>
       </div>
 
       <div
@@ -343,78 +319,6 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
         <span className="text-xs text-[#9aa4b1]">ข้อมูลจำลอง</span>
       </div>
 
-      {formOpen && (
-        <div
-          className="fixed inset-0 z-50 flex justify-end bg-[#10243a]/35"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setFormOpen(false);
-          }}
-        >
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="mock-form-title"
-            className="flex h-full w-full max-w-[520px] flex-col bg-white shadow-2xl"
-          >
-            <div className="flex items-start justify-between border-b border-[#e5ebf2] px-5 py-5">
-              <div>
-                <span className="text-[11px] font-semibold text-[#357ece]">แบบฟอร์มสาธิต</span>
-                <h3 id="mock-form-title" className="mb-0 mt-1 text-lg font-semibold text-[#14243a]">
-                  {config.action}
-                </h3>
-                <p className="mb-0 mt-1 text-xs text-[#718096]">
-                  ข้อมูลนี้จะอยู่ในหน้าจอชั่วคราวเท่านั้น
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFormOpen(false)}
-                aria-label="ปิด"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-xl text-[#718096] hover:bg-[#f1f4f8]"
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="flex flex-1 flex-col">
-              <div className="flex-1 space-y-2 px-5 py-5">
-                <label
-                  htmlFor="mock-row-title"
-                  className="block text-sm font-medium text-[#35465d]"
-                >
-                  ชื่อรายการตัวอย่าง
-                </label>
-                <input
-                  id="mock-row-title"
-                  required
-                  autoFocus
-                  value={newTitle}
-                  onChange={(event) => setNewTitle(event.target.value)}
-                  placeholder={`ระบุ${config.title}`}
-                  className="h-10 w-full rounded-lg border border-[#dce4ed] px-3 text-sm outline-none focus:border-[#5b9ddb] focus:ring-3 focus:ring-[#1a58a7]/10"
-                />
-                <p className="m-0 text-xs leading-5 text-[#8492a6]">
-                  ไม่มีการเชื่อมต่อฐานข้อมูลหรือบันทึกถาวร
-                </p>
-              </div>
-              <div className="flex flex-col-reverse gap-2 border-t border-[#e5ebf2] bg-[#fbfcfe] px-5 py-4 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setFormOpen(false)}
-                  className="min-h-10 rounded-lg border border-[#dce4ed] px-4 text-sm text-[#526176] hover:bg-[#f7f9fc]"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  className="min-h-10 rounded-lg bg-[#1a58a7] px-4 text-sm font-semibold text-white hover:bg-[#174a8b]"
-                >
-                  เพิ่มในตัวอย่าง
-                </button>
-              </div>
-            </form>
-          </section>
-        </div>
-      )}
     </section>
   );
 }

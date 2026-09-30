@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { headers } from 'next/headers';
 import { Poppins, Noto_Sans_Thai } from 'next/font/google';
 import { AdminShell } from '@/components/layout/admin-shell';
+import { getCurrentUser } from '@/server/auth/current-user';
 import './globals.css';
 
 const poppins = Poppins({
@@ -22,10 +24,13 @@ export const metadata: Metadata = {
   description: 'ระบบหลังบ้านสำหรับธุรกิจจัดจำหน่ายยาและเวชภัณฑ์ B2B',
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const pathname = (await headers()).get('x-zuu-pathname');
+  const user = pathname === '/login' ? null : await getCurrentUser();
+  const account = user ? { name: user.name, role: user.userRole?.role.name ?? '', roleId: user.userRole?.roleId ?? '' } : null;
   return (
     <html lang="th" className={`${poppins.variable} ${notoSansThai.variable}`}>
-      <body><AdminShell>{children}</AdminShell></body>
+      <body><AdminShell account={account}>{children}</AdminShell></body>
     </html>
   );
 }

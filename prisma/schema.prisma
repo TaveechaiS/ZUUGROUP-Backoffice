@@ -6,3 +6,104 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+
+  @@map("account_status")
+}
+
+model User {
+  id           String        @id @default(uuid()) @db.Uuid
+  employeeCode String        @unique @map("employee_code")
+  email        String        @unique
+  name         String
+  team         String?
+  status       AccountStatus @default(ACTIVE)
+  deletedAt    DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  deletedById  String?       @map("deleted_by") @db.Uuid
+  deleteReason String?       @map("delete_reason")
+  lastLoginAt  DateTime?     @map("last_login_at") @db.Timestamptz(6)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  authAccounts AuthAccount[]
+  userRole     UserRole?
+  auditAsActor AuditEvent[]  @relation("AuditActor")
+  auditAsTarget AuditEvent[] @relation("AuditTarget")
+  deletedByUser User?         @relation("UserDeletion", fields: [deletedById], references: [id], onDelete: SetNull)
+  deletedUsers  User[]        @relation("UserDeletion")
+
+  @@index([deletedAt])
+  @@index([deletedById])
+
+  @@map("users")
+}
+
+model AuthAccount {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  provider       String
+  providerUserId String   @map("provider_user_id")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([provider, providerUserId])
+  @@unique([userId, provider])
+  @@map("auth_accounts")
+}
+
+model Role {
+  id              String           @id
+  name            String           @unique
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId String @id @map("user_id") @db.Uuid
+  roleId String @map("role_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model Permission {
+  id              String           @id
+  description     String
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id")
+  permissionId String    @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model AuditEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  occurredAt    DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  actorUserId   String?  @map("actor_user_id") @db.Uuid
+  targetUserId  String?  @map("target_user_id") @db.Uuid
+  actorRole     String?  @map("actor_role")
+  action        String
+  requestId     String   @map("request_id")
+  schemaVersion Int      @default(1) @map("schema_version")
+  before        Json?
+  after         Json?
+  actor         User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  target        User?    @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([targetUserId, occurredAt])
+  @@map("audit_events")
+}

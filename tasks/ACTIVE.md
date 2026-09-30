@@ -2,8 +2,6 @@
 
 | Task | ผู้รับผิดชอบ | สถานะ | ขอบเขต | หมายเหตุ |
 |---|---|---|---|---|
-| TASK-029 | AI | READY_FOR_USER_TEST | เว็บ Mock ทุกเมนู; ข้อมูลแยกโฟลเดอร์รายหน้า โครง UI ใช้ร่วมกัน | งานเดิมผ่าน lint/type-check/build/diff-check; ตำแหน่งไฟล์ย้ายโดย TASK-030 ไป `src/app/README.md` |
-| TASK-030 | AI | READY_FOR_USER_TEST | จัดหน้าแต่ละ URL ใต้ `src/app`; ปรับขนาดเนื้อหา Tab, Filter, ตาราง, กล่อง และตัวอักษรเทียบ TPSO โดยคงสีและพฤติกรรม ZUU | 22 route มี `page.tsx`/`data.ts`; lint, build, type-check และ diff-check ผ่าน; รอผู้ใช้ตรวจภาพและการใช้งาน |
-| TASK-031 | AI | READY_FOR_USER_TEST | ปรับ padding กรอบเนื้อหาหลักใน `AdminShell` ตามกรอบที่ผู้ใช้ชี้เป็น `p-6` | แก้เฉพาะ className ของ wrapper ใต้ Topbar; ตรวจ class/diff แล้ว; รอผู้ใช้ตรวจภาพ |
-| TASK-032 | AI | READY_FOR_USER_TEST | ลบเส้นคั่นคอลัมน์และเพิ่มกรอบนอกครบสี่ด้านของตารางรายการกับตารางผู้ใช้งาน | ใช้ `border` รอบนอกตามคำแก้ล่าสุด; ไม่มี `border-r` ในเซลล์; ตรวจ class/diff แล้ว |
-| TASK-033 | AI | READY_FOR_USER_TEST | แสดงข้อความในตารางเต็มโดยขึ้นบรรทัดใหม่แทน `...` | หัวตาราง/เซลล์/การ์ดมือถือเลิกใช้ `truncate`; ตรวจ class/diff แล้ว; รอผู้ใช้ตรวจภาพ |
+| TASK-037 | AI | IN_PROGRESS | Auth/RBAC และจัดการผู้ใช้จริง; ป้องกัน Admin ตัดสิทธิ์บัญชีตนเองและแก้ Login ของผู้ใช้ที่ลบ | คืนบัญชี `admin` หลักและบันทึก Audit แล้ว; self-guard ผ่าน API 409 ทั้งลบ/ระงับ/ลด Role ด้วยบัญชีชั่วคราวที่ล้างแล้ว; รอ UAT หน้าเว็บและ console |
+| TASK-038 | AI | READY_FOR_USER_TEST | แยกฟอร์มเพิ่มรายการของหน้า Mock ที่ใช้ `ModuleListPage` ทั้ง 20 หน้าเป็น URL `<หน้ารายการ>/create`; คงการทำงานตัวอย่างในแท็บ | route ครบ 20/20; lint/type-check/build/diff-check และตรวจ storage ผ่าน; รอผู้ใช้ตรวจหน้าและการนำทาง |
+| TASK-039 | AI | READY_FOR_USER_TEST | ปิดสิทธิ์เรียก `public.rls_auto_enable()` จากผู้ใช้ API ทั่วไปตาม Security Advisor โดยคง event trigger | Deploy migration แล้ว; `anon`/`authenticated` EXECUTE=false, trigger `ensure_rls` ยังเปิด, คำเตือนเดิมหาย; รอตรวจพฤติกรรม trigger ในสภาพแวดล้อมทดสอบ |
