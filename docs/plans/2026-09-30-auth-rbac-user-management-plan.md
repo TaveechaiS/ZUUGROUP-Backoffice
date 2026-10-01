@@ -86,6 +86,13 @@
 3. แก้ `src/app/login/actions.ts` ให้ตรวจ `deletedAt` หลัง Supabase Auth Login แล้ว sign out/แจ้งบัญชีไม่พร้อม; ตรวจ dev server log สำหรับการนำทางเมื่อ Session ไม่พร้อม.
 4. ตรวจ `lint`, `type-check`, `build`, `git diff --check`, guard ด้วยบัญชีทดสอบ และให้เจ้าของโครงการยืนยันหน้า Admin หลักกลับเข้าใช้ได้.
 
+### งานย่อย: รับมือ connection ปิดระหว่าง Login
+
+1. ตรวจ dev log, Prisma error code, `DATABASE_URL` โดยไม่แสดง Secret และ query ฐานข้อมูลแบบอ่านอย่างเดียว; รีสตาร์ตเฉพาะ dev server หาก connection pool ค้าง
+2. เพิ่ม helper ใน `src/server/db/prisma.ts` ให้ retry หนึ่งครั้งเฉพาะ Prisma read ที่ตอบ `P1017`; ใช้กับ `src/app/login/actions.ts` และ `src/server/auth/current-user.ts`
+3. หาก Login ยังอ่านบัญชีไม่ได้ ให้ sign out และแสดงข้อความชั่วคราวใน `src/app/login/page.tsx`; ไม่จัดเป็นรหัสผ่านผิด
+4. ตรวจ Login Server Action ด้วยบัญชีชั่วคราวที่ล้างหลังทดสอบ, `lint`, `type-check`, `build` และ `git diff --check`
+
 การสร้าง Admin คนแรก: ใช้รหัสพนักงาน `admin`, อีเมล `admin@zuugroup.com`, ชื่อแสดง `Admin`; รอ Server secret key ใน `.env.local` จากเจ้าของโครงการ จากนั้นใช้ recovery utility ให้เจ้าของโครงการป้อนรหัสผ่านใหม่ที่ผ่านขั้นต่ำ 8 ตัวอักษรบนเครื่อง แล้วตรวจ Login/Role/Audit
 
 ## ไฟล์ที่คาดว่าจะเปลี่ยนหลังอนุมัติ

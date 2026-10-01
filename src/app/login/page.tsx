@@ -8,6 +8,7 @@ export default async function LoginPage({ searchParams }: {
   const message = !configured || error === 'config' ? 'ยังไม่ได้ตั้งค่า Supabase Publishable key ใน .env.local กรุณาแจ้งผู้ดูแลระบบ' :
     error === 'required' ? 'กรุณากรอกอีเมลและรหัสผ่าน' :
     error === 'inactive' ? 'บัญชีนี้ยังไม่พร้อมใช้งาน กรุณาติดต่อ Admin' :
+    error === 'temporary' ? 'ระบบเชื่อมต่อข้อมูลชั่วคราวไม่ได้ กรุณาลองเข้าสู่ระบบอีกครั้ง' :
     error ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : '';
 
   return (

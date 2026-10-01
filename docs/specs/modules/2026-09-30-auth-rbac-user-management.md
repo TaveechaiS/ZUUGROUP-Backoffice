@@ -18,6 +18,7 @@ Task นี้วางฐาน Auth/RBAC และให้ Admin จัดก
 - Admin สร้างบัญชี กำหนดหนึ่ง Role ต่อผู้ใช้ ระงับ/เปิดใช้งาน กู้คืน และตั้งรหัสผ่านใหม่ให้; ไม่ส่ง invitation/reset email หรือลิงก์.
 - Supabase Auth เก็บ credentials; ตารางธุรกิจเก็บข้อมูลพนักงาน, Role, สถานะ และรหัสเชื่อม Auth โดยไม่เก็บ password/hash.
 - ผู้ไม่มี session ถูก redirect ไป Login; ผู้มี session แต่บัญชีถูกระงับ/ลบหรือไม่มี Role ที่ยอมรับ ต้องถูกปฏิเสธที่ Server.
+- หากการอ่านบัญชีหลังยืนยันตัวตนพบ Prisma `P1017` เพราะ connection ปิด ให้ลองอ่านใหม่ได้หนึ่งครั้งเฉพาะคำสั่งอ่าน; หากยังล้มเหลว ให้จบ Session ที่เพิ่งสร้างและแจ้งว่าระบบเชื่อมต่อข้อมูลชั่วคราวไม่ได้ โดยไม่แสดง stack trace หรือบอกรหัสผ่านผิด.
 - การตรวจสิทธิ์ต้องอยู่ใน Server Page/Route Handler/Server Action ทุกเส้นทาง; Proxy ใช้ช่วย refresh/redirect ได้แต่ไม่แทน authorization.
 - Role และสถานะมาจากฐานข้อมูลธุรกิจ ไม่รับจาก Browser และไม่ใช้ `user_metadata` ตัดสินสิทธิ์.
 - การเปลี่ยนสถานะ/Role มีผลกับ request ถัดไป แม้ผู้ใช้ถือ session เดิม; token/cookie อย่างเดียวไม่ยืนยันว่า account ยัง active.

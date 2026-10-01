@@ -22,3 +22,17 @@ export function getPrismaClient(): PrismaClient {
 
   return globalForPrisma.prismaClient;
 }
+
+export function isClosedDatabaseConnection(error: unknown): boolean {
+  return typeof error === 'object' && error !== null &&
+    'code' in error && error.code === 'P1017';
+}
+
+export async function readWithConnectionRetry<T>(read: (client: PrismaClient) => Promise<T>): Promise<T> {
+  try {
+    return await read(getPrismaClient());
+  } catch (error) {
+    if (!isClosedDatabaseConnection(error)) throw error;
+    return read(getPrismaClient());
+  }
+}
