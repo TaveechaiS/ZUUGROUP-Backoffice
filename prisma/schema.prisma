@@ -115,6 +115,8 @@ model AuditEvent {
   @@map("audit_events")
 }
 
+
+
 model ProductCategory {
   id        String    @id @default(uuid()) @db.Uuid
   code      String    @unique
@@ -145,6 +147,7 @@ model Drug {
 }
 
 model Warehouse {
+  stockCountSessionRecords StockCountSession[]
   id        String    @id @default(uuid()) @db.Uuid
   code      String    @unique
   name      String    @unique
@@ -184,4 +187,320 @@ model Product {
   @@index([drugId])
   @@index([defaultWarehouseId])
   @@map("products")
+}
+
+model Customer {
+  customerDocumentRecords CustomerDocument[]
+  customerFollowUpRecords CustomerFollowUp[]
+  quotationRecords Quotation[]
+  salesOrderRecords SalesOrder[]
+  invoiceRecords Invoice[]
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  category String @default("")
+  province String @default("")
+  owner String @default("")
+  paymentTerms String @default("") @map("payment_terms")
+  groupId String? @map("group_id") @db.Uuid
+  group CustomerGroup? @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  @@index([groupId])
+  territoryId String? @map("territory_id") @db.Uuid
+  territory SalesTerritory? @relation(fields: [territoryId], references: [id], onDelete: Restrict)
+  @@index([territoryId])
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("customers")
+}
+
+model CustomerGroup {
+  customerRecords Customer[]
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  category String @default("")
+  description String @default("")
+  owner String @default("")
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("customer_groups")
+}
+
+model SalesTerritory {
+  customerRecords Customer[]
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  area String @default("")
+  owner String @default("")
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("sales_territories")
+}
+
+model CustomerDocument {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  customerId String? @map("customer_id") @db.Uuid
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  @@index([customerId])
+  documentType String @default("") @map("document_type")
+  dateText String @default("") @map("date_text")
+  fileUrl String @default("") @map("file_url")
+  owner String @default("")
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("customer_documents")
+}
+
+model CustomerFollowUp {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  customerId String? @map("customer_id") @db.Uuid
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  @@index([customerId])
+  category String @default("")
+  province String @default("")
+  followUpText String @default("") @map("follow_up_text")
+  owner String @default("")
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("customer_follow_ups")
+}
+
+model Supplier {
+  purchaseOrderRecords PurchaseOrder[]
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  category String @default("")
+  location String @default("")
+  contact String @default("")
+  paymentTerms String @default("") @map("payment_terms")
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("suppliers")
+}
+
+model Expense {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  category String @default("")
+  description String @default("")
+  owner String @default("")
+  amount Decimal? @db.Decimal(14, 2)
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("expenses")
+}
+
+model PurchaseOrder {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  supplierId String? @map("supplier_id") @db.Uuid
+  supplier Supplier? @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  @@index([supplierId])
+  description String @default("")
+  owner String @default("")
+  amount Decimal? @db.Decimal(14, 2)
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model Quotation {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  customerId String? @map("customer_id") @db.Uuid
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  @@index([customerId])
+  description String @default("")
+  owner String @default("")
+  amount Decimal? @db.Decimal(14, 2)
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("quotations")
+}
+
+model SalesOrder {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  customerId String? @map("customer_id") @db.Uuid
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  @@index([customerId])
+  description String @default("")
+  owner String @default("")
+  amount Decimal? @db.Decimal(14, 2)
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("sales_orders")
+}
+
+model Invoice {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  customerId String? @map("customer_id") @db.Uuid
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  @@index([customerId])
+  dueText String @default("") @map("due_text")
+  owner String @default("")
+  amount Decimal? @db.Decimal(14, 2)
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("invoices")
+}
+
+model Promotion {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  category String @default("")
+  description String @default("")
+  owner String @default("")
+  conditions String @default("")
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("promotions")
+}
+
+model StockCountSession {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  warehouseId String? @map("warehouse_id") @db.Uuid
+  warehouse Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  @@index([warehouseId])
+  description String @default("")
+  owner String @default("")
+  resultText String @default("") @map("result_text")
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("stock_count_sessions")
+}
+
+model SystemSetting {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+  name String @default("")
+  status String @default("ใช้งานอยู่")
+  category String @default("")
+  description String @default("")
+  owner String @default("")
+  value String @default("")
+  notes String @default("")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedById String? @map("deleted_by_id") @db.Uuid
+  deleteReason String? @map("delete_reason")
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@map("system_settings")
+}
+
+model RecordImportMap {
+ sourceId String @id @map("source_id") @db.Uuid
+ sourceModule String @map("source_module")
+ entity String
+ recordId String @map("record_id") @db.Uuid
+ @@index([entity,recordId])
+ @@map("record_import_map")
 }

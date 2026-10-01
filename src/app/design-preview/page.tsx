@@ -15,7 +15,7 @@ export default async function Page() {
   return (
     <main className="flex flex-1 flex-col gap-7 p-6 pb-10 text-[#26364b]">
       <header className="max-w-3xl">
-        <p className="mb-2 text-xs font-semibold tracking-wide text-[#1a58a7]">ภาพรวมสำหรับปรับดีไซน์ · ข้อมูลจำลอง</p>
+        <p className="mb-2 text-xs font-semibold tracking-wide text-[#1a58a7]">ภาพรวมหน้าระบบ</p>
         <h1 className="m-0 text-2xl font-semibold">เส้นทางหน้าระบบ</h1>
         <p className="mb-0 mt-2 text-sm leading-6 text-[#718096]">เปิดดูรูปแบบรายการและหน้าเพิ่มของแต่ละโมดูลได้จากที่นี่ หน้า Detail ตัวอย่างเริ่มที่ลูกค้าและสินค้า ข้อมูลจริงและกฎการทำงานจะเติมหลังได้รับข้อกำหนด</p>
       </header>

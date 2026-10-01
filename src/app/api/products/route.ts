@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getCurrentUser } from '@/server/auth/current-user';
+import { getCurrentApiUser } from '@/server/auth/current-user';
 import { authorizeUserManagement } from '@/server/auth/api-authorization';
 import { createProduct, listProducts, ProductError } from '@/server/products/service';
 
-export async function GET() {
-  const user = await getCurrentUser();
+export async function GET(request: NextRequest) {
+  const user = await getCurrentApiUser(request);
   if (!user) return NextResponse.json({ error: 'กรุณาเข้าสู่ระบบ' }, { status: 401 });
   return NextResponse.json({ products: await listProducts(user.userRole?.roleId === 'ADMIN') });
 }

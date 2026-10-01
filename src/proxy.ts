@@ -5,6 +5,10 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-zuu-pathname', request.nextUrl.pathname);
   let response = NextResponse.next({ request: { headers: requestHeaders } });
+  if (request.method==='GET' && ['/api/public','/api/dashboard','/api/reports','/api/customers','/api/customer-groups','/api/sales-territories','/api/customer-documents','/api/customer-follow-ups','/api/suppliers','/api/expenses','/api/purchases','/api/quotes','/api/orders','/api/billing','/api/promotions','/api/stock-counts','/api/settings'].some(prefix=>request.nextUrl.pathname===prefix||request.nextUrl.pathname.startsWith(prefix+'/'))) {
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
+  }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return response;

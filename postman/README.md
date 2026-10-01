@@ -1,21 +1,24 @@
-# Postman — Zuugroup (GET)
+# Postman — Zuugroup
 
-1. เปิดโปรเจกต์ด้วย `npm run dev` แล้วล็อกอินเว็บที่ `http://localhost:5000/login` ด้วยบัญชีทดสอบที่มีสิทธิ์
-2. ใน Postman กด **Import** แล้วเลือก `Zuugroup.postman_collection.json`; Collection จะชื่อ **Zuugroup** และ `baseUrl` เริ่มต้นเป็น `http://localhost:5000`
-3. ใช้ Postman Interceptor เพื่อ sync cookies จากเบราว์เซอร์สำหรับ `localhost` เข้า Postman cookie jar หรือเพิ่ม session cookies ของโดเมนเดียวกันใน cookie manager. ต้องใช้ host เดียวกับ `baseUrl` ตลอด; Collection ไม่มี token หรือรหัสผ่าน
-4. ส่ง **GET ข้อมูลแม่สินค้า** ก่อน เพื่อให้ Collection เติม `categoryId` และ `dosageFormId`; จากนั้นส่ง **GET เลขลำดับสินค้าถัดไป**, **GET รายการสินค้า** และ **GET รายการผู้ใช้งาน (Admin)**
+Collection [Zuugroup ใน Workspace](https://sir34771-498818.postman.co/workspace/7734105b-3c13-40b1-8adc-cfa12f7e7db8/collection/55942202-0b3c7e3b-7989-43ae-b40a-5dc7cf699903) และไฟล์ Zuugroup.postman_collection.json ใช้ API ของเว็บที่อ่าน DB จริง. มี 167 คำขอ แบ่ง 23 กลุ่ม ไม่มีโฟลเดอร์ Demo.
 
-GET สินค้าทั้งสามรายการต้องเป็นผู้ใช้ Active; GET ผู้ใช้งานต้องเป็น Admin. ถ้าไม่ส่ง session cookie จะได้ HTTP 401 และถ้า Role ไม่ใช่ Admin แล้วเรียกรายชื่อผู้ใช้ จะได้ HTTP 403. ถ้าเปลี่ยน `baseUrl` เป็น IP/host อื่น ต้อง sync cookie ของ host ใหม่นั้นด้วย
+## เริ่มใช้งาน
 
-Collection นี้มีเฉพาะ GET route ที่มีในแอปและอ่าน DB จริง. หน้า Audit Logs ยังเป็น Server page `/audit-logs` โดยไม่มี JSON API; โมดูลที่ยัง Mock ไม่มี GET API ใน Collection นี้. อย่า Export หรือ commit Cookie/Token ของ Postman environment
+1. รัน npm run dev แล้วตั้ง Collection Variable baseUrl เป็น http://localhost:5000. เมื่อ Deploy แล้วเปลี่ยนเป็น URL เว็บ.
+2. GET รายการ/รายละเอียด/filters/options ใช้ No Auth ตามฟิลด์สาธารณะที่อนุมัติ. ไม่ต้องใส่ Supabase secret key.
+3. รายการใช้ limit=10 และ offset=0; หน้าถัดไป offset=10. รองรับ search และ filters ตามโมดูล, limit สูงสุด 50.
+4. สำหรับเขียน ให้สร้าง Environment ส่วนตัวและตั้ง loginPassword เป็นรหัสของบัญชี. เลือก POST Login Admin; script เก็บ adminToken ใน Environment. ไม่มีรหัสหรือ token จริงในไฟล์ Collection.
+5. เลือกโมดูลและใส่ newCode/newName รวมถึงฟิลด์ที่ต้องการใน Body แล้ว Send POST Create. เมื่อสำเร็จ script จะเก็บ UUID ของรายการใหม่ใน Variable ของโมดูลเพื่อใช้ PATCH/DELETE/restore ต่อ.
+6. DELETE เป็นการซ่อนพร้อม deleteReason; GET Deleted และ POST Restore ใช้ Admin token. Role อื่นเขียนไม่ได้.
 
-## ดู PostgreSQL โดยตรงด้วย Data request
+## กลุ่มข้อมูล
 
-ขั้นตอนนี้แยกจาก Collection HTTP ด้านบน และใช้สิทธิ์ของบัญชีฐานข้อมูล ไม่ผ่านสิทธิ์ผู้ใช้ของเว็บ
+ข้อมูลหลัก/หัวเอกสาร 14 กลุ่ม: customers, customer-groups, sales-territories, customer-documents, customer-follow-ups, suppliers, expenses, purchases, quotes, orders, billing, promotions, stock-counts, settings. แต่ละกลุ่มมี list/detail/filters/options/config และ create/update/delete/restore. ข้อมูลสินค้า/หมวด/รูปแบบ/ตัวยา/คลังใช้ endpoint ของตัวเอง.
 
-1. ใน Supabase Dashboard เปิดโปรเจกต์ → **Connect → Session pooler** แล้วคัดลอก connection string สำหรับ PostgreSQL. เก็บรหัสผ่านไว้เฉพาะเครื่องของคุณ
-2. ใน Postman Desktop กด **+ → Data → PostgreSQL** แล้วใส่ connection string; ถ้าต้องการแยกรหัสผ่านให้ใส่ที่แท็บ **Authorization**
-3. เปิด **Settings → Read-only** ก่อนรันคำสั่ง แล้วใช้ SQL ใน `postman/sql/01-products.sql` ถึง `04-product-categories.sql`
-4. เริ่มจากสินค้า; ควรเห็น `MED-TAB-0001` และ `MED-CAP-0001` ที่เป็นข้อมูลตัวอย่างใน DB. คำสั่งอื่นแสดงผู้ใช้ เหตุการณ์ Audit และหมวดสินค้าตามข้อมูลปัจจุบัน
+Dashboard และรายงานอ่านข้อมูลต้นทาง. Sales เป็นหัวคำสั่งซื้อ, Finance เป็นหัววางบิล, Inventory เป็นรายการสินค้า; ยังไม่ใช่ยอดรับรู้รายได้/หนี้สุทธิ/ยอดคลัง. ฟิลด์เงินใหม่ว่าง และสินค้าใหม่ราคา 0 รอกรอกจริง. Settings เป็นข้อมูลรายการ ไม่เปลี่ยนการตั้งค่า Auth อัตโนมัติ.
 
-Postman Data request ไม่ได้ใช้ session cookie ของเว็บ. ห้ามนำ connection string หรือรหัสผ่าน DB ไปใส่ Collection ที่แชร์หรือ commit ลง Git. ถ้าเครื่องต่อแบบ Direct แล้วไม่ได้ ให้ใช้ **Session pooler** ที่ Supabase แสดงในหน้า Connect; Host/Username ต้องคัดลอกจากหน้านั้นตามจริง
+## ข้อมูลตั้งต้น
+
+ลง DB แล้วโมดูลละ 15 รายการและสินค้า 15 รายการ; หมวด 15, รูปแบบยา 15, ตัวยา 17, คลัง 18. ใช้บัญชี 4 Role เดิม. รัน npm run seed:records เพื่อเติมให้ครบเป้าหมายโดยไม่ทับข้อมูลเดิม. Script migrate-operational-data.mjs/operational-import.sql เป็นประวัติการย้ายครั้งเดียว ห้ามรันหลังถอนตารางเดิม.
+
+รอบนี้ตรวจโครงสร้าง Collection และ static checks เท่านั้น ไม่ส่งคำขอ API/ล็อกอินตามคำสั่งผู้ใช้. localhost ต้องเปิดเว็บและใช้ Postman Desktop หรือ Desktop Agent.

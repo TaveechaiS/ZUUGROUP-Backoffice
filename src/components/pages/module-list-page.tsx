@@ -1,16 +1,60 @@
-﻿'use client';
-
-import { useEffect, useMemo, useState } from 'react';
+'use client';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import type { MockModuleConfig, MockRow } from '@/features/mock/mock-config';
-import { readMockDrafts } from '@/features/mock/mock-create-storage';
 
-export function ModuleListPage({ href, config }: { href: string; config: MockModuleConfig }) {
-  return <ModuleListContent key={href} href={href} config={config} />;
+import {
+  readRecord,
+  moduleForPage,
+  type RecordConfig,
+  type RecordRow,
+  type RecordFilters,
+} from '@/features/records/types';
+
+export function ModuleListPage({ href }: { href: string }) {
+  const apiPath = '/api/' + (moduleForPage(href)?.key ?? href.slice(1));
+  const [config, setConfig] = useState<RecordConfig | null>(null);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    readRecord<{ data: RecordConfig }>(apiPath + '/config', controller.signal)
+      .then((r) => {
+        setConfig(r.data);
+        setError('');
+      })
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(e.message);
+      });
+    return () => controller.abort();
+  }, [apiPath, retry]);
+  if (!config)
+    return (
+      <section className="p-6" role="status">
+        {error || 'กำลังโหลดข้อมูลจาก DB...'}
+        {error && (
+          <button
+            type="button"
+            className="ml-3 text-blue-700 underline"
+            onClick={() => setRetry((n) => n + 1)}
+          >
+            ลองใหม่
+          </button>
+        )}
+      </section>
+    );
+  return <ModuleListContent key={href} href={href} apiPath={apiPath} config={config} />;
 }
 
-function ModuleListContent({ href, config }: { href: string; config: MockModuleConfig }) {
-  const [rows, setRows] = useState(config.rows);
+function ModuleListContent({
+  href,
+  config,
+  apiPath,
+}: {
+  href: string;
+  config: RecordConfig;
+  apiPath: string;
+}) {
+  const [rows, setRows] = useState<RecordRow[]>([]);
   const [selectedTab, setSelectedTab] = useState(config.tabs[0]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState(config.filters[0]);
@@ -21,79 +65,100 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
   const [currentPage, setCurrentPage] = useState(1);
   const [notice, setNotice] = useState('');
 
+  const [options, setOptions] = useState<RecordFilters>({
+    owners: [],
+    statuses: [],
+    types: [],
+    details: [],
+  });
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    const timeout = window.setTimeout(() => setRows([...readMockDrafts(href), ...config.rows]), 0);
-    return () => window.clearTimeout(timeout);
-  }, [href, config.rows]);
-
-  const filteredRows = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase('th');
-    return rows.filter((item) => {
-      const [type, detail] = splitSubtitle(item.subtitle);
-      const matchesSearch =
-        !query ||
-        `${item.ref} ${item.title} ${item.subtitle} ${item.owner}`
-          .toLocaleLowerCase('th')
-          .includes(query);
-      const matchesFilter =
-        filter === config.filters[0] ||
-        `${item.title} ${item.subtitle} ${item.status}`.includes(filter.replace(/^ทุก/, ''));
-      const matchesType = typeFilter === 'ทั้งหมด' || type === typeFilter;
-      const matchesDetail = detailFilter === 'ทั้งหมด' || detail === detailFilter;
-      const matchesOwner = ownerFilter === 'ทุกผู้รับผิดชอบ' || item.owner === ownerFilter;
-      const matchesStatus = statusFilter === 'ทุกสถานะ' || item.status === statusFilter;
-      const isAllTab =
-        selectedTab === config.tabs[0] ||
-        [
-          'ทั้งหมด',
-          'ภาพรวม',
-          'สินค้าทั้งหมด',
-          'คงเหลือ',
-          'วันนี้',
-          'สัปดาห์นี้',
-          'เดือนนี้',
-          'ปีนี้',
-        ].includes(selectedTab);
-      const matchesTab =
-        isAllTab ||
-        `${item.status} ${item.title} ${item.subtitle}`.includes(
-          selectedTab.replace('ทั้งหมด', ''),
-        ) ||
-        (selectedTab === 'เสร็จสิ้น' &&
-          /สำเร็จ|ครบ|บันทึกแล้ว|กำหนดแล้ว|ตรวจแล้ว/.test(item.status)) ||
-        (selectedTab === 'รอดำเนินการ' && /รอ|กำลัง|ติดตาม/.test(item.status));
-      return (
-        matchesSearch &&
-        matchesFilter &&
-        matchesType &&
-        matchesDetail &&
-        matchesOwner &&
-        matchesStatus &&
-        matchesTab
-      );
-    });
+    const controller = new AbortController();
+    readRecord<{ data: RecordFilters }>(apiPath + '/filters', controller.signal)
+      .then((r) => setOptions(r.data))
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(e.message);
+      });
+    return () => controller.abort();
+  }, [apiPath, retry]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      setLoading(true);
+      setError('');
+      const params = new URLSearchParams({
+        offset: String((currentPage - 1) * 10),
+        limit: '10',
+        search,
+        tab: selectedTab,
+        filter,
+      });
+      params.set('deleted', String(selectedTab === 'ลบแล้ว'));
+      if (typeFilter !== 'ทั้งหมด') params.set('type', typeFilter);
+      if (detailFilter !== 'ทั้งหมด') params.set('detail', detailFilter);
+      if (ownerFilter !== 'ทุกผู้รับผิดชอบ') params.set('owner', ownerFilter);
+      if (statusFilter !== 'ทุกสถานะ') params.set('status', statusFilter);
+      readRecord<{ data: RecordRow[]; pagination: { total: number } }>(
+        apiPath + '?' + params,
+        controller.signal,
+      )
+        .then((r) => {
+          setRows(r.data);
+          setTotal(r.pagination.total);
+          setLoading(false);
+        })
+        .catch((e) => {
+          if (!controller.signal.aborted) {
+            setError(e.message);
+            setRows([]);
+            setLoading(false);
+          }
+        });
+    }, 200);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [
-    config.filters,
-    config.tabs,
-    detailFilter,
-    filter,
-    ownerFilter,
-    rows,
+    apiPath,
+    currentPage,
     search,
     selectedTab,
-    statusFilter,
+    filter,
     typeFilter,
+    detailFilter,
+    ownerFilter,
+    statusFilter,
+    retry,
   ]);
-
-  const pageSize = 10;
-  const pageCount = Math.max(1, Math.ceil(filteredRows.length / pageSize));
-  const pagedRows = filteredRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const owners = [...new Set(rows.map((item) => item.owner))];
-  const statuses = [...new Set(rows.map((item) => item.status))];
-  const types = [...new Set(rows.map((item) => splitSubtitle(item.subtitle)[0]))];
-  const details = [...new Set(rows.map((item) => splitSubtitle(item.subtitle)[1]).filter(Boolean))];
+  const pageCount = Math.max(1, Math.ceil(total / 10));
+  const pagedRows = loading ? [] : rows;
+  const { owners, statuses, types, details } = options;
   const isCustomerList = href === '/customers' || href === '/customers/list';
-  const detailHref = href === '/customers' || href === '/products' ? href : null;
+  const detailHref = selectedTab === 'ลบแล้ว' ? null : config.page;
+  const [restoreBusy, setRestoreBusy] = useState('');
+  async function restore(row: RecordRow) {
+    setRestoreBusy(row.id);
+    setError('');
+    try {
+      const response = await fetch('/api/' + config.key + '/' + row.id + '/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      const result = await response.json();
+        if (!response.ok) throw new Error(result.error?.message ?? 'กู้คืนไม่สำเร็จ');
+        setCurrentPage(1);
+        setRetry((n) => n + 1);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'กู้คืนไม่สำเร็จ');
+    } finally {
+      setRestoreBusy('');
+    }
+  }
   const tableHeaders = isCustomerList
     ? ['ชื่อลูกค้า/บริษัท', 'ประเภท', 'รหัสลูกค้า', 'จังหวัด', 'ผู้ดูแล', 'เงื่อนไข', 'สถานะ']
     : [
@@ -107,10 +172,25 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
       ];
 
   return (
-    <section
-      className="flex flex-1 flex-col gap-0 p-6 pb-7"
-      aria-label={`${config.title} ข้อมูลจำลอง`}
-    >
+    <section className="flex flex-1 flex-col gap-0 p-6 pb-7" aria-label={config.title}>
+      {config.description && <p className="mb-3 text-sm text-[#718096]">{config.description}</p>}
+      <p className="mb-3 text-xs text-[#718096]">ข้อมูลในระบบ · แสดงครั้งละ 10 รายการ</p>
+      {loading && (
+        <p role="status" className="text-sm text-[#718096]">
+          กำลังโหลด...
+        </p>
+      )}
+      {error && (
+        <div
+          role="alert"
+          className="mb-3 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
+          {error}
+          <button type="button" onClick={() => setRetry((n) => n + 1)} className="ml-3 underline">
+            ลองใหม่
+          </button>
+        </div>
+      )}
       {notice && (
         <div
           role="status"
@@ -132,7 +212,7 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
         role="tablist"
         aria-label={`หมวด ${config.title}`}
       >
-        {config.tabs.map((tab) => (
+        {[...config.tabs, ...(config.canWrite ? ['ลบแล้ว'] : [])].map((tab) => (
           <button
             key={tab}
             type="button"
@@ -152,14 +232,8 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
       <div
         className={`grid grid-cols-2 items-end gap-5 rounded-xl border p-6 shadow-xs sm:grid-cols-3 xl:grid-cols-[repeat(6,minmax(0,1fr))_auto] ${isCustomerList ? 'border-[#e4e7ec] bg-white' : 'border-[#e4e9f0] bg-[#f8f9fb]'}`}
       >
-        <label
-          className="relative col-span-2 min-w-0 sm:col-span-1"
-        >
-          <span
-            className="mb-2 block text-xs leading-4 text-[#344256]"
-          >
-            ค้นหา
-          </span>
+        <label className="relative col-span-2 min-w-0 sm:col-span-1">
+          <span className="mb-2 block text-xs leading-4 text-[#344256]">ค้นหา</span>
           <svg
             className="pointer-events-none absolute bottom-3 left-2 h-3 w-3 fill-none stroke-[#8b98a9] stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]"
             viewBox="0 0 24 24"
@@ -178,7 +252,7 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             className="h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white pl-8 pr-3 text-sm text-[#344256] outline-none placeholder:text-[#9ba7b6] focus:border-[#1a58a7]"
           />
         </label>
-        <MockFilter
+        <RecordFilter
           label={isCustomerList ? 'กลุ่มลูกค้า' : 'หมวด'}
           value={filter}
           options={config.filters}
@@ -187,7 +261,7 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             setCurrentPage(1);
           }}
         />
-        <MockFilter
+        <RecordFilter
           label={isCustomerList ? 'ประเภท' : 'ชนิด'}
           value={typeFilter}
           options={['ทั้งหมด', ...types]}
@@ -196,7 +270,7 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             setCurrentPage(1);
           }}
         />
-        <MockFilter
+        <RecordFilter
           label={isCustomerList ? 'จังหวัด' : 'รายละเอียด'}
           value={detailFilter}
           options={['ทั้งหมด', ...details]}
@@ -205,7 +279,7 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             setCurrentPage(1);
           }}
         />
-        <MockFilter
+        <RecordFilter
           label={isCustomerList ? 'ผู้ดูแล' : 'ผู้รับผิดชอบ'}
           value={ownerFilter}
           options={['ทุกผู้รับผิดชอบ', ...owners]}
@@ -214,7 +288,7 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             setCurrentPage(1);
           }}
         />
-        <MockFilter
+        <RecordFilter
           label="สถานะ"
           value={statusFilter}
           options={['ทุกสถานะ', ...statuses]}
@@ -223,25 +297,43 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             setCurrentPage(1);
           }}
         />
-        <Link
-          href={`${href}/create`}
-          className="col-span-2 inline-flex h-10 items-center justify-center gap-1 whitespace-nowrap rounded-md bg-[#1a58a7] px-4 text-sm font-semibold text-white transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7] sm:col-span-1"
-        >
-          <span className="text-sm leading-none" aria-hidden="true">
-            +
-          </span>
-          {config.action}
-        </Link>
+        {config.canWrite && (
+          <Link
+            href={`${config.page}/create`}
+            className="col-span-2 inline-flex h-10 items-center justify-center gap-1 whitespace-nowrap rounded-md bg-[#1a58a7] px-4 text-sm font-semibold text-white transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7] sm:col-span-1"
+          >
+            <span className="text-sm leading-none" aria-hidden="true">
+              +
+            </span>
+            {config.action}
+          </Link>
+        )}
       </div>
 
-      <div
-        className="mt-6 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white"
-      >
-        <div className="hidden overflow-x-auto md:block">
+      <div className="mt-6 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white">
+        {selectedTab === 'ลบแล้ว' && (
+          <div className="divide-y divide-[#e3e9f0]">
+            {pagedRows.map((row) => (
+              <div key={row.id} className="flex items-center justify-between gap-3 p-4">
+                <div>
+                  <p className="m-0 text-sm font-semibold">{row.title}</p>
+                  <p className="m-0 text-xs text-[#718096]">{row.ref}</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={restoreBusy === row.id}
+                  onClick={() => restore(row)}
+                  className="rounded border border-[#d9e3ee] px-3 py-2 text-sm text-[#1a58a7]"
+                >
+                  {restoreBusy === row.id ? 'กำลังกู้คืน...' : 'กู้คืน'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className={selectedTab === 'ลบแล้ว' ? 'hidden' : 'hidden overflow-x-auto md:block'}>
           <table className="w-full min-w-[640px] table-fixed border-collapse text-left">
-            <thead
-              className="bg-[#f7f8fa] text-xs font-semibold text-[#2f3a4d]"
-            >
+            <thead className="bg-[#f7f8fa] text-xs font-semibold text-[#2f3a4d]">
               <tr>
                 {tableHeaders.map((column) => (
                   <th
@@ -255,27 +347,27 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             </thead>
             <tbody>
               {pagedRows.map((item) => (
-                <MockTableRow key={item.ref} row={item} detailHref={detailHref} />
+                <RecordTableRow key={item.ref} row={item} detailHref={detailHref} />
               ))}
             </tbody>
           </table>
         </div>
-        <div className="divide-y divide-[#e8ebef] md:hidden">
+        <div
+          className={selectedTab === 'ลบแล้ว' ? 'hidden' : 'divide-y divide-[#e8ebef] md:hidden'}
+        >
           {pagedRows.map((item) => (
-            <MockMobileRow key={item.ref} row={item} detailHref={detailHref} />
+            <RecordMobileRow key={item.ref} row={item} detailHref={detailHref} />
           ))}
         </div>
-        {filteredRows.length === 0 && (
+        {!loading && !error && total === 0 && (
           <div className="px-5 py-12 text-center">
             <p className="m-0 text-sm font-semibold text-[#26364b]">ไม่พบรายการ</p>
             <p className="mb-0 mt-1 text-xs text-[#8492a6]">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
           </div>
         )}
-        <div
-          className="flex flex-wrap items-center justify-between gap-2 border-t border-[#e3e9f0] px-6 py-5 text-sm text-[#758195]"
-        >
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#e3e9f0] px-6 py-5 text-sm text-[#758195]">
           <span>
-            แสดง {pagedRows.length} จาก {filteredRows.length} รายการ
+            แสดง {pagedRows.length} จาก {total} รายการ
           </span>
           <nav className="flex items-center gap-1" aria-label="เปลี่ยนหน้ารายการ">
             <button
@@ -286,7 +378,10 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             >
               ‹ ก่อนหน้า
             </button>
-            {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => (
+            {Array.from(
+              { length: Math.min(5, pageCount) },
+              (_, index) => Math.max(1, Math.min(currentPage - 2, pageCount - 4)) + index,
+            ).map((number) => (
               <button
                 key={number}
                 type="button"
@@ -308,48 +403,54 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
           </nav>
         </div>
       </div>
-
-      <div className="mt-3 flex items-center gap-2 pl-1">
-        <button
-          type="button"
-          onClick={() => setNotice('Export เป็นตัวอย่างเพื่อการนำเสนอ ยังไม่เชื่อมข้อมูลจริง')}
-          className="inline-flex h-10 items-center gap-1 rounded-md bg-[#1a58a7] px-4 text-sm font-medium text-white hover:bg-[#174a8b]"
-        >
-          <span aria-hidden="true">⇧</span>Export
-        </button>
-        <span className="text-xs text-[#9aa4b1]">ข้อมูลจำลอง</span>
-      </div>
-
     </section>
   );
 }
 
-function MockTableRow({ row, detailHref }: { row: MockRow; detailHref: string | null }) {
+function RecordTableRow({ row, detailHref }: { row: RecordRow; detailHref: string | null }) {
   const [type, detail] = splitSubtitle(row.subtitle);
   const cells = [row.title, type, row.ref, detail || '—', row.owner, row.value, row.status];
   return (
-    <tr
-      className="border-t border-[#edf0f4] text-sm text-[#7b8795] hover:bg-[#fafbfc]"
-    >
+    <tr className="border-t border-[#edf0f4] text-sm text-[#7b8795] hover:bg-[#fafbfc]">
       {cells.map((cell, index) => (
         <td
           key={index}
           className={`whitespace-normal px-[14px] py-4 [overflow-wrap:anywhere] ${index === 0 ? 'font-semibold' : ''}`}
           title={cell}
         >
-          {index === 0 && detailHref ? <Link href={`${detailHref}/${encodeURIComponent(row.ref)}`} className="text-[#1a58a7] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-[#1a58a7]">{cell}</Link> : cell}
+          {index === 0 && detailHref ? (
+            <Link
+              href={`${detailHref}/${encodeURIComponent(detailHref === '/products' ? row.ref : row.id)}`}
+              className="text-[#1a58a7] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
+            >
+              {cell}
+            </Link>
+          ) : (
+            cell
+          )}
         </td>
       ))}
     </tr>
   );
 }
 
-function MockMobileRow({ row, detailHref }: { row: MockRow; detailHref: string | null }) {
+function RecordMobileRow({ row, detailHref }: { row: RecordRow; detailHref: string | null }) {
   return (
     <article className="px-4 py-3.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="m-0 text-sm font-semibold text-[#26364b] [overflow-wrap:anywhere]">{detailHref ? <Link href={`${detailHref}/${encodeURIComponent(row.ref)}`} className="text-[#1a58a7] underline-offset-2 hover:underline">{row.title}</Link> : row.title}</p>
+          <p className="m-0 text-sm font-semibold text-[#26364b] [overflow-wrap:anywhere]">
+            {detailHref ? (
+              <Link
+                href={`${detailHref}/${encodeURIComponent(detailHref === '/products' ? row.ref : row.id)}`}
+                className="text-[#1a58a7] underline-offset-2 hover:underline"
+              >
+                {row.title}
+              </Link>
+            ) : (
+              row.title
+            )}
+          </p>
           <p className="mb-0 mt-1 text-xs text-[#8492a6] [overflow-wrap:anywhere]">
             {row.ref} · {row.subtitle}
           </p>
@@ -357,8 +458,12 @@ function MockMobileRow({ row, detailHref }: { row: MockRow; detailHref: string |
         <StatusPill value={row.status} />
       </div>
       <div className="mt-3 flex justify-between gap-3 text-xs">
-        <span className="min-w-0 whitespace-normal text-[#718096] [overflow-wrap:anywhere]">{row.owner}</span>
-        <span className="min-w-0 text-right font-medium text-[#35465d] [overflow-wrap:anywhere]">{row.value}</span>
+        <span className="min-w-0 whitespace-normal text-[#718096] [overflow-wrap:anywhere]">
+          {row.owner}
+        </span>
+        <span className="min-w-0 text-right font-medium text-[#35465d] [overflow-wrap:anywhere]">
+          {row.value}
+        </span>
       </div>
     </article>
   );
@@ -384,7 +489,7 @@ function StatusPill({ value }: { value: string }) {
   );
 }
 
-function MockFilter({
+function RecordFilter({
   label,
   value,
   options,
@@ -416,7 +521,7 @@ function splitSubtitle(subtitle: string): [string, string] {
   return [first.trim(), rest.join('·').trim()];
 }
 
-export function ActivityRow({ item }: { item: MockRow }) {
+export function ActivityRow({ item }: { item: RecordRow }) {
   return (
     <article className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-4">
       <div className="flex min-w-0 items-center gap-3">

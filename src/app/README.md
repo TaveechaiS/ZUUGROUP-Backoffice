@@ -2,43 +2,46 @@
 
 แต่ละ URL มีโฟลเดอร์ของตัวเองใน `src/app` เช่น:
 
-| URL | ดีไซน์หน้า | ข้อมูลตัวอย่าง |
+| URL | ดีไซน์หน้า | แหล่งข้อมูล |
 |---|---|---|
-| `/` Dashboard | `page.tsx`, `dashboard-page-content.tsx` | `data.ts` |
-| `/customers` ลูกค้า | `customers/page.tsx` | `customers/data.ts` |
-| `/customers/dashboard` | `customers/dashboard/page.tsx` | `customers/dashboard/data.ts` |
-| `/customers/list` | `customers/list/page.tsx` | `customers/list/data.ts` |
-| `/customers/groups` | `customers/groups/page.tsx` | `customers/groups/data.ts` |
-| `/customers/territories` | `customers/territories/page.tsx` | `customers/territories/data.ts` |
-| `/customers/documents` | `customers/documents/page.tsx` | `customers/documents/data.ts` |
+| `/` Dashboard | `page.tsx`, `dashboard-page-content.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/customers` ลูกค้า | `customers/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/customers/dashboard` | `customers/dashboard/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/customers/list` | `customers/list/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/customers/groups` | `customers/groups/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/customers/territories` | `customers/territories/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/customers/documents` | `customers/documents/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
 | `/products` สินค้า | `products/page.tsx`, `products/products-list.tsx` | ฐานข้อมูลจริง |
 | `/products/create` เพิ่มสินค้า | `products/create/page.tsx`, `create-product-form.tsx` | ฐานข้อมูลจริง |
 | `/products/<รหัสสินค้า>` รายละเอียดสินค้า | `products/[ref]/page.tsx`, `product-detail.tsx` | ฐานข้อมูลจริง |
-| `/stock-counts` ตรวจนับ | `stock-counts/page.tsx` | `stock-counts/data.ts` |
-| `/suppliers` ผู้ขาย | `suppliers/page.tsx` | `suppliers/data.ts` |
-| `/purchases` จัดซื้อ | `purchases/page.tsx` | `purchases/data.ts` |
-| `/expenses` ค่าใช้จ่าย | `expenses/page.tsx` | `expenses/data.ts` |
-| `/quotes` ใบเสนอราคา | `quotes/page.tsx` | `quotes/data.ts` |
-| `/orders` คำสั่งซื้อ | `orders/page.tsx` | `orders/data.ts` |
-| `/billing` วางบิล | `billing/page.tsx` | `billing/data.ts` |
-| `/promotions` โปรโมชัน | `promotions/page.tsx` | `promotions/data.ts` |
+| `/stock-counts` ตรวจนับ | `stock-counts/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/suppliers` ผู้ขาย | `suppliers/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/purchases` จัดซื้อ | `purchases/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/expenses` ค่าใช้จ่าย | `expenses/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/quotes` ใบเสนอราคา | `quotes/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/orders` คำสั่งซื้อ | `orders/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/billing` วางบิล | `billing/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/promotions` โปรโมชัน | `promotions/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
 | `/users` รายชื่อผู้ใช้งาน | `users/page.tsx`, `users/users-list-content.tsx` | ฐานข้อมูลจริง |
 | `/users/create` เพิ่มผู้ใช้งาน | `users/create/page.tsx`, `create-user-form.tsx` | ฐานข้อมูลจริง |
 | `/users/<รหัสพนักงาน>` รายละเอียดผู้ใช้งาน | `users/[employeeCode]/page.tsx`, `user-detail-content.tsx` | ฐานข้อมูลจริง |
-| `/reports/sales` รายงานยอดขาย | `reports/sales/page.tsx` | `reports/sales/data.ts` |
-| `/reports/inventory` รายงานคลัง | `reports/inventory/page.tsx` | `reports/inventory/data.ts` |
-| `/reports/finance` รายงานการเงิน | `reports/finance/page.tsx` | `reports/finance/data.ts` |
+| `/reports/sales` รายงานยอดขาย | `reports/sales/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/reports/inventory` รายงานคลัง | `reports/inventory/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| `/reports/finance` รายงานการเงิน | `reports/finance/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
 | `/audit-logs` ประวัติการทำรายการ | `audit-logs/page.tsx`, `audit-logs/audit-list.tsx` | ฐานข้อมูลจริง (`audit_events`) |
-| `/settings` ตั้งค่า | `settings/page.tsx` | `settings/data.ts` |
+| `/settings` ตั้งค่า | `settings/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
 
-เริ่มจาก `page.tsx` ของหน้านั้นเมื่อต้องการเพิ่มหรือแทนองค์ประกอบเฉพาะหน้า; แก้ข้อความ Tab, Filters, หัวคอลัมน์ และข้อมูลใน `data.ts`. หน้า list ทั้งหมดยังใช้ component ร่วม; การแก้ตารางหรือ Filter ใน component กลางจะกระทบทุกหน้า list. หากต้องการดีไซน์ต่างเฉพาะหน้า ให้แทน `<ModuleListPage>` ใน `page.tsx` ของหน้านั้นด้วย component เฉพาะหน้า.
+เริ่มจาก page.tsx ของหน้านั้นเพื่อปรับดีไซน์เฉพาะหน้า. ฟิลด์/ชื่อคอลัมน์อยู่ใน src/features/records/modules.json ซึ่งเป็น metadata เท่านั้น. รายการอ่าน DB ผ่าน API รายโมดูล ค้นหาและแบ่งหน้า default 10/max50 ฝั่ง DB.
 
-หน้า Mock ที่ยังใช้ `<ModuleListPage>` มีหน้าเพิ่มรายการแยกที่ `<URL หน้ารายการ>/create` โดยใช้ฟอร์มร่วม `src/components/pages/mock-create-page.tsx`. หน้า `/users/create` และ `/products/create` ใช้ฟอร์มที่บันทึกฐานข้อมูลจริง.
+ข้อมูลหลักและหัวเอกสาร 14 โมดูลใช้ RecordFormPage/RecordDetailPage ร่วม: หน้า create และหน้า UUID มีฟอร์มจริง; Admin สร้าง แก้ ลบเชิงตรรกะ และกู้คืนได้. Role อื่นอ่านตามขอบเขตที่อนุมัติ. ลูกค้า list ใช้ customers ตารางเดียวกับหน้าหลัก.
 
-- ดีไซน์รายการที่ทุกหน้าใช้ร่วมกัน: `src/components/pages/module-list-page.tsx`
-- ดีไซน์ Sidebar: `src/components/layout/sidebar.tsx`
-- ดีไซน์ Topbar: `src/components/layout/admin-shell.tsx`
-- รายชื่อเมนู/URL: `src/config/navigation.ts`
-- ตัวช่วยสร้างข้อมูลตัวอย่าง: `src/features/mock/mock-config.ts`
+- Component ร่วม: src/components/pages/module-list-page.tsx, record-form-page.tsx, record-detail-page.tsx
+- API: /api/<module>, /[id], /config, /filters, /options, /[id]/restore
+- Dashboard: /api/dashboard นับต้นทาง; ไม่แสดงยอดรับรู้รายได้/หนี้สุทธิ/ยอด Lot ที่ยังไม่มี
+- รายงาน: /api/reports/sales (หัวคำสั่งซื้อ), inventory (รายการสินค้า), finance (หัววางบิล); ไม่ใช่ผลสต็อก/รับชำระ
+- Sidebar/Topbar: src/components/layout/sidebar.tsx, admin-shell.tsx
+- เมนู: src/config/navigation.ts
+- เติมข้อมูล: npm run seed:records (ไม่ทับข้อมูลเดิม; ไม่มีผลยอดคลัง)
+- ประวัติย้ายข้อมูล: scripts/fixtures/operational-migration-backup.json เก็บออฟไลน์ ไม่ใช่แหล่ง runtime
 
-หน้าโมดูล Mock ที่เหลือยังใช้ข้อมูลตัวอย่างสำหรับนำเสนอ. รายการที่เพิ่มผ่านหน้า Create ของ Mock เก็บชั่วคราวใน session ของแท็บนั้น. หน้า `/users`, `/products` และ `/audit-logs` ใช้ข้อมูลจริงจากฐานข้อมูล; ข้อมูลสินค้าตัวอย่างใน DB มีป้ายกำกับและยังไม่มียอดคลังจริง. หน้า Audit Logs อ่านอย่างเดียวและไม่มีหน้า Create.
+ถอน /api/demo, component Mock และตาราง demo_rows/demo_datasets แล้ว. Users/Products/Audit ใช้ตารางจริงเดิม. สินค้าใหม่ราคาเริ่มต้น 0 ให้กรอกราคาจริงภายหลัง; ไม่มี Lot/ยอดคลังจากการ seed.

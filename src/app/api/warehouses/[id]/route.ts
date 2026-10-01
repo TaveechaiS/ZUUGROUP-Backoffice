@@ -1,0 +1,3 @@
+import {readWithConnectionRetry} from '@/server/db/prisma';
+export const dynamic='force-dynamic';
+export async function GET(request:Request,{params}:{params:Promise<{id:string}>}){const{id}=await params;if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))return Response.json({error:{message:'ID ไม่ถูกต้อง'}},{status:400});try{const data=await readWithConnectionRetry(db=>db.warehouse.findUnique({where:{id},select:{id:true,code:true,name:true}}));return Response.json(data?{data}:{error:{message:'ไม่พบคลัง'}},{status:data?200:404,headers:{'Cache-Control':'no-store'}});}catch{return Response.json({error:{message:'โหลดคลังไม่สำเร็จ'}},{status:503});}}

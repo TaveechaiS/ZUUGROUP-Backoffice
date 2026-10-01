@@ -1,7 +1,7 @@
 # ข้อกำหนด — ตรวจ DB โดยตรงใน Postman
 
 **วันที่:** 2026-10-01 (Asia/Bangkok)
-**สถานะ:** เตรียมไฟล์ SQL; รอผู้ใช้เชื่อม Postman Desktop
+**สถานะ:** เตรียมไฟล์ SQL และเชื่อม Postman Workspace แล้ว; รอสร้าง Data requests ใน Postman Desktop
 **อ้างอิง:** คำขอเจ้าของโครงการให้ต่อ Supabase PostgreSQL โดยตรงจาก Postman
 
 - ใช้ Postman **Data request → PostgreSQL** แยกจาก HTTP Collection `Zuugroup`

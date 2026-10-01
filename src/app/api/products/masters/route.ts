@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getCurrentUser } from '@/server/auth/current-user';
+import { getCurrentApiUser } from '@/server/auth/current-user';
 import { authorizeUserManagement } from '@/server/auth/api-authorization';
 import { createProductMaster, productMasters, ProductError } from '@/server/products/service';
 
-export async function GET() {
-  if (!await getCurrentUser()) return NextResponse.json({ error: 'กรุณาเข้าสู่ระบบ' }, { status: 401 });
+export async function GET(request: NextRequest) {
+  if (!await getCurrentApiUser(request)) return NextResponse.json({ error: 'กรุณาเข้าสู่ระบบ' }, { status: 401 });
   return NextResponse.json(await productMasters());
 }
 export async function POST(request: NextRequest) {

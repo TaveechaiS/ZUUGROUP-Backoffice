@@ -1,0 +1,489 @@
+{
+  "info": {
+    "name": "Zuugroup — Authenticated",
+    "description": "ส่ง POST ของบัญชีที่ต้องการเพื่อรับ access token ลง Environment ส่วนตัว แล้ว GET ใช้ Bearer {{activeToken}}; อย่าแชร์ Environment ที่มี token หรือรหัสผ่าน",
+    "schema": "https://schema.postman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "เข้าสู่ระบบ",
+      "item": [
+        {
+          "name": "POST เข้าสู่ระบบ (Admin)",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@zuugroup.com\",\n  \"password\": \"{{loginPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "สำเร็จเก็บ access token ใน adminToken และ activeToken ของ Environment ส่วนตัว"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  if (!pm.environment || !pm.environment.get('loginPassword')) throw new Error('กรุณาเลือก Environment ส่วนตัวและตั้ง loginPassword ก่อน');",
+                  "  const data = pm.response.json();",
+                  "  if (data.tokenType !== 'Bearer' || !data.accessToken) throw new Error('ไม่พบ access token');",
+                  "  pm.environment.set('adminToken', data.accessToken);",
+                  "  pm.environment.set('activeToken', data.accessToken);",
+                  "} else if (pm.environment) {",
+                  "  pm.environment.unset('activeToken');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST เข้าสู่ระบบ (Manager)",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@zuugroup.com\",\n  \"password\": \"{{loginPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "สำเร็จเก็บ access token ใน managerToken และ activeToken ของ Environment ส่วนตัว"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  if (!pm.environment || !pm.environment.get('loginPassword')) throw new Error('กรุณาเลือก Environment ส่วนตัวและตั้ง loginPassword ก่อน');",
+                  "  const data = pm.response.json();",
+                  "  if (data.tokenType !== 'Bearer' || !data.accessToken) throw new Error('ไม่พบ access token');",
+                  "  pm.environment.set('managerToken', data.accessToken);",
+                  "  pm.environment.set('activeToken', data.accessToken);",
+                  "} else if (pm.environment) {",
+                  "  pm.environment.unset('activeToken');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST เข้าสู่ระบบ (Sales)",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sales@zuugroup.com\",\n  \"password\": \"{{loginPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "สำเร็จเก็บ access token ใน salesToken และ activeToken ของ Environment ส่วนตัว"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  if (!pm.environment || !pm.environment.get('loginPassword')) throw new Error('กรุณาเลือก Environment ส่วนตัวและตั้ง loginPassword ก่อน');",
+                  "  const data = pm.response.json();",
+                  "  if (data.tokenType !== 'Bearer' || !data.accessToken) throw new Error('ไม่พบ access token');",
+                  "  pm.environment.set('salesToken', data.accessToken);",
+                  "  pm.environment.set('activeToken', data.accessToken);",
+                  "} else if (pm.environment) {",
+                  "  pm.environment.unset('activeToken');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST เข้าสู่ระบบ (CFO)",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cfo@zuugroup.com\",\n  \"password\": \"{{loginPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "สำเร็จเก็บ access token ใน cfoToken และ activeToken ของ Environment ส่วนตัว"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  if (!pm.environment || !pm.environment.get('loginPassword')) throw new Error('กรุณาเลือก Environment ส่วนตัวและตั้ง loginPassword ก่อน');",
+                  "  const data = pm.response.json();",
+                  "  if (data.tokenType !== 'Bearer' || !data.accessToken) throw new Error('ไม่พบ access token');",
+                  "  pm.environment.set('cfoToken', data.accessToken);",
+                  "  pm.environment.set('activeToken', data.accessToken);",
+                  "} else if (pm.environment) {",
+                  "  pm.environment.unset('activeToken');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "สินค้า",
+      "item": [
+        {
+          "name": "GET รายการสินค้า",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products",
+            "description": "ผู้ใช้ที่ Active อ่านได้; Admin จะเห็นสินค้าที่ลบเชิงตรรกะด้วย ตอบ { products: [...] }",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{activeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET ข้อมูลแม่สินค้า",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products/masters",
+            "description": "หมวด รูปแบบยา ตัวยา และคลังที่เกี่ยวข้อง; ใช้ ID หมวดและรูปแบบยาในคำขอเลขลำดับ",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{activeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.categories?.[0]?.id) pm.collectionVariables.set('categoryId', data.categories[0].id);",
+                  "  if (data.dosageForms?.[0]?.id) pm.collectionVariables.set('dosageFormId', data.dosageForms[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET เลขลำดับสินค้าถัดไป",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products/next-sequence?categoryId={{categoryId}}&dosageFormId={{dosageFormId}}",
+            "description": "ส่ง GET ข้อมูลแม่สินค้าก่อนเพื่อเติม categoryId และ dosageFormId; เลขที่เสนออาจเปลี่ยนก่อนสร้างสินค้าจริง",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{activeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ผู้ใช้งาน",
+      "item": [
+        {
+          "name": "GET รายการผู้ใช้งาน (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users",
+            "description": "เฉพาะ Admin; ตอบ { users: [...] } และรวมบัญชีที่ลบเชิงตรรกะ",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{activeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Supabase Data API (อ่านตรง)",
+      "description": "ใช้ publishable key และ JWT ของผู้ใช้; ตารางสินค้าใน DB ปัจจุบันยังไม่เปิด GRANT/RLS สำหรับ Data API จึงอาจตอบ 403/42501 ห้ามใช้ secret key แทน",
+      "item": [
+        {
+          "name": "GET หมวดสินค้า",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabasePublishableKey}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{activeToken}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{supabaseUrl}}/rest/v1/product_categories?select=id,code,name&order=code.asc&limit=50",
+            "description": "อ่านตาราง product_categories โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
+          }
+        },
+        {
+          "name": "GET รูปแบบยา",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabasePublishableKey}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{activeToken}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{supabaseUrl}}/rest/v1/dosage_forms?select=id,code,name&order=code.asc&limit=50",
+            "description": "อ่านตาราง dosage_forms โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
+          }
+        },
+        {
+          "name": "GET ตัวยา",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabasePublishableKey}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{activeToken}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{supabaseUrl}}/rest/v1/drugs?select=id,name&order=name.asc&limit=50",
+            "description": "อ่านตาราง drugs โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
+          }
+        },
+        {
+          "name": "GET คลัง",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabasePublishableKey}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{activeToken}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{supabaseUrl}}/rest/v1/warehouses?select=id,code,name&order=code.asc&limit=50",
+            "description": "อ่านตาราง warehouses โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
+          }
+        },
+        {
+          "name": "GET สินค้า",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabasePublishableKey}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{activeToken}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{supabaseUrl}}/rest/v1/products?select=id,code,name,category_id,dosage_form_id,drug_id,default_warehouse_id,unit,sale_price,status&deleted_at=is.null&order=created_at.desc&limit=50",
+            "description": "อ่านตาราง products โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dosageFormId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "supabaseUrl",
+      "value": "https://wiikzseotpjxssbcdayk.supabase.co",
+      "type": "string"
+    },
+    {
+      "key": "supabasePublishableKey",
+      "value": "sb_publishable_cn7FIe4jhUy49brBx7YtWw_8zTSqDJa",
+      "type": "string"
+    }
+  ]
+}

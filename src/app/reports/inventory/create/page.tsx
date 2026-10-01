@@ -1,8 +1,2 @@
-import { MockCreatePage } from '@/components/pages/mock-create-page';
-import { requireActiveUser } from '@/server/auth/current-user';
-import { mockData } from '../data';
-
-export default async function Page() {
-  await requireActiveUser();
-  return <MockCreatePage href="/reports/inventory" title={mockData.title} action={mockData.action} />;
-}
+import {redirect} from 'next/navigation';
+export default function Page(){redirect('/reports/inventory');}

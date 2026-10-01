@@ -1,9 +1,9 @@
 import 'server-only';
 
 import { NextResponse, type NextRequest } from 'next/server';
-import { getCurrentUser } from '@/server/auth/current-user';
+import { getCurrentApiUser } from '@/server/auth/current-user';
 
-export async function authorizeUserManagement(request: NextRequest, resource = 'ผู้ใช้') {
+export function hasSameOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
   const forwardedProtocol = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
   const protocol = forwardedProtocol === 'http' || forwardedProtocol === 'https'
@@ -19,11 +19,15 @@ export async function authorizeUserManagement(request: NextRequest, resource = '
       sameOrigin = false;
     }
   }
-  if (!sameOrigin) {
+  return sameOrigin;
+}
+
+export async function authorizeUserManagement(request: NextRequest, resource = 'ผู้ใช้') {
+  if (!hasSameOrigin(request)) {
     return { error: NextResponse.json({ error: 'คำขอไม่ถูกต้อง' }, { status: 403 }), user: null };
   }
 
-  const user = await getCurrentUser();
+  const user = await getCurrentApiUser(request);
   if (!user) return { error: NextResponse.json({ error: 'กรุณาเข้าสู่ระบบ' }, { status: 401 }), user: null };
   if (user.userRole?.roleId !== 'ADMIN') {
     return { error: NextResponse.json({ error: `ไม่มีสิทธิ์จัดการ${resource}` }, { status: 403 }), user: null };

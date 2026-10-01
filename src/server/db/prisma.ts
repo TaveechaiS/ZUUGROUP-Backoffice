@@ -10,7 +10,7 @@ const globalForPrisma = globalThis as typeof globalThis & {
 export function getPrismaClient(): PrismaClient {
   // Next.js dev keeps globalThis across module reloads, including after prisma generate.
   const staleClient = globalForPrisma.prismaClient;
-  if (staleClient && typeof staleClient.product?.findMany !== 'function') {
+  if (staleClient && (typeof staleClient.product?.findMany !== 'function' || typeof staleClient.customer?.findMany !== 'function')) {
     globalForPrisma.prismaClient = undefined;
     void staleClient.$disconnect().catch(() => {});
   }

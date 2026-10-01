@@ -1,0 +1,1549 @@
+{
+  "rows": [
+    {
+      "id": "fc145721-e811-45de-8941-db0d912bd6df",
+      "ref": "INV-6908-112",
+      "type": "ครบกำหนด 30 ก.ย.",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "โรงพยาบาลร่มเย็น",
+      "value": "฿ 28,400",
+      "detail": "20 วัน",
+      "status": "ยังไม่ครบกำหนด",
+      "position": 0,
+      "subtitle": "ครบกำหนด 30 ก.ย. · 20 วัน",
+      "is_sample": true,
+      "dataset_key": "billing"
+    },
+    {
+      "id": "0dc8b871-ba67-4675-aaba-9975349ca710",
+      "ref": "INV-6907-084",
+      "type": "ครบกำหนด 12 ก.ย.",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "คลินิกเวชกรรมสุขใจ",
+      "value": "฿ 6,700",
+      "detail": "38 วัน",
+      "status": "เกินกำหนด",
+      "position": 1,
+      "subtitle": "ครบกำหนด 12 ก.ย. · 38 วัน",
+      "is_sample": true,
+      "dataset_key": "billing"
+    },
+    {
+      "id": "3c5b4289-e452-4888-acfd-05225bf737f0",
+      "ref": "INV-6906-061",
+      "type": "รับบางส่วน 15 ก.ย.",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "เมดิคอลแคร์ ซัพพลาย",
+      "value": "฿ 12,000",
+      "detail": "",
+      "status": "รับบางส่วน",
+      "position": 2,
+      "subtitle": "รับบางส่วน 15 ก.ย.",
+      "is_sample": true,
+      "dataset_key": "billing"
+    },
+    {
+      "id": "349d01a5-3867-4e44-adb1-117ac020e40a",
+      "ref": "CUS-1002",
+      "type": "คลินิก",
+      "owner": "ธนกร ศิริพงษ์",
+      "title": "คลินิกเวชกรรมสุขใจ",
+      "value": "นัดติดตาม 28 ก.ย.",
+      "detail": "นนทบุรี",
+      "status": "รอติดตาม",
+      "position": 0,
+      "subtitle": "คลินิก · นนทบุรี",
+      "is_sample": true,
+      "dataset_key": "customers/dashboard"
+    },
+    {
+      "id": "d0880f4e-33d4-48df-adab-45c5a78dfef9",
+      "ref": "CUS-1005",
+      "type": "โรงพยาบาล",
+      "owner": "พิมพ์ชนก รัตนชัย",
+      "title": "โรงพยาบาลอรุณเวช",
+      "value": "ใบเสนอราคา 2 รายการ",
+      "detail": "สมุทรปราการ",
+      "status": "กำลังดำเนินการ",
+      "position": 1,
+      "subtitle": "โรงพยาบาล · สมุทรปราการ",
+      "is_sample": true,
+      "dataset_key": "customers/dashboard"
+    },
+    {
+      "id": "7ceca80b-d499-43c8-899c-75e8cbfd76a6",
+      "ref": "CUS-1001",
+      "type": "โรงพยาบาล",
+      "owner": "พิมพ์ชนก รัตนชัย",
+      "title": "โรงพยาบาลร่มเย็น",
+      "value": "เครดิต 30 วัน",
+      "detail": "กรุงเทพมหานคร",
+      "status": "ใช้งานอยู่",
+      "position": 0,
+      "subtitle": "โรงพยาบาล · กรุงเทพมหานคร",
+      "is_sample": true,
+      "dataset_key": "customers"
+    },
+    {
+      "id": "b5f74dc2-3ace-42c6-bb6b-2bf1b9b5e724",
+      "ref": "CUS-1002",
+      "type": "คลินิก",
+      "owner": "ธนกร ศิริพงษ์",
+      "title": "คลินิกเวชกรรมสุขใจ",
+      "value": "เงินสด",
+      "detail": "นนทบุรี",
+      "status": "รอตรวจสอบ",
+      "position": 1,
+      "subtitle": "คลินิก · นนทบุรี",
+      "is_sample": true,
+      "dataset_key": "customers"
+    },
+    {
+      "id": "a6e4acdf-02f7-4931-984a-086f41bcb9a1",
+      "ref": "CUS-1003",
+      "type": "ร้านยา",
+      "owner": "ณัฐวุฒิ เกษมสุข",
+      "title": "เมดิคอลแคร์ ซัพพลาย",
+      "value": "เครดิต 60 วัน",
+      "detail": "เชียงใหม่",
+      "status": "ใช้งานอยู่",
+      "position": 2,
+      "subtitle": "ร้านยา · เชียงใหม่",
+      "is_sample": true,
+      "dataset_key": "customers"
+    },
+    {
+      "id": "e48a7a3f-083b-4b3f-b811-2d4117e4166d",
+      "ref": "CUS-1004",
+      "type": "โรงพยาบาล",
+      "owner": "พิมพ์ชนก รัตนชัย",
+      "title": "ศูนย์การแพทย์ประชารักษ์",
+      "value": "เครดิต 30 วัน",
+      "detail": "ปทุมธานี",
+      "status": "ใช้งานอยู่",
+      "position": 3,
+      "subtitle": "โรงพยาบาล · ปทุมธานี",
+      "is_sample": true,
+      "dataset_key": "customers"
+    },
+    {
+      "id": "64947c04-1ea6-4954-88a8-dc7de67c4044",
+      "ref": "DOC-038",
+      "type": "ใบอนุญาตสถานพยาบาล (ตัวอย่าง)",
+      "owner": "พิมพ์ชนก รัตนชัย",
+      "title": "โรงพยาบาลร่มเย็น",
+      "value": "ทบทวน 30 ก.ย. 2569",
+      "detail": "",
+      "status": "ตรวจแล้ว",
+      "position": 0,
+      "subtitle": "ใบอนุญาตสถานพยาบาล (ตัวอย่าง)",
+      "is_sample": true,
+      "dataset_key": "customers/documents"
+    },
+    {
+      "id": "ee68527e-f419-4eb6-a77f-1d21ddb77f40",
+      "ref": "DOC-037",
+      "type": "เอกสารสถานพยาบาล (ตัวอย่าง)",
+      "owner": "ธนกร ศิริพงษ์",
+      "title": "คลินิกเวชกรรมสุขใจ",
+      "value": "เพิ่ม 24 ก.ย. 2569",
+      "detail": "",
+      "status": "รอตรวจสอบ",
+      "position": 1,
+      "subtitle": "เอกสารสถานพยาบาล (ตัวอย่าง)",
+      "is_sample": true,
+      "dataset_key": "customers/documents"
+    },
+    {
+      "id": "778083f0-b01f-46f5-9ec0-b56ed1cf69f8",
+      "ref": "DOC-036",
+      "type": "ใบอนุญาตขายยา (ตัวอย่าง)",
+      "owner": "ณัฐวุฒิ เกษมสุข",
+      "title": "เมดิคอลแคร์ ซัพพลาย",
+      "value": "ทบทวน 12 ต.ค. 2569",
+      "detail": "",
+      "status": "ใกล้หมดอายุ",
+      "position": 2,
+      "subtitle": "ใบอนุญาตขายยา (ตัวอย่าง)",
+      "is_sample": true,
+      "dataset_key": "customers/documents"
+    },
+    {
+      "id": "d4f9b38b-c9b7-4591-86f0-5de6394189a5",
+      "ref": "GRP-01",
+      "type": "กลุ่มสถานพยาบาล",
+      "owner": "ผู้ดูแล: ทีม Key Account",
+      "title": "โรงพยาบาลคู่สัญญา",
+      "value": "32 ราย",
+      "detail": "ส่วนกลาง",
+      "status": "ใช้งานอยู่",
+      "position": 0,
+      "subtitle": "กลุ่มสถานพยาบาล · ส่วนกลาง",
+      "is_sample": true,
+      "dataset_key": "customers/groups"
+    },
+    {
+      "id": "487519ee-0473-4926-9bda-5559eb4fc174",
+      "ref": "GRP-02",
+      "type": "คลินิกเอกชน",
+      "owner": "ผู้ดูแล: ทีมขายคลินิก",
+      "title": "คลินิกเครือข่าย",
+      "value": "48 ราย",
+      "detail": "ภาคกลาง",
+      "status": "ใช้งานอยู่",
+      "position": 1,
+      "subtitle": "คลินิกเอกชน · ภาคกลาง",
+      "is_sample": true,
+      "dataset_key": "customers/groups"
+    },
+    {
+      "id": "29741547-21e1-4cc4-bdcc-c69260d62654",
+      "ref": "GRP-03",
+      "type": "ร้านขายยา",
+      "owner": "ผู้ดูแล: ทีมขายทั่วไป",
+      "title": "ลูกค้าร้านยา",
+      "value": "76 ราย",
+      "detail": "ทุกเขต",
+      "status": "ใช้งานอยู่",
+      "position": 2,
+      "subtitle": "ร้านขายยา · ทุกเขต",
+      "is_sample": true,
+      "dataset_key": "customers/groups"
+    },
+    {
+      "id": "1f314035-a9a5-4d07-9454-2db43bd3fdbe",
+      "ref": "CUS-1001",
+      "type": "โรงพยาบาล",
+      "owner": "พิมพ์ชนก รัตนชัย",
+      "title": "โรงพยาบาลร่มเย็น",
+      "value": "เครดิต 30 วัน",
+      "detail": "กรุงเทพมหานคร",
+      "status": "ใช้งานอยู่",
+      "position": 0,
+      "subtitle": "โรงพยาบาล · กรุงเทพมหานคร",
+      "is_sample": true,
+      "dataset_key": "customers/list"
+    },
+    {
+      "id": "80ce5b33-a79e-40ba-922c-5c59ef28b4ad",
+      "ref": "CUS-1002",
+      "type": "คลินิก",
+      "owner": "ธนกร ศิริพงษ์",
+      "title": "คลินิกเวชกรรมสุขใจ",
+      "value": "เงินสด",
+      "detail": "นนทบุรี",
+      "status": "รอตรวจสอบ",
+      "position": 1,
+      "subtitle": "คลินิก · นนทบุรี",
+      "is_sample": true,
+      "dataset_key": "customers/list"
+    },
+    {
+      "id": "90a845fb-365f-48ad-ad27-5a15cc4c7937",
+      "ref": "CUS-1003",
+      "type": "ร้านยา",
+      "owner": "ณัฐวุฒิ เกษมสุข",
+      "title": "เมดิคอลแคร์ ซัพพลาย",
+      "value": "เครดิต 60 วัน",
+      "detail": "เชียงใหม่",
+      "status": "ใช้งานอยู่",
+      "position": 2,
+      "subtitle": "ร้านยา · เชียงใหม่",
+      "is_sample": true,
+      "dataset_key": "customers/list"
+    },
+    {
+      "id": "368be530-ddec-43c5-b10a-fa025b0ff389",
+      "ref": "TER-01",
+      "type": "ปทุมวัน",
+      "owner": "ธนกร ศิริพงษ์",
+      "title": "กรุงเทพฯ ชั้นใน",
+      "value": "28 ราย",
+      "detail": "บางรัก · สาทร",
+      "status": "ใช้งานอยู่",
+      "position": 0,
+      "subtitle": "ปทุมวัน · บางรัก · สาทร",
+      "is_sample": true,
+      "dataset_key": "customers/territories"
+    },
+    {
+      "id": "33134bb9-a1c1-4e72-b481-4545b30340a9",
+      "ref": "TER-02",
+      "type": "นนทบุรี",
+      "owner": "พิมพ์ชนก รัตนชัย",
+      "title": "ภาคกลาง",
+      "value": "42 ราย",
+      "detail": "ปทุมธานี · อยุธยา",
+      "status": "ใช้งานอยู่",
+      "position": 1,
+      "subtitle": "นนทบุรี · ปทุมธานี · อยุธยา",
+      "is_sample": true,
+      "dataset_key": "customers/territories"
+    },
+    {
+      "id": "115dc56c-f2e5-47cb-88c7-9fcd5cc6e005",
+      "ref": "TER-03",
+      "type": "เชียงใหม่",
+      "owner": "ณัฐวุฒิ เกษมสุข",
+      "title": "ภาคเหนือ",
+      "value": "35 ราย",
+      "detail": "ลำพูน · เชียงราย",
+      "status": "ใช้งานอยู่",
+      "position": 2,
+      "subtitle": "เชียงใหม่ · ลำพูน · เชียงราย",
+      "is_sample": true,
+      "dataset_key": "customers/territories"
+    },
+    {
+      "id": "260695cf-3cf1-488d-99b8-961f5436a5e6",
+      "ref": "QT-6909-022",
+      "type": "โรงพยาบาลร่มเย็น",
+      "owner": "พิมพ์ชนก รัตนชัย",
+      "title": "ใบเสนอราคาใหม่",
+      "value": "฿ 42,350",
+      "detail": "09:42",
+      "status": "รออนุมัติ",
+      "position": 0,
+      "subtitle": "โรงพยาบาลร่มเย็น · 09:42",
+      "is_sample": true,
+      "dataset_key": "dashboard"
+    },
+    {
+      "id": "66a717e4-178c-4b81-b917-cf8cd661b2a0",
+      "ref": "PO-6909-014",
+      "type": "บริษัท เมดิซัพพลาย",
+      "owner": "อรทัย วัฒนากร",
+      "title": "ใบสั่งซื้อรอรับ",
+      "value": "฿ 84,500",
+      "detail": "09:16",
+      "status": "รอรับสินค้า",
+      "position": 1,
+      "subtitle": "บริษัท เมดิซัพพลาย · 09:16",
+      "is_sample": true,
+      "dataset_key": "dashboard"
+    },
+    {
+      "id": "96d508fe-bb53-49d9-b69d-0462089d31db",
+      "ref": "INV-6908-112",
+      "type": "โรงพยาบาลร่มเย็น",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "ใกล้ครบกำหนดชำระ",
+      "value": "฿ 28,400",
+      "detail": "08:50",
+      "status": "ครบกำหนด 30 ก.ย.",
+      "position": 2,
+      "subtitle": "โรงพยาบาลร่มเย็น · 08:50",
+      "is_sample": true,
+      "dataset_key": "dashboard"
+    },
+    {
+      "id": "a241dbc6-99dc-4697-8752-130c18a06cea",
+      "ref": "EXP-6909-031",
+      "type": "ขนส่ง",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "ค่าขนส่งสินค้า",
+      "value": "฿ 2,450",
+      "detail": "24 ก.ย. 2569",
+      "status": "รอตรวจสอบ",
+      "position": 0,
+      "subtitle": "ขนส่ง · 24 ก.ย. 2569",
+      "is_sample": true,
+      "dataset_key": "expenses"
+    },
+    {
+      "id": "6f5fc913-56c8-4577-95bc-262bb4feea09",
+      "ref": "EXP-6909-030",
+      "type": "สำนักงาน",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "ค่าอุปกรณ์สำนักงาน",
+      "value": "฿ 1,280",
+      "detail": "23 ก.ย. 2569",
+      "status": "บันทึกแล้ว",
+      "position": 1,
+      "subtitle": "สำนักงาน · 23 ก.ย. 2569",
+      "is_sample": true,
+      "dataset_key": "expenses"
+    },
+    {
+      "id": "5b5bb2be-fb65-487d-bb55-82ba54618a90",
+      "ref": "EXP-6909-029",
+      "type": "ระบบ",
+      "owner": "อรทัย วัฒนากร",
+      "title": "ค่าบริการระบบรายเดือน",
+      "value": "฿ 9,900",
+      "detail": "20 ก.ย. 2569",
+      "status": "อนุมัติแล้ว",
+      "position": 2,
+      "subtitle": "ระบบ · 20 ก.ย. 2569",
+      "is_sample": true,
+      "dataset_key": "expenses"
+    },
+    {
+      "id": "b205ab30-553d-4d43-a5b0-c65d912ffd0c",
+      "ref": "SO-6909-018",
+      "type": "24 ก.ย.",
+      "owner": "พิมพ์ชนก รัตนชัย",
+      "title": "โรงพยาบาลร่มเย็น",
+      "value": "฿ 38,440",
+      "detail": "นัดส่ง 26 ก.ย.",
+      "status": "กำลังจัดเตรียม",
+      "position": 0,
+      "subtitle": "24 ก.ย. · นัดส่ง 26 ก.ย.",
+      "is_sample": true,
+      "dataset_key": "orders"
+    },
+    {
+      "id": "0ba20bb3-57c6-44d9-a896-cd4e998fa465",
+      "ref": "SO-6909-017",
+      "type": "23 ก.ย.",
+      "owner": "ธนกร ศิริพงษ์",
+      "title": "คลินิกเวชกรรมสุขใจ",
+      "value": "฿ 7,850",
+      "detail": "นัดส่ง 25 ก.ย.",
+      "status": "จัดส่งบางส่วน",
+      "position": 1,
+      "subtitle": "23 ก.ย. · นัดส่ง 25 ก.ย.",
+      "is_sample": true,
+      "dataset_key": "orders"
+    },
+    {
+      "id": "b8f98ce2-6a56-4734-ab61-f63d3ed3f766",
+      "ref": "SO-6909-016",
+      "type": "22 ก.ย.",
+      "owner": "ณัฐวุฒิ เกษมสุข",
+      "title": "เมดิคอลแคร์ ซัพพลาย",
+      "value": "฿ 62,300",
+      "detail": "ส่งแล้ว 23 ก.ย.",
+      "status": "จัดส่งครบ",
+      "position": 2,
+      "subtitle": "22 ก.ย. · ส่งแล้ว 23 ก.ย.",
+      "is_sample": true,
+      "dataset_key": "orders"
+    },
+    {
+      "id": "b4f61980-df14-46bf-9d09-bab2222f2b51",
+      "ref": "PRM-026",
+      "type": "1–30 ต.ค.",
+      "owner": "กิตติพงษ์ วงศ์สวัสดิ์",
+      "title": "ซื้อครบตามยอด รับของแถม",
+      "value": "ทดลองใช้",
+      "detail": "เวชภัณฑ์",
+      "status": "รออนุมัติ",
+      "position": 0,
+      "subtitle": "1–30 ต.ค. · เวชภัณฑ์",
+      "is_sample": true,
+      "dataset_key": "promotions"
+    },
+    {
+      "id": "a4190c4d-7150-4897-935d-113e735fb96d",
+      "ref": "PRM-025",
+      "type": "1–30 ก.ย.",
+      "owner": "อรทัย วัฒนากร",
+      "title": "ส่วนลดสินค้าในรายการ",
+      "value": "ตัวอย่าง",
+      "detail": "สินค้ากลุ่ม A",
+      "status": "ใช้งานอยู่",
+      "position": 1,
+      "subtitle": "1–30 ก.ย. · สินค้ากลุ่ม A",
+      "is_sample": true,
+      "dataset_key": "promotions"
+    },
+    {
+      "id": "b4520e31-3a8d-4a6f-8254-d567063bf293",
+      "ref": "PRM-024",
+      "type": "1–31 ส.ค.",
+      "owner": "กิตติพงษ์ วงศ์สวัสดิ์",
+      "title": "โปรโมชันต้อนรับลูกค้าใหม่",
+      "value": "ตัวอย่าง",
+      "detail": "ลูกค้าใหม่",
+      "status": "สิ้นสุดแล้ว",
+      "position": 2,
+      "subtitle": "1–31 ส.ค. · ลูกค้าใหม่",
+      "is_sample": true,
+      "dataset_key": "promotions"
+    },
+    {
+      "id": "581647f5-c6b9-466f-a45a-ede462369956",
+      "ref": "PO-6909-014",
+      "type": "สั่งซื้อ 22 ก.ย.",
+      "owner": "อรทัย วัฒนากร",
+      "title": "บริษัท เมดิซัพพลาย จำกัด",
+      "value": "฿ 84,500",
+      "detail": "รับ 29 ก.ย.",
+      "status": "รอรับสินค้า",
+      "position": 0,
+      "subtitle": "สั่งซื้อ 22 ก.ย. · รับ 29 ก.ย.",
+      "is_sample": true,
+      "dataset_key": "purchases"
+    },
+    {
+      "id": "6e37484f-10e4-490d-80ab-b09995979c33",
+      "ref": "PO-6909-013",
+      "type": "สั่งซื้อ 20 ก.ย.",
+      "owner": "กิตติพงษ์ วงศ์สวัสดิ์",
+      "title": "บริษัท เฮลท์แคร์ โปรดักส์ จำกัด",
+      "value": "฿ 36,200",
+      "detail": "รับ 25 ก.ย.",
+      "status": "รับบางส่วน",
+      "position": 1,
+      "subtitle": "สั่งซื้อ 20 ก.ย. · รับ 25 ก.ย.",
+      "is_sample": true,
+      "dataset_key": "purchases"
+    },
+    {
+      "id": "b07afc51-0064-470a-9212-a69d37f1e5e7",
+      "ref": "PO-6909-012",
+      "type": "สั่งซื้อ 18 ก.ย.",
+      "owner": "อรทัย วัฒนากร",
+      "title": "บริษัท ฟาร์มาโกลบอล จำกัด",
+      "value": "฿ 126,900",
+      "detail": "รับ 23 ก.ย.",
+      "status": "รับครบแล้ว",
+      "position": 2,
+      "subtitle": "สั่งซื้อ 18 ก.ย. · รับ 23 ก.ย.",
+      "is_sample": true,
+      "dataset_key": "purchases"
+    },
+    {
+      "id": "3d384430-ad48-4599-bdd2-1c3e797addcc",
+      "ref": "QT-6909-022",
+      "type": "24 ก.ย.",
+      "owner": "5 รายการ",
+      "title": "โรงพยาบาลร่มเย็น",
+      "value": "฿ 42,350",
+      "detail": "พิมพ์ชนก รัตนชัย",
+      "status": "รออนุมัติ",
+      "position": 0,
+      "subtitle": "24 ก.ย. · พิมพ์ชนก รัตนชัย",
+      "is_sample": true,
+      "dataset_key": "quotes"
+    },
+    {
+      "id": "fe040b04-7da9-47cd-b080-27803b4756b4",
+      "ref": "QT-6909-021",
+      "type": "23 ก.ย.",
+      "owner": "3 รายการ",
+      "title": "คลินิกเวชกรรมสุขใจ",
+      "value": "฿ 8,920",
+      "detail": "ธนกร ศิริพงษ์",
+      "status": "ฉบับร่าง",
+      "position": 1,
+      "subtitle": "23 ก.ย. · ธนกร ศิริพงษ์",
+      "is_sample": true,
+      "dataset_key": "quotes"
+    },
+    {
+      "id": "942cd105-8e3f-47bc-9a4f-cf53a3306d7f",
+      "ref": "QT-6909-020",
+      "type": "22 ก.ย.",
+      "owner": "8 รายการ",
+      "title": "เมดิคอลแคร์ ซัพพลาย",
+      "value": "฿ 76,100",
+      "detail": "ณัฐวุฒิ เกษมสุข",
+      "status": "อนุมัติแล้ว",
+      "position": 2,
+      "subtitle": "22 ก.ย. · ณัฐวุฒิ เกษมสุข",
+      "is_sample": true,
+      "dataset_key": "quotes"
+    },
+    {
+      "id": "6ca121c4-301b-4cd4-a09e-f2f2e53dfe67",
+      "ref": "FIN-0924",
+      "type": "ก.ย. 2569",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "รับชำระจากลูกค้า",
+      "value": "฿ 1.82M",
+      "detail": "รับชำระ",
+      "status": "บันทึกแล้ว",
+      "position": 0,
+      "subtitle": "ก.ย. 2569 · รับชำระ",
+      "is_sample": true,
+      "dataset_key": "reports/finance"
+    },
+    {
+      "id": "404f6229-0851-4006-bcf7-d8a8a7e85e90",
+      "ref": "FIN-0923",
+      "type": "ณ 24 ก.ย. 2569",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "ยอดลูกหนี้คงเหลือ",
+      "value": "฿ 1.28M",
+      "detail": "ลูกหนี้",
+      "status": "ตัวอย่างข้อมูล",
+      "position": 1,
+      "subtitle": "ณ 24 ก.ย. 2569 · ลูกหนี้",
+      "is_sample": true,
+      "dataset_key": "reports/finance"
+    },
+    {
+      "id": "bfab24ba-089e-4b51-a7ba-e339bb7ed802",
+      "ref": "FIN-0922",
+      "type": "ก.ย. 2569",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "ค่าใช้จ่ายรวม",
+      "value": "฿ 248K",
+      "detail": "ค่าใช้จ่าย",
+      "status": "ตัวอย่างข้อมูล",
+      "position": 2,
+      "subtitle": "ก.ย. 2569 · ค่าใช้จ่าย",
+      "is_sample": true,
+      "dataset_key": "reports/finance"
+    },
+    {
+      "id": "8bb608f8-0617-4b72-8b1f-2b6ac33b1d0e",
+      "ref": "MED-0104",
+      "type": "คลังหลัก",
+      "owner": "820 กล่อง",
+      "title": "พาราเซตามอล 500 มก.",
+      "value": "หมดอายุ 09/2570",
+      "detail": "LOT P2409",
+      "status": "ปกติ",
+      "position": 0,
+      "subtitle": "คลังหลัก · LOT P2409",
+      "is_sample": true,
+      "dataset_key": "reports/inventory"
+    },
+    {
+      "id": "b67e19d4-ca77-47a8-b9ea-858e149db5aa",
+      "ref": "MED-0188",
+      "type": "คลังหลัก",
+      "owner": "126 ขวด",
+      "title": "น้ำเกลือปราศจากเชื้อ 0.9%",
+      "value": "หมดอายุ 11/2569",
+      "detail": "LOT S2402",
+      "status": "ใกล้หมดอายุ",
+      "position": 1,
+      "subtitle": "คลังหลัก · LOT S2402",
+      "is_sample": true,
+      "dataset_key": "reports/inventory"
+    },
+    {
+      "id": "515b4643-60b9-46a0-a82a-72cf6d07986a",
+      "ref": "MED-0217",
+      "type": "คลังการตลาด",
+      "owner": "80 กล่อง",
+      "title": "หน้ากากอนามัยทางการแพทย์",
+      "value": "หมดอายุ 05/2571",
+      "detail": "LOT M2415",
+      "status": "ปกติ",
+      "position": 2,
+      "subtitle": "คลังการตลาด · LOT M2415",
+      "is_sample": true,
+      "dataset_key": "reports/inventory"
+    },
+    {
+      "id": "7555cef2-2ce7-483d-8617-8035d14aa207",
+      "ref": "24 ก.ย. 2569",
+      "type": "เทียบกับวันก่อนหน้า",
+      "owner": "ฝ่ายขายทั้งหมด",
+      "title": "ยอดขายประจำวัน",
+      "value": "฿ 184,500",
+      "detail": "",
+      "status": "ข้อมูลตัวอย่าง",
+      "position": 0,
+      "subtitle": "เทียบกับวันก่อนหน้า",
+      "is_sample": true,
+      "dataset_key": "reports/sales"
+    },
+    {
+      "id": "c4c94efc-f79f-4a07-9d3d-7fa03275d30d",
+      "ref": "สัปดาห์ที่ 39",
+      "type": "16–22 ก.ย. 2569",
+      "owner": "ฝ่ายขายทั้งหมด",
+      "title": "ยอดขายรายสัปดาห์",
+      "value": "฿ 1.24M",
+      "detail": "",
+      "status": "ข้อมูลตัวอย่าง",
+      "position": 1,
+      "subtitle": "16–22 ก.ย. 2569",
+      "is_sample": true,
+      "dataset_key": "reports/sales"
+    },
+    {
+      "id": "110a512b-5947-4bc6-b0d3-c3ee8a4ed797",
+      "ref": "ก.ย. 2569",
+      "type": "1–24 ก.ย. 2569",
+      "owner": "ฝ่ายขายทั้งหมด",
+      "title": "ยอดขายรายเดือน",
+      "value": "฿ 4.86M",
+      "detail": "",
+      "status": "ข้อมูลตัวอย่าง",
+      "position": 2,
+      "subtitle": "1–24 ก.ย. 2569",
+      "is_sample": true,
+      "dataset_key": "reports/sales"
+    },
+    {
+      "id": "0d11359a-65d6-4de3-ad72-3bc1af2f24dc",
+      "ref": "SET-01",
+      "type": "บริษัท",
+      "owner": "อรทัย วัฒนากร",
+      "title": "ข้อมูลบริษัท",
+      "value": "Zuugroup Demo",
+      "detail": "ชื่อ ที่อยู่ เลขผู้เสียภาษี",
+      "status": "กำหนดแล้ว",
+      "position": 0,
+      "subtitle": "บริษัท · ชื่อ ที่อยู่ เลขผู้เสียภาษี",
+      "is_sample": true,
+      "dataset_key": "settings"
+    },
+    {
+      "id": "ab82b323-1580-4504-a1af-17cbb9da4c72",
+      "ref": "SET-02",
+      "type": "เอกสาร",
+      "owner": "อรทัย วัฒนากร",
+      "title": "รูปแบบเอกสาร",
+      "value": "QT-YYMM-###",
+      "detail": "คำนำหน้าและเลขตัวอย่าง",
+      "status": "รอยืนยัน",
+      "position": 1,
+      "subtitle": "เอกสาร · คำนำหน้าและเลขตัวอย่าง",
+      "is_sample": true,
+      "dataset_key": "settings"
+    },
+    {
+      "id": "b94f5826-6d0d-49f4-a3c2-73d3600ec624",
+      "ref": "SET-03",
+      "type": "การแจ้งเตือน",
+      "owner": "อรทัย วัฒนากร",
+      "title": "การแจ้งเตือน",
+      "value": "30 วันก่อนครบกำหนด",
+      "detail": "วันเตือนตัวอย่าง",
+      "status": "รอยืนยัน",
+      "position": 2,
+      "subtitle": "การแจ้งเตือน · วันเตือนตัวอย่าง",
+      "is_sample": true,
+      "dataset_key": "settings"
+    },
+    {
+      "id": "1f04b4fd-f97a-4724-a095-7c4f27755ea2",
+      "ref": "SET-04",
+      "type": "ข้อมูลอ้างอิง",
+      "owner": "สุรีย์พร จันทร์ดี",
+      "title": "การชำระเงิน",
+      "value": "เครดิต 30 วัน",
+      "detail": "เงื่อนไขตัวอย่าง",
+      "status": "กำหนดแล้ว",
+      "position": 3,
+      "subtitle": "ข้อมูลอ้างอิง · เงื่อนไขตัวอย่าง",
+      "is_sample": true,
+      "dataset_key": "settings"
+    },
+    {
+      "id": "e3e63fd1-3851-4f51-81cb-edaf252d858c",
+      "ref": "CNT-0028",
+      "type": "คลังหลัก",
+      "owner": "อรทัย วัฒนากร",
+      "title": "ตรวจนับคลังหลัก",
+      "value": "18 รายการ",
+      "detail": "โซน A",
+      "status": "รอตรวจสอบ",
+      "position": 0,
+      "subtitle": "คลังหลัก · โซน A",
+      "is_sample": true,
+      "dataset_key": "stock-counts"
+    },
+    {
+      "id": "fcca0acf-1945-45f4-babd-5f23091f1941",
+      "ref": "CNT-0027",
+      "type": "คลังการตลาด",
+      "owner": "กิตติพงษ์ วงศ์สวัสดิ์",
+      "title": "ตรวจนับคลังการตลาด",
+      "value": "12 รายการ",
+      "detail": "โซน B",
+      "status": "บันทึกแล้ว",
+      "position": 1,
+      "subtitle": "คลังการตลาด · โซน B",
+      "is_sample": true,
+      "dataset_key": "stock-counts"
+    },
+    {
+      "id": "3d0c135a-f017-4ed0-a321-fe31233c8cb2",
+      "ref": "SUP-0031",
+      "type": "ผู้จำหน่ายยา",
+      "owner": "คุณอรุณ · 02-555-0180",
+      "title": "บริษัท เมดิซัพพลาย จำกัด",
+      "value": "เครดิต 30 วัน",
+      "detail": "กรุงเทพฯ",
+      "status": "ใช้งานอยู่",
+      "position": 0,
+      "subtitle": "ผู้จำหน่ายยา · กรุงเทพฯ",
+      "is_sample": true,
+      "dataset_key": "suppliers"
+    },
+    {
+      "id": "3428810c-d94c-43bb-a84b-7da150318c37",
+      "ref": "SUP-0032",
+      "type": "เวชภัณฑ์",
+      "owner": "คุณศิริพร · 02-555-0241",
+      "title": "บริษัท เฮลท์แคร์ โปรดักส์ จำกัด",
+      "value": "เครดิต 45 วัน",
+      "detail": "นนทบุรี",
+      "status": "ใช้งานอยู่",
+      "position": 1,
+      "subtitle": "เวชภัณฑ์ · นนทบุรี",
+      "is_sample": true,
+      "dataset_key": "suppliers"
+    },
+    {
+      "id": "2d40328e-a245-4117-9c43-a0e4e8d9716f",
+      "ref": "SUP-0033",
+      "type": "ผู้นำเข้า",
+      "owner": "คุณวิชัย · 02-555-0312",
+      "title": "บริษัท ฟาร์มาโกลบอล จำกัด",
+      "value": "เงินสด",
+      "detail": "สมุทรปราการ",
+      "status": "รอตรวจสอบ",
+      "position": 2,
+      "subtitle": "ผู้นำเข้า · สมุทรปราการ",
+      "is_sample": true,
+      "dataset_key": "suppliers"
+    }
+  ],
+  "datasets": [
+    {
+      "key": "billing",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "ยังไม่ครบกำหนด",
+          "เกินกำหนด",
+          "รับบางส่วน"
+        ],
+        "title": "วางบิลและลูกหนี้",
+        "action": "บันทึกรับชำระตัวอย่าง",
+        "columns": [
+          "เลขที่ / ลูกค้า",
+          "ครบกำหนด / อายุหนี้",
+          "ผู้ดูแล",
+          "ยอดคงค้าง"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ลูกค้าทั้งหมด",
+          "เกิน 30 วัน",
+          "เกิน 90 วัน"
+        ],
+        "metrics": [
+          {
+            "note": "ตัวเลขจำลอง",
+            "label": "ยอดคงค้าง",
+            "value": "฿ 1.28M"
+          },
+          {
+            "note": "ตัวอย่างข้อมูล",
+            "label": "ครบกำหนดเดือนนี้",
+            "value": "฿ 284K"
+          },
+          {
+            "note": "รายการจำลอง",
+            "label": "รายการเกินกำหนด",
+            "value": "9"
+          }
+        ],
+        "description": "ตัวอย่างเอกสารวางบิล ยอดคงค้าง และรับชำระ"
+      },
+      "is_sample": true,
+      "source_file": "src/app/billing/data.ts"
+    },
+    {
+      "key": "customers/dashboard",
+      "metadata": {
+        "tabs": [
+          "ภาพรวม",
+          "ติดตามวันนี้",
+          "รอการติดต่อ"
+        ],
+        "title": "ภาพรวมลูกค้า",
+        "action": "ดูรายชื่อลูกค้า",
+        "columns": [
+          "ลูกค้าติดตาม",
+          "ประเภท / จังหวัด",
+          "ผู้ดูแล",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกเขต",
+          "กรุงเทพฯ",
+          "ภาคกลาง"
+        ],
+        "metrics": [
+          {
+            "note": "ตัวอย่างผู้ดูแล",
+            "label": "ลูกค้าที่ดูแล",
+            "value": "86"
+          },
+          {
+            "note": "รายการตัวอย่าง",
+            "label": "ติดตามวันนี้",
+            "value": "6"
+          },
+          {
+            "note": "ข้อมูลจำลอง",
+            "label": "รอเอกสาร",
+            "value": "4"
+          }
+        ],
+        "description": "ภาพรวมกลุ่มลูกค้าและงานติดตามในตัวอย่าง"
+      },
+      "is_sample": true,
+      "source_file": "src/app/customers/dashboard/data.ts"
+    },
+    {
+      "key": "customers",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "รอดำเนินการ",
+          "เสร็จสิ้น"
+        ],
+        "title": "ลูกค้า",
+        "action": "เพิ่มลูกค้า",
+        "columns": [
+          "ชื่อลูกค้า",
+          "ประเภท / จังหวัด",
+          "ผู้ดูแล",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกประเภท",
+          "โรงพยาบาล",
+          "คลินิก",
+          "ร้านยา"
+        ],
+        "metrics": [
+          {
+            "note": "ตัวอย่างข้อมูล",
+            "label": "ลูกค้าทั้งหมด",
+            "value": "248"
+          },
+          {
+            "note": "รายการตัวอย่าง",
+            "label": "รอตรวจเอกสาร",
+            "value": "8"
+          },
+          {
+            "note": "ข้อมูลจำลอง",
+            "label": "ผู้ดูแลฝ่ายขาย",
+            "value": "12"
+          }
+        ],
+        "description": "ข้อมูลลูกค้าและผู้ดูแลสำหรับประกอบการนำเสนอ"
+      },
+      "is_sample": true,
+      "source_file": "src/app/customers/data.ts"
+    },
+    {
+      "key": "customers/documents",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "รอตรวจสอบ",
+          "ตรวจแล้ว",
+          "ใกล้หมดอายุ"
+        ],
+        "title": "เอกสารลูกค้า",
+        "action": "เพิ่มรายการเอกสารตัวอย่าง",
+        "columns": [
+          "ลูกค้า / เอกสาร",
+          "ประเภท / วันที่",
+          "ผู้ดูแล",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกประเภทเอกสาร"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "ตัวอย่างเอกสารประกอบข้อมูลลูกค้า — รายการและเงื่อนไขจริงรอยืนยัน"
+      },
+      "is_sample": true,
+      "source_file": "src/app/customers/documents/data.ts"
+    },
+    {
+      "key": "customers/groups",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "ใช้งานอยู่",
+          "ปิดใช้งาน"
+        ],
+        "title": "กลุ่มลูกค้า",
+        "action": "เพิ่มกลุ่มลูกค้า",
+        "columns": [
+          "ชื่อกลุ่ม",
+          "คำอธิบาย",
+          "จำนวนลูกค้า",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกกลุ่ม"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "แบ่งกลุ่มลูกค้าเพื่อช่วยจัดการข้อมูลและงานขาย"
+      },
+      "is_sample": true,
+      "source_file": "src/app/customers/groups/data.ts"
+    },
+    {
+      "key": "customers/list",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "ใช้งานอยู่",
+          "รอตรวจสอบ",
+          "ระงับ"
+        ],
+        "title": "รายชื่อลูกค้า",
+        "action": "เพิ่มลูกค้า",
+        "columns": [
+          "ชื่อลูกค้า",
+          "ประเภท / จังหวัด",
+          "ผู้ดูแล",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกประเภท",
+          "โรงพยาบาล",
+          "คลินิก",
+          "ร้านยา"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "ค้นหาและจัดกลุ่มข้อมูลลูกค้า"
+      },
+      "is_sample": true,
+      "source_file": "src/app/customers/list/data.ts"
+    },
+    {
+      "key": "customers/territories",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "ใช้งานอยู่",
+          "ยังไม่มอบหมาย"
+        ],
+        "title": "เขตและผู้แทนขาย",
+        "action": "เพิ่มเขต",
+        "columns": [
+          "เขต / ผู้แทน",
+          "พื้นที่ดูแล",
+          "ลูกค้า",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกภูมิภาค"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "ตัวอย่างการจัดเขตและผู้ดูแลลูกค้า"
+      },
+      "is_sample": true,
+      "source_file": "src/app/customers/territories/data.ts"
+    },
+    {
+      "key": "expenses",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "รอตรวจสอบ",
+          "อนุมัติแล้ว"
+        ],
+        "title": "ค่าใช้จ่าย",
+        "action": "เพิ่มค่าใช้จ่าย",
+        "columns": [
+          "รายการ / หมวด",
+          "วันที่ / เอกสาร",
+          "ผู้บันทึก",
+          "ยอดเงิน / สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกหมวด",
+          "ขนส่ง",
+          "สำนักงาน",
+          "ระบบ"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "ตัวอย่างค่าใช้จ่ายบริษัท แยกจากสินค้าขาย"
+      },
+      "is_sample": true,
+      "source_file": "src/app/expenses/data.ts"
+    },
+    {
+      "key": "orders",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "รอจัดเตรียม",
+          "กำลังจัดส่ง",
+          "ส่งครบ"
+        ],
+        "title": "คำสั่งซื้อและจัดส่ง",
+        "action": "สร้างคำสั่งซื้อ",
+        "columns": [
+          "เลขที่ / ลูกค้า",
+          "วันที่ / กำหนดส่ง",
+          "ผู้ดูแล",
+          "ยอด / สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกสถานะ",
+          "กำหนดส่งวันนี้"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "ตัวอย่างคำสั่งซื้อ การจัดเตรียม และสถานะส่งมอบ"
+      },
+      "is_sample": true,
+      "source_file": "src/app/orders/data.ts"
+    },
+    {
+      "key": "promotions",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "ฉบับร่าง",
+          "รออนุมัติ",
+          "ใช้งานอยู่"
+        ],
+        "title": "โปรโมชันและของแถม",
+        "action": "สร้างโปรโมชันตัวอย่าง",
+        "columns": [
+          "ชื่อโปรโมชัน",
+          "ช่วงเวลา / กลุ่มสินค้า",
+          "ผู้สร้าง",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกประเภท",
+          "ส่วนลด",
+          "ของแถม"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "ตัวอย่างเงื่อนไขและช่วงเวลาโปรโมชัน — กติกาจริงรอยืนยัน"
+      },
+      "is_sample": true,
+      "source_file": "src/app/promotions/data.ts"
+    },
+    {
+      "key": "purchases",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "รออนุมัติ",
+          "รอรับสินค้า",
+          "รับแล้ว"
+        ],
+        "title": "จัดซื้อและรับเข้าสินค้า",
+        "action": "สร้างใบสั่งซื้อ",
+        "columns": [
+          "เลขที่ / ผู้ขาย",
+          "วันที่ / กำหนดรับ",
+          "ผู้ทำรายการ",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ผู้ขายทั้งหมด",
+          "รอรับ",
+          "รับบางส่วน"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "ติดตามใบสั่งซื้อและรับสินค้าเข้าคลัง (ข้อมูลจำลอง)"
+      },
+      "is_sample": true,
+      "source_file": "src/app/purchases/data.ts"
+    },
+    {
+      "key": "quotes",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "ฉบับร่าง",
+          "รออนุมัติ",
+          "อนุมัติแล้ว"
+        ],
+        "title": "ใบเสนอราคา",
+        "action": "สร้างใบเสนอราคา",
+        "columns": [
+          "เลขที่ / ลูกค้า",
+          "วันที่ / ผู้ดูแล",
+          "จำนวนรายการ",
+          "ยอด / สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ลูกค้าทั้งหมด",
+          "ใบเสนอราคาของฉัน"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "ตัวอย่างรายการเสนอราคาและสถานะอนุมัติ"
+      },
+      "is_sample": true,
+      "source_file": "src/app/quotes/data.ts"
+    },
+    {
+      "key": "reports/finance",
+      "metadata": {
+        "tabs": [
+          "ภาพรวม",
+          "ลูกหนี้",
+          "ค่าใช้จ่าย"
+        ],
+        "title": "รายงานการเงิน",
+        "action": "ส่งออกรายงานตัวอย่าง",
+        "columns": [
+          "รายการ",
+          "หมวด / ช่วงเวลา",
+          "ผู้รับผิดชอบ",
+          "ยอดตัวอย่าง"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "เดือนนี้",
+          "ไตรมาสนี้"
+        ],
+        "metrics": [
+          {
+            "note": "ตัวเลขจำลอง",
+            "label": "รับชำระเดือนนี้",
+            "value": "฿ 1.82M"
+          },
+          {
+            "note": "ตัวอย่างข้อมูล",
+            "label": "ลูกหนี้คงเหลือ",
+            "value": "฿ 1.28M"
+          },
+          {
+            "note": "รายการสมมุติ",
+            "label": "ค่าใช้จ่าย",
+            "value": "฿ 248K"
+          }
+        ],
+        "description": "ตัวอย่างรายงานการเงินสำหรับสิทธิ์ที่เกี่ยวข้อง"
+      },
+      "is_sample": true,
+      "source_file": "src/app/reports/finance/data.ts"
+    },
+    {
+      "key": "reports/inventory",
+      "metadata": {
+        "tabs": [
+          "คงเหลือ",
+          "ใกล้หมดอายุ",
+          "เคลื่อนไหว"
+        ],
+        "title": "รายงานคลังสินค้า",
+        "action": "ส่งออกรายงานตัวอย่าง",
+        "columns": [
+          "สินค้า / รหัส",
+          "คลัง / Lot",
+          "คงเหลือ",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกคลัง",
+          "คลังหลัก",
+          "คลังการตลาด",
+          "รอทำลาย"
+        ],
+        "metrics": [
+          {
+            "note": "ตัวอย่างข้อมูล",
+            "label": "รหัสสินค้า",
+            "value": "486"
+          },
+          {
+            "note": "รายการจำลอง",
+            "label": "Lot ใกล้หมดอายุ",
+            "value": "14"
+          },
+          {
+            "note": "ข้อมูลตัวอย่าง",
+            "label": "คลัง",
+            "value": "3"
+          }
+        ],
+        "description": "ตัวอย่างยอดคงเหลือและความเคลื่อนไหวของสินค้า"
+      },
+      "is_sample": true,
+      "source_file": "src/app/reports/inventory/data.ts"
+    },
+    {
+      "key": "reports/sales",
+      "metadata": {
+        "tabs": [
+          "วันนี้",
+          "สัปดาห์นี้",
+          "เดือนนี้"
+        ],
+        "title": "รายงานยอดขาย",
+        "action": "ส่งออกรายงานตัวอย่าง",
+        "columns": [
+          "ช่วงเวลา",
+          "ลูกค้า / เขต",
+          "ผู้ดูแล",
+          "ยอดขาย"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกเขต",
+          "ทุกทีม"
+        ],
+        "metrics": [
+          {
+            "note": "ตัวเลขสมมุติ",
+            "label": "ยอดขายเดือนนี้",
+            "value": "฿ 4.86M"
+          },
+          {
+            "note": "ตัวอย่างแนวโน้ม",
+            "label": "เทียบเดือนก่อน",
+            "value": "+8.2%"
+          },
+          {
+            "note": "รายการจำลอง",
+            "label": "ลูกค้าที่ซื้อ",
+            "value": "186"
+          }
+        ],
+        "description": "ภาพตัวอย่างรายงานยอดขายและแนวโน้มตามช่วงเวลา"
+      },
+      "is_sample": true,
+      "source_file": "src/app/reports/sales/data.ts"
+    },
+    {
+      "key": "settings",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "บริษัท",
+          "เอกสาร",
+          "เงื่อนไขชำระเงิน",
+          "การแจ้งเตือน"
+        ],
+        "title": "ตั้งค่าระบบ",
+        "action": "บันทึกตัวอย่าง",
+        "columns": [
+          "การตั้งค่า",
+          "หมวด",
+          "ผู้แก้ไข",
+          "ค่าตัวอย่าง"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกหมวด"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "4"
+          }
+        ],
+        "description": "ปรับค่าพื้นฐานบริษัทและการทำงาน — ค่าทั้งหมดเป็นตัวอย่าง"
+      },
+      "is_sample": true,
+      "source_file": "src/app/settings/data.ts"
+    },
+    {
+      "key": "stock-counts",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "กำลังนับ",
+          "รอตรวจสอบ",
+          "บันทึกแล้ว"
+        ],
+        "title": "ตรวจนับสินค้า",
+        "action": "เริ่มใบบันทึกตัวอย่าง",
+        "columns": [
+          "ใบนับ / คลัง",
+          "วันที่ / ผู้บันทึก",
+          "รายการ",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกคลัง",
+          "คลังหลัก",
+          "คลังการตลาด",
+          "รอทำลาย"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "2"
+          }
+        ],
+        "description": "บันทึกผลนับมือเพื่อเทียบยอดเท่านั้น — Mock นี้ไม่ปรับยอดสต็อก"
+      },
+      "is_sample": true,
+      "source_file": "src/app/stock-counts/data.ts"
+    },
+    {
+      "key": "suppliers",
+      "metadata": {
+        "tabs": [
+          "ทั้งหมด",
+          "ใช้งานอยู่",
+          "รอตรวจสอบ"
+        ],
+        "title": "ผู้ขาย",
+        "action": "เพิ่มผู้ขาย",
+        "columns": [
+          "ผู้ขาย / รหัส",
+          "ประเภท / จังหวัด",
+          "ผู้ติดต่อ",
+          "สถานะ"
+        ],
+        "eyebrow": "ข้อมูลตัวอย่างใน DB",
+        "filters": [
+          "ทุกประเภท",
+          "ผู้ผลิต",
+          "ผู้จำหน่าย",
+          "ผู้นำเข้า"
+        ],
+        "metrics": [
+          {
+            "note": "ข้อมูลตัวอย่างใน DB",
+            "label": "รายการทั้งหมด",
+            "value": "3"
+          }
+        ],
+        "description": "ตัวอย่างรายชื่อผู้ขายและผู้ผลิต"
+      },
+      "is_sample": true,
+      "source_file": "src/app/suppliers/data.ts"
+    },
+    {
+      "key": "dashboard",
+      "metadata": {
+        "metrics": [
+          {
+            "note": "เทียบกับเดือนก่อน · ข้อมูลจำลอง",
+            "label": "ยอดขายเดือนนี้",
+            "value": "฿ 4.86M",
+            "change": "+8.2%"
+          },
+          {
+            "note": "ตัวอย่างสถานะงาน",
+            "label": "คำสั่งซื้อรอดำเนินการ",
+            "value": "18",
+            "change": "6 วันนี้"
+          },
+          {
+            "note": "ตัวเลขเพื่อสาธิต",
+            "label": "ลูกหนี้คงค้าง",
+            "value": "฿ 1.28M",
+            "change": "9 รายการ"
+          },
+          {
+            "note": "ช่วงเวลาเป็นตัวอย่าง",
+            "label": "Lot ใกล้หมดอายุ",
+            "value": "14",
+            "change": "ใน 90 วัน"
+          }
+        ],
+        "orderTotal": "128 รายการ",
+        "chartChange": "+8.2%",
+        "chartHeights": [
+          38,
+          52,
+          44,
+          68,
+          58,
+          78,
+          62,
+          88,
+          72,
+          94,
+          77,
+          100
+        ],
+        "orderSummary": [
+          [
+            "จัดส่งครบ",
+            "72%",
+            "bg-[#5b9ddb]",
+            "92 รายการ"
+          ],
+          [
+            "กำลังดำเนินการ",
+            "18%",
+            "bg-[#d9a54e]",
+            "23 รายการ"
+          ],
+          [
+            "รออนุมัติ",
+            "10%",
+            "bg-[#b7c4d3]",
+            "13 รายการ"
+          ]
+        ]
+      },
+      "is_sample": true,
+      "source_file": "src/app/data.ts"
+    }
+  ]
+}
