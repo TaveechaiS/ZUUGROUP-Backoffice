@@ -25,6 +25,7 @@ export default function SuccessAlertComponent({
   const titleId = useId();
   const descriptionId = useId();
   const actionRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef(onClose);
 
   useEffect(() => {
@@ -38,6 +39,18 @@ export default function SuccessAlertComponent({
     actionRef.current?.focus();
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') closeRef.current?.();
+      if (event.key === 'Tab') {
+        const first = showCloseButton ? closeButtonRef.current : actionRef.current;
+        const last = actionRef.current;
+        if (!first || !last) return;
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
     window.addEventListener('keydown', handleEscape);
     const timer =
@@ -49,12 +62,12 @@ export default function SuccessAlertComponent({
       if (timer !== undefined) window.clearTimeout(timer);
       previousFocus?.focus();
     };
-  }, [isOpen, autoCloseDelay]);
+  }, [isOpen, autoCloseDelay, showCloseButton]);
 
   if (!isOpen) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 p-4 motion-safe:transition-opacity motion-safe:duration-300 starting:opacity-0"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose?.();
       }}
@@ -64,10 +77,11 @@ export default function SuccessAlertComponent({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className="relative w-full max-w-md rounded-xl bg-white px-7 py-8 text-center shadow-xl"
+        className="relative w-full max-w-md rounded-xl bg-white px-7 py-8 text-center shadow-xl motion-safe:transition-[opacity,transform] motion-safe:duration-300 motion-safe:ease-out starting:translate-y-3 starting:scale-95 starting:opacity-0"
       >
         {showCloseButton && (
           <button
+            ref={closeButtonRef}
             type="button"
             aria-label="ปิด"
             onClick={onClose}
@@ -76,7 +90,7 @@ export default function SuccessAlertComponent({
             <CloseIcon className="h-5 w-5" />
           </button>
         )}
-        <SuccessIcon className="mx-auto mb-5 h-20 w-20" />
+        <SuccessIcon className="mx-auto mb-5 h-20 w-20 motion-safe:animate-[pulse_800ms_ease-out_1]" />
         <h2 id={titleId} className="m-0 text-xl font-semibold text-[#26364b]">
           {title}
         </h2>

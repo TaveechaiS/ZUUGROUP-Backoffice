@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { moduleFor, type RecordConfig, type RecordRow } from '@/features/records/types';
 import { Delete, Get } from '@/service/http';
 import LoadingComponent from '@/components/ui/loading-component';
+import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import { RecordFormPage } from './record-form-page';
 export function RecordDetailPage({ moduleKey, id }: { moduleKey: string; id: string }) {
   const entity = moduleFor(moduleKey)!;
@@ -14,7 +15,9 @@ export function RecordDetailPage({ moduleKey, id }: { moduleKey: string; id: str
     [error, setError] = useState(''),
     [edit, setEdit] = useState(false),
     [reason, setReason] = useState(''),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [notice, setNotice] = useState(''),
+    [afterClosePath, setAfterClosePath] = useState('');
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
@@ -39,8 +42,8 @@ export function RecordDetailPage({ moduleKey, id }: { moduleKey: string; id: str
     setError('');
     try {
       await Delete('/api/' + moduleKey + '/' + row!.id, { reason });
-      router.push(entity.page);
-      router.refresh();
+      setNotice('ลบรายการแล้ว');
+      setAfterClosePath(entity.page);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'ลบไม่สำเร็จ');
     } finally {
@@ -66,6 +69,7 @@ export function RecordDetailPage({ moduleKey, id }: { moduleKey: string; id: str
         onSaved={(r) => {
           setRow(r);
           setEdit(false);
+          setNotice('บันทึกข้อมูลแล้ว');
         }}
       />
     );
@@ -76,6 +80,19 @@ export function RecordDetailPage({ moduleKey, id }: { moduleKey: string; id: str
   });
   return (
     <section className="flex flex-1 flex-col gap-5 p-6">
+      <SuccessAlertComponent
+        title={notice}
+        isOpen={Boolean(notice)}
+        onClose={() => {
+          setNotice('');
+          if (afterClosePath) {
+            const path = afterClosePath;
+            setAfterClosePath('');
+            router.push(path);
+            router.refresh();
+          }
+        }}
+      />
       <Link href={entity.page} className="text-sm text-[#1a58a7]">
         ← {entity.title}
       </Link>

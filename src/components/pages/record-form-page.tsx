@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { moduleFor, type RecordField, type RecordRow } from '@/features/records/types';
 import { Get, Post, Update } from '@/service/http';
+import SuccessAlertComponent from '@/components/ui/success-alert-component';
 export function RecordFormPage({
   moduleKey,
   record,
@@ -24,7 +25,8 @@ export function RecordFormPage({
     ),
   );
   const [error, setError] = useState(''),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [createdId, setCreatedId] = useState('');
   async function save(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -36,8 +38,7 @@ export function RecordFormPage({
         ? await Update<{ data: RecordRow }>(url, body)
         : await Post<{ data: RecordRow }>(url, body);
       if (onSaved) onSaved(result.data);
-      else router.push(entity.page + '/' + result.data.id);
-      router.refresh();
+      else setCreatedId(result.data.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'บันทึกไม่สำเร็จ');
     } finally {
@@ -46,6 +47,17 @@ export function RecordFormPage({
   }
   return (
     <section className="flex flex-1 flex-col gap-5 p-6">
+      <SuccessAlertComponent
+        title={`เพิ่ม${entity.title}แล้ว`}
+        isOpen={Boolean(createdId)}
+        onClose={() => {
+          if (!createdId) return;
+          const path = entity.page + '/' + createdId;
+          setCreatedId('');
+          router.push(path);
+          router.refresh();
+        }}
+      />
       <Link href={entity.page} className="text-sm text-[#1a58a7]">
         ← {entity.title}
       </Link>
@@ -61,7 +73,7 @@ export function RecordFormPage({
             {error}
           </p>
         )}
-        <fieldset disabled={busy} className="grid min-w-0 gap-4 border-0 p-0 sm:grid-cols-2">
+        <fieldset disabled={busy || Boolean(createdId)} className="grid min-w-0 gap-4 border-0 p-0 sm:grid-cols-2">
           {entity.fields.map((field) => (
             <label key={field.key} className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
               <span className="mb-2 block text-sm text-[#344256]">
@@ -103,7 +115,7 @@ export function RecordFormPage({
             ยกเลิก
           </Link>
           <button
-            disabled={busy}
+            disabled={busy || Boolean(createdId)}
             className="rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"
           >
             {busy ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}

@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { fieldClass, roles, userPath } from '../user-ui';
 import { Post } from '@/service/http';
+import SuccessAlertComponent from '@/components/ui/success-alert-component';
 
 export function CreateUserForm() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [createdPath, setCreatedPath] = useState('');
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,8 +21,7 @@ export function CreateUserForm() {
       const body = Object.fromEntries(new FormData(event.currentTarget).entries());
       const result = await Post<{ employeeCode: string }>('/api/users', body);
       if (typeof result.employeeCode !== 'string') throw new Error('สร้างบัญชีแล้ว แต่ไม่ได้รับรหัสพนักงาน กรุณากลับไปตรวจรายชื่อ');
-      router.push(userPath(result.employeeCode));
-      router.refresh();
+      setCreatedPath(userPath(result.employeeCode));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'เกิดข้อผิดพลาด');
       setBusy(false);
@@ -28,6 +29,13 @@ export function CreateUserForm() {
   }
 
   return <section className="flex flex-1 flex-col gap-5 p-6 pb-7" aria-label="เพิ่มผู้ใช้งาน">
+    <SuccessAlertComponent title="สร้างผู้ใช้งานแล้ว" isOpen={Boolean(createdPath)} onClose={() => {
+      if (!createdPath) return;
+      const path = createdPath;
+      setCreatedPath('');
+      router.push(path);
+      router.refresh();
+    }} />
     <div><Link href="/users" className="text-sm text-[#1a58a7] hover:underline">← กลับไปรายชื่อผู้ใช้งาน</Link><h2 className="mt-3 text-xl font-semibold text-[#26364b]">เพิ่มผู้ใช้งาน</h2><p className="mt-1 text-sm text-[#718096]">กำหนดบัญชี บทบาท และรหัสผ่านครั้งแรก</p></div>
     <form onSubmit={create} className="grid w-full max-w-2xl gap-5 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm">
       <div className="grid gap-5 sm:grid-cols-2">

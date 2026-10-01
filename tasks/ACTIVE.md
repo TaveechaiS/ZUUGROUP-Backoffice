@@ -2,6 +2,10 @@
 
 ## ขอบเขตรอบนี้ (2026-10-01)
 
+- TASK-062: เจ้าของสั่ง checkpoint และ commit งาน SuccessAlert หลัง `f25284d`. ตรวจ branch/diff และไฟล์ข้อมูลลับ; สร้าง `tasks/CHECKPOINT-2026-10-01-3.md` กับ `tasks/TASK-062-checkpoint-commit.md`; stage เฉพาะงานใน working tree, ตรวจ staged diff/secret แล้ว commit บน branch `AI` โดยไม่ push. ผลตรวจ static ของ TASK-061 ผ่านแล้ว; UAT ยังรอเจ้าของ.
+
+- TASK-061: หลัง checkpoint `f25284d` เจ้าของแจ้งว่า SuccessAlertComponent ยังไม่เสร็จ. ตรวจ component และจุดสำเร็จจริง; เติม alert ใน `src/components/pages/record-form-page.tsx`, `src/components/pages/record-detail-page.tsx`, `src/app/products/create/create-product-form.tsx`, `src/app/users/create/create-user-form.tsx`, `src/app/users/[employeeCode]/user-detail-content.tsx` และปรับ `src/components/ui/success-alert-component.tsx` เท่าที่จำเป็น. บันทึก Specs/Plan/Task ก่อนโค้ด; ให้การนำทางหลังสร้าง/ลบเกิดหลังปิด alert; ไม่แก้ API/DB. ตรวจ lint/type-check/build และ UAT.
+
 - TASK-060: เจ้าของสั่ง checkpoint และ commit งานปัจจุบันก่อนกลับไปแก้ SuccessAlertComponent. ตรวจ changed files/credential, ลด diff ของ `package-lock.json` เฉพาะรูปแบบบรรทัด/ย่อหน้าโดยคง JSON เดิม, สร้าง `tasks/CHECKPOINT-2026-10-01-2.md` และ `tasks/TASK-060-checkpoint-commit.md`, stage งานใน branch `AI`, ตรวจ staged diff/secret, commit โดยไม่ push. หลัง commit เปิด Task ใหม่เพื่อเติม SuccessAlert ตามคำท้วงของเจ้าของ.
 
 - TASK-059: เจ้าของขอ Loading เต็มหน้าจอระหว่างเปลี่ยนหน้าและโหลดข้อมูล พร้อม icon และ motion ที่นุ่มขึ้น. ขอบเขต `src/components/ui/loading-component.tsx`, `src/components/icons/status-icons.tsx`, `src/app/loading.tsx`, `src/app/layout.tsx`, `src/app/dashboard-page-content.tsx`, `src/components/pages/module-list-page.tsx`, `src/components/pages/record-detail-page.tsx` และ Specs/Plan/Task. เพิ่ม Suspense รอบการอ่าน session ใน layout เพื่อให้หน้าแรกมี fallback; ไม่แก้ API/DB. ลำดับ: ลง Specs/Plan → ปรับ UI และเชื่อมจุดโหลด → lint/type-check/build และตรวจหน้าจอ → UAT.
@@ -36,6 +40,9 @@
 
 | Task | ผู้รับผิดชอบ | สถานะ | ขอบเขต | หมายเหตุ |
 |---|---|---|---|---|
+| TASK-062 | AI | COMPLETE | checkpoint และ commit งาน SuccessAlert ใน TASK-061 | ตรวจ staged diff และ credential; commit บน branch AI โดยไม่ push; รอ UAT ของ TASK-061 |
+| TASK-061 | AI | READY_FOR_USER_TEST | SuccessAlert สำหรับสร้าง/แก้/ลบ/กู้คืนในฟอร์มรายการ, สินค้า, ผู้ใช้ | flow ที่เปลี่ยนหน้ารอปิด alert; dialog รองรับ Tab และ entrance motion; lint/type-check/build/diff-check ผ่าน; รอ UAT |
+| TASK-060 | AI | COMPLETE | checkpoint และ commit งานก่อน SuccessAlert | commit `f25284d` บน branch AI, 56 ไฟล์, ตรวจ staged secret และ `.env.local` ไม่ถูกติดตาม; ไม่ push |
 | TASK-059 | AI | READY_FOR_USER_TEST | Loading เต็มหน้าจอ/ไอคอน/แอนิเมชัน ใน session fallback, route fallback และ GET หลัก | lint/type-check/build/Prettier/diff-check ผ่าน; CSS motion สร้างแล้ว; เครื่องมือ browser ไม่เริ่มทำงาน จึงรอเจ้าของดูจังหวะจริงและ reduced motion |
 | TASK-058 | AI | READY_FOR_USER_REVIEW | คู่มือชื่อโฟลเดอร์ API ไทย/อังกฤษและหน้าที่; `docs/API-NAME-GUIDE.md`, `postman/README.md`, Specs/Plan/Task | ตรวจชื่อเรียงตรง Collection ครบ 23 โฟลเดอร์/167 คำขอ, URL ตัวอย่างตรงไฟล์, `git diff --check` ผ่าน; รอเจ้าของอ่านทวนคำอธิบาย |
 | TASK-057 | AI | READY_FOR_USER_TEST | เปิดรายละเอียดจากทั้งแถวในรายการโมดูล/สินค้า/ผู้ใช้งาน | desktop/mobile ที่มี URL รองรับคลิกและ Enter/Space; คงปุ่มกู้คืน; lint/type-check/build/diff-check ผ่าน; รอเจ้าของทดสอบหน้าเว็บ |

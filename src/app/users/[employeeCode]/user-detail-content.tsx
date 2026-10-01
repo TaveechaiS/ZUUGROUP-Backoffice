@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { fieldClass, roles, userPath, type UserRow } from '../user-ui';
 import { Update } from '@/service/http';
+import SuccessAlertComponent from '@/components/ui/success-alert-component';
 
 export function UserDetailContent({ initialUser, actorId }: { initialUser: UserRow; actorId: string }) {
   const router = useRouter();
@@ -12,10 +13,11 @@ export function UserDetailContent({ initialUser, actorId }: { initialUser: UserR
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [nextPath, setNextPath] = useState('');
   const isSelf = user.id === actorId;
 
   async function submit(body: Record<string, unknown>, success: string) {
-    setBusy(true); setError(''); setMessage('');
+    setBusy(true); setError(''); setMessage(''); setNextPath('');
     try {
       await Update(`/api/users/${user.id}`, body);
       setMessage(success);
@@ -34,9 +36,8 @@ export function UserDetailContent({ initialUser, actorId }: { initialUser: UserR
     const employeeCode = String(data.employeeCode).trim();
     const ok = await submit({ action: 'profile', ...data }, 'แก้ข้อมูลบัญชีแล้ว');
     if (!ok) return;
-    if (employeeCode !== user.employeeCode) router.replace(userPath(employeeCode));
-    else setUser((current) => ({ ...current, employeeCode, name: String(data.name).trim(), email: String(data.email).trim().toLowerCase(), team: String(data.team).trim() }));
-    router.refresh();
+    if (employeeCode !== user.employeeCode) setNextPath(userPath(employeeCode));
+    setUser((current) => ({ ...current, employeeCode, name: String(data.name).trim(), email: String(data.email).trim().toLowerCase(), team: String(data.team).trim() }));
   }
 
   async function changeRole(event: FormEvent<HTMLFormElement>) {
@@ -44,7 +45,6 @@ export function UserDetailContent({ initialUser, actorId }: { initialUser: UserR
     const roleId = String(new FormData(event.currentTarget).get('roleId'));
     if (await submit({ action: 'role', roleId }, 'เปลี่ยนบทบาทแล้ว')) {
       setUser((current) => ({ ...current, roleId, role: roles.find(([id]) => id === roleId)?.[1] ?? current.role }));
-      router.refresh();
     }
   }
 
@@ -52,7 +52,6 @@ export function UserDetailContent({ initialUser, actorId }: { initialUser: UserR
     const status = user.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
     if (await submit({ action: 'status', status }, 'เปลี่ยนสถานะแล้ว')) {
       setUser((current) => ({ ...current, status }));
-      router.refresh();
     }
   }
 
@@ -69,14 +68,21 @@ export function UserDetailContent({ initialUser, actorId }: { initialUser: UserR
     if (!reason) { setError('กรุณาระบุเหตุผล'); return; }
     if (action === 'delete' && !window.confirm(`ยืนยันลบผู้ใช้งาน ${user.name} แบบกู้คืนได้?`)) return;
     if (await submit({ action, reason }, action === 'delete' ? 'ลบผู้ใช้งานแล้ว' : 'กู้คืนผู้ใช้งานแล้ว')) {
-      router.replace('/users');
-      router.refresh();
+      setNextPath('/users');
     }
   }
 
   return <section className="flex flex-1 flex-col gap-5 p-6 pb-7" aria-label={`จัดการผู้ใช้งาน ${user.name}`}>
+    <SuccessAlertComponent title={message} isOpen={Boolean(message)} onClose={() => {
+      setMessage('');
+      if (nextPath) {
+        const path = nextPath;
+        setNextPath('');
+        router.replace(path);
+      }
+      router.refresh();
+    }} />
     <div><Link href="/users" className="text-sm text-[#1a58a7] hover:underline">← กลับไปรายชื่อผู้ใช้งาน</Link><div className="mt-3 flex flex-wrap items-center gap-3"><h2 className="text-xl font-semibold text-[#26364b]">{user.name}</h2><span className={`rounded-full px-2.5 py-1 text-xs ${user.deletedAt ? 'bg-[#fff2f0] text-[#aa4537]' : user.status === 'ACTIVE' ? 'bg-[#edf7f1] text-[#347555]' : 'bg-[#f1f3f6] text-[#687589]'}`}>{user.deletedAt ? 'ลบแล้ว' : user.status === 'ACTIVE' ? 'ใช้งานอยู่' : 'ระงับการใช้งาน'}</span></div><p className="mt-1 text-sm text-[#718096]">{user.email} · {user.employeeCode} · เข้าสู่ระบบล่าสุด: {user.lastActive}</p></div>
-    {message && <p role="status" className="rounded-lg bg-[#eff5fc] p-3 text-sm text-[#174a8b]">{message}</p>}
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
     {isSelf && !user.deletedAt && <p className="rounded-lg bg-[#eff5fc] p-3 text-sm text-[#174a8b]">บัญชีที่กำลังใช้งานไม่สามารถระงับ ลบ หรือเปลี่ยนบทบาทของตัวเองได้ ให้ Admin อีกบัญชีดำเนินการ</p>}
     {user.deletedAt ? <div className="grid max-w-3xl gap-5">

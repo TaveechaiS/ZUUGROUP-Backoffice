@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { buttonClass, inputClass, type Master, type Masters } from '../product-ui';
 import { Get, Post } from '@/service/http';
+import SuccessAlertComponent from '@/components/ui/success-alert-component';
 
 export function CreateProductForm({ initialMasters }: { initialMasters: Masters }) {
   const router = useRouter();
@@ -19,6 +20,8 @@ export function CreateProductForm({ initialMasters }: { initialMasters: Masters 
   const [masterType, setMasterType] = useState<'category' | 'dosageForm' | 'drug'>('drug');
   const [masterName, setMasterName] = useState('');
   const [masterCode, setMasterCode] = useState('');
+  const [successTitle, setSuccessTitle] = useState('');
+  const [createdPath, setCreatedPath] = useState('');
 
   useEffect(() => {
     if (!categoryId || !dosageFormId) return;
@@ -38,8 +41,8 @@ export function CreateProductForm({ initialMasters }: { initialMasters: Masters 
     try {
       const result = await Post<{ product: { code: string } }>('/api/products',
         { ...values, categoryId, dosageFormId, drugId, defaultWarehouseId: warehouseId, sequence });
-      router.push(`/products/${encodeURIComponent(result.product.code)}`);
-      router.refresh();
+      setCreatedPath(`/products/${encodeURIComponent(result.product.code)}`);
+      setSuccessTitle('สร้างสินค้าแล้ว');
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'สร้างสินค้าไม่สำเร็จ'); setBusy(false); }
   }
   async function addMaster(event: FormEvent<HTMLFormElement>) {
@@ -54,9 +57,19 @@ export function CreateProductForm({ initialMasters }: { initialMasters: Masters 
       if (masterType === 'dosageForm') setDosageFormId(item.id);
       if (masterType === 'drug') setDrugId(item.id);
       setMasterName(''); setMasterCode('');
+      setSuccessTitle('เพิ่มข้อมูลแม่สินค้าแล้ว');
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'เพิ่มรายการไม่สำเร็จ'); }
   }
   return <main className="flex flex-1 flex-col gap-6 p-6 pb-10 text-[#26364b]">
+    <SuccessAlertComponent title={successTitle} isOpen={Boolean(successTitle)} onClose={() => {
+      setSuccessTitle('');
+      if (createdPath) {
+        const path = createdPath;
+        setCreatedPath('');
+        router.push(path);
+        router.refresh();
+      }
+    }} />
     <header><Link href="/products" className="text-sm text-[#1a58a7] hover:underline">← กลับไปรายการสินค้า</Link><h1 className="mb-0 mt-3 text-2xl font-semibold">เพิ่มสินค้า</h1></header>
     <form onSubmit={create} className="grid max-w-4xl gap-6 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm">
       <section><h2 className="mt-0 text-base font-semibold">รหัสและข้อมูลอ้างอิง</h2><div className="grid gap-4 sm:grid-cols-2">
