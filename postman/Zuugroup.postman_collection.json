@@ -1,0 +1,73 @@
+{
+  "info": {
+    "name": "Zuugroup",
+    "description": "GET API ที่มีอยู่จริงของ ZUUGROUP สำหรับทดสอบด้วย Postman ใช้ session cookie จากการล็อกอินเว็บ ไม่เก็บรหัสผ่านหรือ token ใน Collection",
+    "schema": "https://schema.postman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "สินค้า",
+      "item": [
+        {
+          "name": "GET รายการสินค้า",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/products",
+            "description": "ผู้ใช้ที่ Active อ่านได้; Admin จะเห็นสินค้าที่ลบเชิงตรรกะด้วย ตอบ { products: [...] }"
+          }
+        },
+        {
+          "name": "GET ข้อมูลแม่สินค้า",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/products/masters",
+            "description": "หมวด รูปแบบยา ตัวยา และคลังที่เกี่ยวข้อง; ใช้ ID หมวดและรูปแบบยาในคำขอเลขลำดับ"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const data = pm.response.json();",
+                "  if (data.categories?.[0]?.id) pm.collectionVariables.set('categoryId', data.categories[0].id);",
+                "  if (data.dosageForms?.[0]?.id) pm.collectionVariables.set('dosageFormId', data.dosageForms[0].id);",
+                "}"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "GET เลขลำดับสินค้าถัดไป",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/products/next-sequence?categoryId={{categoryId}}&dosageFormId={{dosageFormId}}",
+            "description": "ส่ง GET ข้อมูลแม่สินค้าก่อนเพื่อเติม categoryId และ dosageFormId; เลขที่เสนออาจเปลี่ยนก่อนสร้างสินค้าจริง"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ผู้ใช้งาน",
+      "item": [
+        {
+          "name": "GET รายการผู้ใช้งาน (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users",
+            "description": "เฉพาะ Admin; ตอบ { users: [...] } และรวมบัญชีที่ลบเชิงตรรกะ"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "categoryId", "value": "", "type": "string" },
+    { "key": "dosageFormId", "value": "", "type": "string" }
+  ]
+}
