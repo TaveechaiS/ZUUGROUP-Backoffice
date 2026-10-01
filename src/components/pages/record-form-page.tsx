@@ -2,7 +2,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { moduleFor, readRecord, type RecordField, type RecordRow } from '@/features/records/types';
+import { moduleFor, type RecordField, type RecordRow } from '@/features/records/types';
+import { Get, Post, Update } from '@/service/http';
 export function RecordFormPage({
   moduleKey,
   record,
@@ -29,16 +30,11 @@ export function RecordFormPage({
     setBusy(true);
     setError('');
     try {
-      const response = await fetch('/api/' + entity.key + (record ? '/' + record.id : ''), {
-        method: record ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...values,
-          ...(record ? { expectedUpdatedAt: record.updatedAt } : {}),
-        }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error?.message ?? 'บันทึกไม่สำเร็จ');
+      const url = '/api/' + entity.key + (record ? '/' + record.id : '');
+      const body = { ...values, ...(record ? { expectedUpdatedAt: record.updatedAt } : {}) };
+      const result = record
+        ? await Update<{ data: RecordRow }>(url, body)
+        : await Post<{ data: RecordRow }>(url, body);
       if (onSaved) onSaved(result.data);
       else router.push(entity.page + '/' + result.data.id);
       router.refresh();
@@ -135,7 +131,7 @@ function RelationPicker({
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       const params = new URLSearchParams({ search, offset: String(offset), limit: '10' });
-      readRecord<{
+      Get<{
         data: { id: string; code: string; name: string }[];
         pagination: { hasMore: boolean };
       }>('/api/' + field.relation + '/options?' + params, controller.signal)

@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { fieldClass, roles, userPath, type UserRow } from '../user-ui';
+import { Update } from '@/service/http';
 
 export function UserDetailContent({ initialUser, actorId }: { initialUser: UserRow; actorId: string }) {
   const router = useRouter();
@@ -16,12 +17,7 @@ export function UserDetailContent({ initialUser, actorId }: { initialUser: UserR
   async function submit(body: Record<string, unknown>, success: string) {
     setBusy(true); setError(''); setMessage('');
     try {
-      const response = await fetch(`/api/users/${user.id}`, {
-        method: 'PATCH', credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'บันทึกข้อมูลไม่สำเร็จ');
+      await Update(`/api/users/${user.id}`, body);
       setMessage(success);
       return true;
     } catch (caught) {

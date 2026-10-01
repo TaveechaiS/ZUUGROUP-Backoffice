@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { buttonClass, inputClass, type Master, type Masters } from '../product-ui';
+import { Get, Post } from '@/service/http';
 
 export function CreateProductForm({ initialMasters }: { initialMasters: Masters }) {
   const router = useRouter();
@@ -21,11 +22,11 @@ export function CreateProductForm({ initialMasters }: { initialMasters: Masters 
 
   useEffect(() => {
     if (!categoryId || !dosageFormId) return;
-    let cancelled = false;
-    fetch(`/api/products/next-sequence?categoryId=${encodeURIComponent(categoryId)}&dosageFormId=${encodeURIComponent(dosageFormId)}`)
-      .then((response) => response.json()).then((result) => { if (!cancelled) setSequence(result.sequence ?? ''); })
-      .catch(() => { if (!cancelled) setSequence(''); });
-    return () => { cancelled = true; };
+    const controller = new AbortController();
+    Get<{ sequence: string }>(`/api/products/next-sequence?categoryId=${encodeURIComponent(categoryId)}&dosageFormId=${encodeURIComponent(dosageFormId)}`, controller.signal)
+      .then((result) => { if (!controller.signal.aborted) setSequence(result.sequence ?? ''); })
+      .catch(() => { if (!controller.signal.aborted) setSequence(''); });
+    return () => controller.abort();
   }, [categoryId, dosageFormId]);
 
   const category = masters.categories.find((item) => item.id === categoryId);
@@ -35,10 +36,8 @@ export function CreateProductForm({ initialMasters }: { initialMasters: Masters 
     event.preventDefault(); setBusy(true); setError('');
     const values = Object.fromEntries(new FormData(event.currentTarget).entries());
     try {
-      const response = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...values, categoryId, dosageFormId, drugId, defaultWarehouseId: warehouseId, sequence }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'สร้างสินค้าไม่สำเร็จ');
+      const result = await Post<{ product: { code: string } }>('/api/products',
+        { ...values, categoryId, dosageFormId, drugId, defaultWarehouseId: warehouseId, sequence });
       router.push(`/products/${encodeURIComponent(result.product.code)}`);
       router.refresh();
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'สร้างสินค้าไม่สำเร็จ'); setBusy(false); }
@@ -46,10 +45,8 @@ export function CreateProductForm({ initialMasters }: { initialMasters: Masters 
   async function addMaster(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError('');
     try {
-      const response = await fetch('/api/products/masters', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: masterType, name: masterName, code: masterCode }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'เพิ่มรายการไม่สำเร็จ');
+      const result = await Post<{ item: Master }>('/api/products/masters',
+        { type: masterType, name: masterName, code: masterCode });
       const item = result.item as Master;
       const key = masterType === 'category' ? 'categories' : masterType === 'dosageForm' ? 'dosageForms' : 'drugs';
       setMasters((current) => ({ ...current, [key]: [...current[key], item] }));
@@ -60,7 +57,7 @@ export function CreateProductForm({ initialMasters }: { initialMasters: Masters 
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'เพิ่มรายการไม่สำเร็จ'); }
   }
   return <main className="flex flex-1 flex-col gap-6 p-6 pb-10 text-[#26364b]">
-    <header><Link href="/products" className="text-sm text-[#1a58a7] hover:underline">← กลับไปรายการสินค้า</Link><h1 className="mb-1 mt-3 text-2xl font-semibold">เพิ่มสินค้า</h1><p className="m-0 text-sm text-[#718096]">เลือกข้อมูลแม่และกำหนดข้อมูลหลัก · การเลือกคลังยังไม่สร้างยอดสินค้า</p></header>
+    <header><Link href="/products" className="text-sm text-[#1a58a7] hover:underline">← กลับไปรายการสินค้า</Link><h1 className="mb-0 mt-3 text-2xl font-semibold">เพิ่มสินค้า</h1></header>
     <form onSubmit={create} className="grid max-w-4xl gap-6 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm">
       <section><h2 className="mt-0 text-base font-semibold">รหัสและข้อมูลอ้างอิง</h2><div className="grid gap-4 sm:grid-cols-2">
         <Field label="หมวดหมู่ยา"><select required className={inputClass} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="">เลือกหมวดหมู่</option>{masters.categories.map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></Field>

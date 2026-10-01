@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { fieldClass, roles, userPath } from '../user-ui';
+import { Post } from '@/service/http';
 
 export function CreateUserForm() {
   const router = useRouter();
@@ -16,12 +17,7 @@ export function CreateUserForm() {
     setError('');
     try {
       const body = Object.fromEntries(new FormData(event.currentTarget).entries());
-      const response = await fetch('/api/users', {
-        method: 'POST', credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'สร้างบัญชีไม่สำเร็จ');
+      const result = await Post<{ employeeCode: string }>('/api/users', body);
       if (typeof result.employeeCode !== 'string') throw new Error('สร้างบัญชีแล้ว แต่ไม่ได้รับรหัสพนักงาน กรุณากลับไปตรวจรายชื่อ');
       router.push(userPath(result.employeeCode));
       router.refresh();

@@ -1,7 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { readRecord, moduleFor } from '@/features/records/types';
+import { moduleFor } from '@/features/records/types';
+import { Get } from '@/service/http';
+import LoadingComponent from '@/components/ui/loading-component';
 type Dashboard = {
   counts: { customers: number; products: number; orders: number; quotes: number };
   activity: {
@@ -20,7 +22,7 @@ export function DashboardPageContent() {
     [retry, setRetry] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    readRecord<{ data: Dashboard }>('/api/dashboard', controller.signal)
+    Get<{ data: Dashboard }>('/api/dashboard', controller.signal)
       .then((r) => {
         setData(r.data);
         setError('');
@@ -32,12 +34,15 @@ export function DashboardPageContent() {
   }, [retry]);
   if (!data)
     return (
-      <section className="p-6" role="status">
-        {error || 'กำลังโหลดข้อมูล...'}
+      <section className="p-6">
+        {!error && <LoadingComponent isVisible />}
         {error && (
+          <div role="alert">
+          {error}
           <button onClick={() => setRetry((n) => n + 1)} className="ml-3 text-blue-700 underline">
             ลองใหม่
           </button>
+          </div>
         )}
       </section>
     );

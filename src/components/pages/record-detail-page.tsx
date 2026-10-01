@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { moduleFor, readRecord, type RecordConfig, type RecordRow } from '@/features/records/types';
+import { moduleFor, type RecordConfig, type RecordRow } from '@/features/records/types';
+import { Delete, Get } from '@/service/http';
+import LoadingComponent from '@/components/ui/loading-component';
 import { RecordFormPage } from './record-form-page';
 export function RecordDetailPage({ moduleKey, id }: { moduleKey: string; id: string }) {
   const entity = moduleFor(moduleKey)!;
@@ -16,11 +18,11 @@ export function RecordDetailPage({ moduleKey, id }: { moduleKey: string; id: str
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
-      readRecord<{ data: RecordRow }>(
+      Get<{ data: RecordRow }>(
         '/api/' + moduleKey + '/' + encodeURIComponent(id),
         controller.signal,
       ),
-      readRecord<{ data: RecordConfig }>('/api/' + moduleKey + '/config', controller.signal),
+      Get<{ data: RecordConfig }>('/api/' + moduleKey + '/config', controller.signal),
     ])
       .then(([r, c]) => {
         setRow(r.data);
@@ -36,13 +38,7 @@ export function RecordDetailPage({ moduleKey, id }: { moduleKey: string; id: str
     setBusy(true);
     setError('');
     try {
-      const response = await fetch('/api/' + moduleKey + '/' + row!.id, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
-      });
-      const r = await response.json();
-      if (!response.ok) throw new Error(r.error?.message ?? 'ลบไม่สำเร็จ');
+      await Delete('/api/' + moduleKey + '/' + row!.id, { reason });
       router.push(entity.page);
       router.refresh();
     } catch (e) {
@@ -53,12 +49,14 @@ export function RecordDetailPage({ moduleKey, id }: { moduleKey: string; id: str
   }
   if (!row || !config)
     return (
-      <section role="status" className="p-6">
-        {error || 'กำลังโหลดข้อมูล...'}
-        <Link href={entity.page} className="ml-3 text-[#1a58a7]">
-          กลับรายการ
-        </Link>
-      </section>
+      error ? (
+        <section role="alert" className="p-6">
+          {error}
+          <Link href={entity.page} className="ml-3 text-[#1a58a7]">
+            กลับรายการ
+          </Link>
+        </section>
+      ) : <LoadingComponent isVisible />
     );
   if (edit)
     return (
@@ -145,7 +143,7 @@ function RelationName({ moduleKey, id }: { moduleKey: string; id: string }) {
   useEffect(() => {
     if (!id) return;
     const controller = new AbortController();
-    readRecord<{ data: { title?: string; name?: string } }>(
+    Get<{ data: { title?: string; name?: string } }>(
       '/api/' + moduleKey + '/' + id,
       controller.signal,
     )

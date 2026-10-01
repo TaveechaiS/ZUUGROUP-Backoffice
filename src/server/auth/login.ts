@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { createSupabaseLoginClient } from '@/lib/supabase/server';
-import { getPrismaClient, readWithConnectionRetry } from '@/server/db/prisma';
+import { getPrismaClient, isClosedDatabaseConnection, readWithConnectionRetry } from '@/server/db/prisma';
 
 type LoginFailure = {
   ok: false;
@@ -50,6 +50,7 @@ export async function signIn(email: string, password: string): Promise<LoginResu
     // Cookies stay staged even if Auth is temporarily unreachable during cleanup.
     try { await supabase.auth.signOut({ scope: 'local' }); } catch { /* no cookies committed */ }
   };
+  let phase: 'account_lookup' | 'last_login_update' = 'account_lookup';
   try {
     const account = await readWithConnectionRetry((prisma) => prisma.authAccount.findUnique({
       where: { provider_providerUserId: { provider: 'supabase', providerUserId: auth.data.user!.id } },
@@ -59,9 +60,17 @@ export async function signIn(email: string, password: string): Promise<LoginResu
       await rejectSession();
       return { ok: false, status: 403, code: 'inactive', error: 'บัญชีนี้ยังไม่พร้อมใช้งาน กรุณาติดต่อ Admin' };
     }
-    await getPrismaClient().user.update({
-      where: { id: account.userId }, data: { lastLoginAt: new Date() },
+    phase = 'last_login_update';
+    const lastLoginAt = new Date();
+    const updateLastLogin = () => getPrismaClient().user.update({
+      where: { id: account.userId }, data: { lastLoginAt },
     });
+    try {
+      await updateLastLogin();
+    } catch (error) {
+      if (!isClosedDatabaseConnection(error)) throw error;
+      await updateLastLogin();
+    }
     commitCookies();
     return {
       ok: true,
@@ -75,7 +84,10 @@ export async function signIn(email: string, password: string): Promise<LoginResu
       tokenType: 'Bearer',
       expiresIn: auth.data.session.expires_in,
     };
-  } catch {
+  } catch (error) {
+    const code = typeof error === 'object' && error !== null && 'code' in error &&
+      typeof error.code === 'string' ? error.code : 'UNKNOWN';
+    console.error('Login persistence failed', { phase, code });
     await rejectSession();
     return { ok: false, status: 503, code: 'temporary', error: 'ระบบเชื่อมต่อข้อมูลชั่วคราวไม่ได้ กรุณาลองเข้าสู่ระบบอีกครั้ง' };
   }

@@ -1,5 +1,7 @@
 # Postman — Zuugroup
 
+คู่มือชื่อโฟลเดอร์ API ภาษาไทย/อังกฤษและหน้าที่: [API-NAME-GUIDE](../docs/API-NAME-GUIDE.md)
+
 Collection [Zuugroup ใน Workspace](https://sir34771-498818.postman.co/workspace/7734105b-3c13-40b1-8adc-cfa12f7e7db8/collection/55942202-0b3c7e3b-7989-43ae-b40a-5dc7cf699903) และไฟล์ Zuugroup.postman_collection.json ใช้ API ของเว็บที่อ่าน DB จริง. มี 167 คำขอ แบ่ง 23 กลุ่ม ไม่มีโฟลเดอร์ Demo.
 
 ## เริ่มใช้งาน

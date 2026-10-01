@@ -37,9 +37,7 @@ function pageHref(data: AuditListData, page: number) {
 export function AuditList({ data }: { data: AuditListData }) {
   return <section className="flex flex-1 flex-col gap-5 p-6 pb-7 text-[#26364b]" aria-label="ประวัติการทำรายการ">
     <header>
-      <p className="m-0 text-xs font-semibold text-[#1a58a7]">จัดการระบบ / Audit Logs</p>
-      <h1 className="mb-1 mt-2 text-2xl font-semibold">ประวัติการทำรายการ</h1>
-      <p className="m-0 text-sm text-[#718096]">เหตุการณ์ที่ระบบบันทึกจริง เรียงจากล่าสุดก่อน</p>
+      <h1 className="m-0 text-2xl font-semibold">ประวัติการทำรายการ</h1>
     </header>
     <form action="/audit-logs" method="get" className="flex flex-wrap items-end gap-3 rounded-xl border border-[#e4e9f0] bg-[#f8f9fb] p-5">
       <label className="min-w-52 flex-1 text-xs text-[#344256]">ค้นหา

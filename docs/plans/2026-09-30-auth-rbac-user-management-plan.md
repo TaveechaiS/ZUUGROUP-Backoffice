@@ -93,6 +93,12 @@
 3. หาก Login ยังอ่านบัญชีไม่ได้ ให้ sign out และแสดงข้อความชั่วคราวใน `src/app/login/page.tsx`; ไม่จัดเป็นรหัสผ่านผิด
 4. ตรวจ Login Server Action ด้วยบัญชีชั่วคราวที่ล้างหลังทดสอบ, `lint`, `type-check`, `build` และ `git diff --check`
 
+### งานย่อย: Login temporary หลังตั้งค่า `.env.local` 2026-10-01
+
+1. ตรวจ `.env.local` แบบไม่แสดง credential, ทดสอบ DB SELECT และ rollback update, ตรวจ public GET ผ่าน dev server; บันทึกผลใน TASK-037.
+2. ปรับ `src/server/auth/login.ts` ให้ retry `lastLoginAt` เมื่อเป็น `P1017` ครั้งเดียวด้วย timestamp เดิม; log เฉพาะรหัส error ใน catch เพื่อแยกสาเหตุครั้งต่อไป.
+3. ตรวจ `lint`, `type-check`, `build`, `git diff --check`; ให้เจ้าของลอง Login จริงอีกครั้ง. ไม่เปลี่ยน schema, seed, Auth provider หรือข้อมูลบัญชี.
+
 การสร้าง Admin คนแรก: ใช้รหัสพนักงาน `admin`, อีเมล `admin@zuugroup.com`, ชื่อแสดง `Admin`; รอ Server secret key ใน `.env.local` จากเจ้าของโครงการ จากนั้นใช้ recovery utility ให้เจ้าของโครงการป้อนรหัสผ่านใหม่ที่ผ่านขั้นต่ำ 8 ตัวอักษรบนเครื่อง แล้วตรวจ Login/Role/Audit
 
 ## ไฟล์ที่คาดว่าจะเปลี่ยนหลังอนุมัติ

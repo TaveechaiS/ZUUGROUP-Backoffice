@@ -1,9 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Get, Post } from '@/service/http';
+import { SearchIcon } from '@/components/icons/status-icons';
+import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
+import SuccessAlertComponent from '@/components/ui/success-alert-component';
 
 import {
-  readRecord,
   moduleForPage,
   type RecordConfig,
   type RecordRow,
@@ -17,7 +22,7 @@ export function ModuleListPage({ href }: { href: string }) {
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    readRecord<{ data: RecordConfig }>(apiPath + '/config', controller.signal)
+    Get<{ data: RecordConfig }>(apiPath + '/config', controller.signal)
       .then((r) => {
         setConfig(r.data);
         setError('');
@@ -29,9 +34,11 @@ export function ModuleListPage({ href }: { href: string }) {
   }, [apiPath, retry]);
   if (!config)
     return (
-      <section className="p-6" role="status">
-        {error || 'กำลังโหลดข้อมูลจาก DB...'}
+      <section className="p-6">
+        {!error && <LoadingComponent isVisible />}
         {error && (
+          <div role="alert">
+          {error}
           <button
             type="button"
             className="ml-3 text-blue-700 underline"
@@ -39,6 +46,7 @@ export function ModuleListPage({ href }: { href: string }) {
           >
             ลองใหม่
           </button>
+          </div>
         )}
       </section>
     );
@@ -77,7 +85,7 @@ function ModuleListContent({
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    readRecord<{ data: RecordFilters }>(apiPath + '/filters', controller.signal)
+    Get<{ data: RecordFilters }>(apiPath + '/filters', controller.signal)
       .then((r) => setOptions(r.data))
       .catch((e) => {
         if (!controller.signal.aborted) setError(e.message);
@@ -101,7 +109,7 @@ function ModuleListContent({
       if (detailFilter !== 'ทั้งหมด') params.set('detail', detailFilter);
       if (ownerFilter !== 'ทุกผู้รับผิดชอบ') params.set('owner', ownerFilter);
       if (statusFilter !== 'ทุกสถานะ') params.set('status', statusFilter);
-      readRecord<{ data: RecordRow[]; pagination: { total: number } }>(
+      Get<{ data: RecordRow[]; pagination: { total: number } }>(
         apiPath + '?' + params,
         controller.signal,
       )
@@ -144,15 +152,10 @@ function ModuleListContent({
     setRestoreBusy(row.id);
     setError('');
     try {
-      const response = await fetch('/api/' + config.key + '/' + row.id + '/restore', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      });
-      const result = await response.json();
-        if (!response.ok) throw new Error(result.error?.message ?? 'กู้คืนไม่สำเร็จ');
-        setCurrentPage(1);
-        setRetry((n) => n + 1);
+      await Post('/api/' + config.key + '/' + row.id + '/restore', {});
+      setNotice('กู้คืนรายการแล้ว');
+      setCurrentPage(1);
+      setRetry((n) => n + 1);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'กู้คืนไม่สำเร็จ');
     } finally {
@@ -173,13 +176,7 @@ function ModuleListContent({
 
   return (
     <section className="flex flex-1 flex-col gap-0 p-6 pb-7" aria-label={config.title}>
-      {config.description && <p className="mb-3 text-sm text-[#718096]">{config.description}</p>}
-      <p className="mb-3 text-xs text-[#718096]">ข้อมูลในระบบ · แสดงครั้งละ 10 รายการ</p>
-      {loading && (
-        <p role="status" className="text-sm text-[#718096]">
-          กำลังโหลด...
-        </p>
-      )}
+      <LoadingComponent isVisible={loading && !error} />
       {error && (
         <div
           role="alert"
@@ -191,21 +188,7 @@ function ModuleListContent({
           </button>
         </div>
       )}
-      {notice && (
-        <div
-          role="status"
-          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#b6d5f0] bg-[#eff5fc] px-4 py-3 text-sm text-[#174a8b]"
-        >
-          <span>{notice}</span>
-          <button
-            type="button"
-            onClick={() => setNotice('')}
-            className="font-semibold underline underline-offset-2"
-          >
-            ปิด
-          </button>
-        </div>
-      )}
+      <SuccessAlertComponent title={notice} isOpen={Boolean(notice)} onClose={() => setNotice('')} />
 
       <div
         className="mb-4 flex flex-wrap items-center gap-x-4 border-b border-[#e4e9f0]"
@@ -234,14 +217,7 @@ function ModuleListContent({
       >
         <label className="relative col-span-2 min-w-0 sm:col-span-1">
           <span className="mb-2 block text-xs leading-4 text-[#344256]">ค้นหา</span>
-          <svg
-            className="pointer-events-none absolute bottom-3 left-2 h-3 w-3 fill-none stroke-[#8b98a9] stroke-[1.7] [stroke-linecap:round] [stroke-linejoin:round]"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <circle cx="10.8" cy="10.8" r="6.8" />
-            <path d="m16 16 4.4 4.4" />
-          </svg>
+          <SearchIcon className="pointer-events-none absolute bottom-3 left-2 h-3 w-3 text-[#8b98a9]" />
           <input
             value={search}
             onChange={(event) => {
@@ -360,10 +336,11 @@ function ModuleListContent({
           ))}
         </div>
         {!loading && !error && total === 0 && (
-          <div className="px-5 py-12 text-center">
-            <p className="m-0 text-sm font-semibold text-[#26364b]">ไม่พบรายการ</p>
-            <p className="mb-0 mt-1 text-xs text-[#8492a6]">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
-          </div>
+          <NotFoundComponent
+            title="ไม่พบรายการ"
+            description="ลองเปลี่ยนคำค้นหาหรือตัวกรอง แล้วกดลองอีกครั้ง"
+            onRefresh={() => setRetry((n) => n + 1)}
+          />
         )}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#e3e9f0] px-6 py-5 text-sm text-[#758195]">
           <span>
@@ -408,26 +385,33 @@ function ModuleListContent({
 }
 
 function RecordTableRow({ row, detailHref }: { row: RecordRow; detailHref: string | null }) {
+  const router = useRouter();
   const [type, detail] = splitSubtitle(row.subtitle);
   const cells = [row.title, type, row.ref, detail || '—', row.owner, row.value, row.status];
+  const href = detailHref
+    ? `${detailHref}/${encodeURIComponent(detailHref === '/products' ? row.ref : row.id)}`
+    : null;
   return (
-    <tr className="border-t border-[#edf0f4] text-sm text-[#7b8795] hover:bg-[#fafbfc]">
+    <tr
+      role={href ? 'link' : undefined}
+      tabIndex={href ? 0 : undefined}
+      aria-label={href ? `ดูรายละเอียด ${row.title}` : undefined}
+      onClick={href ? () => router.push(href) : undefined}
+      onKeyDown={href ? (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          router.push(href);
+        }
+      } : undefined}
+      className={`border-t border-[#edf0f4] text-sm text-[#7b8795] ${href ? 'cursor-pointer hover:bg-[#fafbfc] focus-visible:bg-[#eff5fc] focus-visible:outline-2 focus-visible:outline-[#1a58a7]' : ''}`}
+    >
       {cells.map((cell, index) => (
         <td
           key={index}
           className={`whitespace-normal px-[14px] py-4 [overflow-wrap:anywhere] ${index === 0 ? 'font-semibold' : ''}`}
           title={cell}
         >
-          {index === 0 && detailHref ? (
-            <Link
-              href={`${detailHref}/${encodeURIComponent(detailHref === '/products' ? row.ref : row.id)}`}
-              className="text-[#1a58a7] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
-            >
-              {cell}
-            </Link>
-          ) : (
-            cell
-          )}
+          {cell}
         </td>
       ))}
     </tr>
@@ -435,21 +419,28 @@ function RecordTableRow({ row, detailHref }: { row: RecordRow; detailHref: strin
 }
 
 function RecordMobileRow({ row, detailHref }: { row: RecordRow; detailHref: string | null }) {
+  const router = useRouter();
+  const href = detailHref
+    ? `${detailHref}/${encodeURIComponent(detailHref === '/products' ? row.ref : row.id)}`
+    : null;
   return (
-    <article className="px-4 py-3.5">
+    <article
+      role={href ? 'link' : undefined}
+      tabIndex={href ? 0 : undefined}
+      aria-label={href ? `ดูรายละเอียด ${row.title}` : undefined}
+      onClick={href ? () => router.push(href) : undefined}
+      onKeyDown={href ? (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          router.push(href);
+        }
+      } : undefined}
+      className={`px-4 py-3.5 ${href ? 'cursor-pointer hover:bg-[#fafbfc] focus-visible:bg-[#eff5fc] focus-visible:outline-2 focus-visible:outline-[#1a58a7]' : ''}`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="m-0 text-sm font-semibold text-[#26364b] [overflow-wrap:anywhere]">
-            {detailHref ? (
-              <Link
-                href={`${detailHref}/${encodeURIComponent(detailHref === '/products' ? row.ref : row.id)}`}
-                className="text-[#1a58a7] underline-offset-2 hover:underline"
-              >
-                {row.title}
-              </Link>
-            ) : (
-              row.title
-            )}
+            {row.title}
           </p>
           <p className="mb-0 mt-1 text-xs text-[#8492a6] [overflow-wrap:anywhere]">
             {row.ref} · {row.subtitle}

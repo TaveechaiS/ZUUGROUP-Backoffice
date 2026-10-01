@@ -22,6 +22,8 @@
 
 ## ความคืบหน้า
 
+- 2026-10-01 เจ้าของรายงาน Login temporary หลังปรับ `.env.local`. ตรวจ URL/key presence โดยไม่แสดงค่า; `DATABASE_URL` เชื่อมได้ (`SELECT 1`), rollback update ผ่าน, auth account ที่ active และมี Role 4 บัญชี, GET `/api/public/products?limit=1` ผ่านใน dev server. เพิ่ม retry `P1017` ให้การอัปเดต `lastLoginAt` แบบใช้ timestamp เดิม พร้อม log รหัส error แบบไม่เปิด credential; lint/type-check/build/diff-check ผ่าน. เจ้าของยืนยัน Login ใช้ได้แล้ว; UAT Auth/RBAC ส่วนอื่นยังค้าง.
+
 - Migration Auth/RBAC/ผู้ใช้ลง Supabase แล้ว; ตรวจ Role 4 รายการ, Permission 1 รายการ และ RLS
 - หน้า Login, Session, API/หน้าจัดการผู้ใช้ และ recovery utility เขียนแล้ว; `type-check`, `lint`, `build` ผ่าน
 - เติม Publishable key และ Server secret key แล้ว; ตรวจ Admin API ผ่าน และสร้าง Admin คนแรกใน Supabase Auth พร้อมข้อมูลธุรกิจสำเร็จ

@@ -45,3 +45,5 @@
 - ประวัติย้ายข้อมูล: scripts/fixtures/operational-migration-backup.json เก็บออฟไลน์ ไม่ใช่แหล่ง runtime
 
 ถอน /api/demo, component Mock และตาราง demo_rows/demo_datasets แล้ว. Users/Products/Audit ใช้ตารางจริงเดิม. สินค้าใหม่ราคาเริ่มต้น 0 ให้กรอกราคาจริงภายหลัง; ไม่มี Lot/ยอดคลังจากการ seed.
+
+Client Component เรียก API ผ่าน `src/service/http.ts`: `Get`, `Post`, `Update` (PATCH), `Delete` และ `Logins` สำหรับ API login. ชั้นนี้ส่ง session cookie ของ origin เดียวกัน, รวม try/catch และข้อความ error; 401 ไปหน้า Login ส่วน 403 แสดงข้อผิดพลาดสิทธิ์. หน้า Login ปัจจุบันยังใช้ Server Action เพื่อจัดการ session cookie หลังตรวจบัญชี. URL และ `route.ts` ของ API คงเดิม.

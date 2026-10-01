@@ -26,9 +26,6 @@ export function AdminShell({ children, account }: { children: ReactNode; account
             <h1 className="m-0 break-words text-lg leading-[1.35] poppins-bold text-[#111827] md:text-xl">
               {page.label}
             </h1>
-            <p className="mt-0.5 max-w-47.5 text-xs text-[var(--ink-950)] md:max-w-none md:text-sm">
-              {page.description}
-            </p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5 text-xs text-[#59677e] md:gap-5">
             <time
@@ -85,9 +82,6 @@ export function AdminShell({ children, account }: { children: ReactNode; account
         >
           <div className="flex min-w-0 flex-1 flex-col">
             {children}
-            <footer className="flex items-center gap-2 border-t border-[var(--line)] pt-3 text-xs text-[#95a1b2]">
-              เขตเวลา {APP_CONFIG.timeZone} <span>·</span> {APP_CONFIG.name}
-            </footer>
           </div>
         </div>
       </section>

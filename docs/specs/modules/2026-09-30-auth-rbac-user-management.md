@@ -19,6 +19,7 @@ Task นี้วางฐาน Auth/RBAC และให้ Admin จัดก
 - Supabase Auth เก็บ credentials; ตารางธุรกิจเก็บข้อมูลพนักงาน, Role, สถานะ และรหัสเชื่อม Auth โดยไม่เก็บ password/hash.
 - ผู้ไม่มี session ถูก redirect ไป Login; ผู้มี session แต่บัญชีถูกระงับ/ลบหรือไม่มี Role ที่ยอมรับ ต้องถูกปฏิเสธที่ Server.
 - หากการอ่านบัญชีหลังยืนยันตัวตนพบ Prisma `P1017` เพราะ connection ปิด ให้ลองอ่านใหม่ได้หนึ่งครั้งเฉพาะคำสั่งอ่าน; หากยังล้มเหลว ให้จบ Session ที่เพิ่งสร้างและแจ้งว่าระบบเชื่อมต่อข้อมูลชั่วคราวไม่ได้ โดยไม่แสดง stack trace หรือบอกรหัสผ่านผิด.
+- งานแก้ Login temporary 2026-10-01: อนุญาตให้ retry หนึ่งครั้งสำหรับการเขียน `lastLoginAt` ของบัญชีเดิมเมื่อพบ `P1017` เท่านั้น โดยใช้ timestamp เดิมทั้งสองครั้งเพื่อให้ผลลัพธ์ไม่เปลี่ยนเมื่อคำสั่งแรกสำเร็จแต่ connection ปิดก่อนตอบ. หากยังล้มเหลว ให้จบ session ใหม่และแจ้ง temporary; server log ได้เฉพาะรหัส error ไม่บันทึก email, token, password หรือ connection string.
 - การตรวจสิทธิ์ต้องอยู่ใน Server Page/Route Handler/Server Action ทุกเส้นทาง; Proxy ใช้ช่วย refresh/redirect ได้แต่ไม่แทน authorization.
 - Role และสถานะมาจากฐานข้อมูลธุรกิจ ไม่รับจาก Browser และไม่ใช้ `user_metadata` ตัดสินสิทธิ์.
 - การเปลี่ยนสถานะ/Role มีผลกับ request ถัดไป แม้ผู้ใช้ถือ session เดิม; token/cookie อย่างเดียวไม่ยืนยันว่า account ยัง active.

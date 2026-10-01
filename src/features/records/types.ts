@@ -49,14 +49,3 @@ export type RecordFilters = {
   types: string[];
   details: string[];
 };
-export async function readRecord<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(url, { signal, cache: 'no-store' });
-  const result = await response.json();
-  if (!response.ok)
-    throw new Error(
-      typeof result.error === 'string'
-        ? result.error
-        : (result.error?.message ?? 'โหลดข้อมูลไม่สำเร็จ'),
-    );
-  return result as T;
-}
