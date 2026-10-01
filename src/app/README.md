@@ -28,7 +28,7 @@
 | `/reports/sales` รายงานยอดขาย | `reports/sales/page.tsx` | `reports/sales/data.ts` |
 | `/reports/inventory` รายงานคลัง | `reports/inventory/page.tsx` | `reports/inventory/data.ts` |
 | `/reports/finance` รายงานการเงิน | `reports/finance/page.tsx` | `reports/finance/data.ts` |
-| `/audit-logs` ประวัติการทำรายการ | `audit-logs/page.tsx` | `audit-logs/data.ts` |
+| `/audit-logs` ประวัติการทำรายการ | `audit-logs/page.tsx`, `audit-logs/audit-list.tsx` | ฐานข้อมูลจริง (`audit_events`) |
 | `/settings` ตั้งค่า | `settings/page.tsx` | `settings/data.ts` |
 
 เริ่มจาก `page.tsx` ของหน้านั้นเมื่อต้องการเพิ่มหรือแทนองค์ประกอบเฉพาะหน้า; แก้ข้อความ Tab, Filters, หัวคอลัมน์ และข้อมูลใน `data.ts`. หน้า list ทั้งหมดยังใช้ component ร่วม; การแก้ตารางหรือ Filter ใน component กลางจะกระทบทุกหน้า list. หากต้องการดีไซน์ต่างเฉพาะหน้า ให้แทน `<ModuleListPage>` ใน `page.tsx` ของหน้านั้นด้วย component เฉพาะหน้า.
@@ -41,4 +41,4 @@
 - รายชื่อเมนู/URL: `src/config/navigation.ts`
 - ตัวช่วยสร้างข้อมูลตัวอย่าง: `src/features/mock/mock-config.ts`
 
-หน้าโมดูล Mock ที่เหลือยังใช้ข้อมูลตัวอย่างสำหรับนำเสนอ. รายการที่เพิ่มผ่านหน้า Create ของ Mock เก็บชั่วคราวใน session ของแท็บนั้น. หน้า `/users` และ `/products` ใช้ข้อมูลจริงจากฐานข้อมูล; ข้อมูลสินค้าตัวอย่างใน DB มีป้ายกำกับและยังไม่มียอดคลังจริง.
+หน้าโมดูล Mock ที่เหลือยังใช้ข้อมูลตัวอย่างสำหรับนำเสนอ. รายการที่เพิ่มผ่านหน้า Create ของ Mock เก็บชั่วคราวใน session ของแท็บนั้น. หน้า `/users`, `/products` และ `/audit-logs` ใช้ข้อมูลจริงจากฐานข้อมูล; ข้อมูลสินค้าตัวอย่างใน DB มีป้ายกำกับและยังไม่มียอดคลังจริง. หน้า Audit Logs อ่านอย่างเดียวและไม่มีหน้า Create.

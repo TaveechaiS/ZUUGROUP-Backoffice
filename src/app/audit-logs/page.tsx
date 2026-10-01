@@ -1,6 +1,8 @@
-import { ModuleListPage } from '@/components/pages/module-list-page';
-import { mockData } from './data';
+import { requireAdmin } from '@/server/auth/current-user';
+import { listAuditEvents } from '@/server/audit-logs/service';
+import { AuditList } from './audit-list';
 
-export default function Page() {
-  return <ModuleListPage href="/audit-logs" config={mockData} />;
+export default async function Page({ searchParams }: { searchParams: Promise<{ page?: string; q?: string; action?: string }> }) {
+  await requireAdmin();
+  return <AuditList data={await listAuditEvents(await searchParams)} />;
 }
