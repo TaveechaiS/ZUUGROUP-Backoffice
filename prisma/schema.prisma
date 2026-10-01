@@ -14,6 +14,13 @@ enum AccountStatus {
   @@map("account_status")
 }
 
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("product_status")
+}
+
 model User {
   id           String        @id @default(uuid()) @db.Uuid
   employeeCode String        @unique @map("employee_code")
@@ -106,4 +113,75 @@ model AuditEvent {
 
   @@index([targetUserId, occurredAt])
   @@map("audit_events")
+}
+
+model ProductCategory {
+  id        String    @id @default(uuid()) @db.Uuid
+  code      String    @unique
+  name      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  products  Product[]
+
+  @@map("product_categories")
+}
+
+model DosageForm {
+  id        String    @id @default(uuid()) @db.Uuid
+  code      String    @unique
+  name      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  products  Product[]
+
+  @@map("dosage_forms")
+}
+
+model Drug {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  products  Product[]
+
+  @@map("drugs")
+}
+
+model Warehouse {
+  id        String    @id @default(uuid()) @db.Uuid
+  code      String    @unique
+  name      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  products  Product[]
+
+  @@map("warehouses")
+}
+
+model Product {
+  id                 String          @id @default(uuid()) @db.Uuid
+  code               String          @unique
+  sequence           Int
+  name               String
+  categoryId         String          @map("category_id") @db.Uuid
+  dosageFormId       String          @map("dosage_form_id") @db.Uuid
+  drugId             String          @map("drug_id") @db.Uuid
+  defaultWarehouseId String          @map("default_warehouse_id") @db.Uuid
+  unit               String
+  salePrice          Decimal         @map("sale_price") @db.Decimal(12, 2)
+  status             ProductStatus   @default(ACTIVE)
+  isSample           Boolean         @default(false) @map("is_sample")
+  deletedAt          DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  deletedById        String?         @map("deleted_by") @db.Uuid
+  deleteReason       String?         @map("delete_reason")
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  category           ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  dosageForm         DosageForm      @relation(fields: [dosageFormId], references: [id], onDelete: Restrict)
+  drug               Drug            @relation(fields: [drugId], references: [id], onDelete: Restrict)
+  defaultWarehouse   Warehouse       @relation(fields: [defaultWarehouseId], references: [id], onDelete: Restrict)
+
+  @@unique([categoryId, dosageFormId, sequence])
+  @@index([deletedAt, createdAt])
+  @@index([categoryId, status])
+  @@index([dosageFormId])
+  @@index([drugId])
+  @@index([defaultWarehouseId])
+  @@map("products")
 }

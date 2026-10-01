@@ -1,0 +1,13 @@
+import { NextResponse, type NextRequest } from 'next/server';
+import { getCurrentUser } from '@/server/auth/current-user';
+import { nextProductSequence } from '@/server/products/service';
+
+export async function GET(request: NextRequest) {
+  if (!await getCurrentUser()) return NextResponse.json({ error: 'กรุณาเข้าสู่ระบบ' }, { status: 401 });
+  const categoryId = request.nextUrl.searchParams.get('categoryId') ?? '';
+  const dosageFormId = request.nextUrl.searchParams.get('dosageFormId') ?? '';
+  if (!/^[0-9a-f-]{36}$/i.test(categoryId) || !/^[0-9a-f-]{36}$/i.test(dosageFormId)) {
+    return NextResponse.json({ error: 'กรุณาเลือกหมวดและรูปแบบยา' }, { status: 400 });
+  }
+  return NextResponse.json({ sequence: String(await nextProductSequence(categoryId, dosageFormId)).padStart(4, '0') });
+}

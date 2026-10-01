@@ -1,6 +1,9 @@
-import { ModuleListPage } from '@/components/pages/module-list-page';
-import { mockData } from './data';
+import { requireActiveUser } from '@/server/auth/current-user';
+import { listProducts } from '@/server/products/service';
+import { ProductsList } from './products-list';
 
-export default function Page() {
-  return <ModuleListPage href="/products" config={mockData} />;
+export default async function Page() {
+  const user = await requireActiveUser();
+  const products = await listProducts(user.userRole?.roleId === 'ADMIN');
+  return <ProductsList products={products} isAdmin={user.userRole?.roleId === 'ADMIN'} />;
 }

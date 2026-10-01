@@ -1,8 +1,8 @@
-import { MockCreatePage } from '@/components/pages/mock-create-page';
-import { requireActiveUser } from '@/server/auth/current-user';
-import { mockData } from '../data';
+import { requireAdmin } from '@/server/auth/current-user';
+import { productMasters } from '@/server/products/service';
+import { CreateProductForm } from './create-product-form';
 
 export default async function Page() {
-  await requireActiveUser();
-  return <MockCreatePage href="/products" title={mockData.title} action={mockData.action} />;
+  await requireAdmin();
+  return <CreateProductForm initialMasters={await productMasters()} />;
 }

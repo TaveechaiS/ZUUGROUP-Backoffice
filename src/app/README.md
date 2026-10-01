@@ -11,7 +11,9 @@
 | `/customers/groups` | `customers/groups/page.tsx` | `customers/groups/data.ts` |
 | `/customers/territories` | `customers/territories/page.tsx` | `customers/territories/data.ts` |
 | `/customers/documents` | `customers/documents/page.tsx` | `customers/documents/data.ts` |
-| `/products` สินค้า | `products/page.tsx` | `products/data.ts` |
+| `/products` สินค้า | `products/page.tsx`, `products/products-list.tsx` | ฐานข้อมูลจริง |
+| `/products/create` เพิ่มสินค้า | `products/create/page.tsx`, `create-product-form.tsx` | ฐานข้อมูลจริง |
+| `/products/<รหัสสินค้า>` รายละเอียดสินค้า | `products/[ref]/page.tsx`, `product-detail.tsx` | ฐานข้อมูลจริง |
 | `/stock-counts` ตรวจนับ | `stock-counts/page.tsx` | `stock-counts/data.ts` |
 | `/suppliers` ผู้ขาย | `suppliers/page.tsx` | `suppliers/data.ts` |
 | `/purchases` จัดซื้อ | `purchases/page.tsx` | `purchases/data.ts` |
@@ -31,7 +33,7 @@
 
 เริ่มจาก `page.tsx` ของหน้านั้นเมื่อต้องการเพิ่มหรือแทนองค์ประกอบเฉพาะหน้า; แก้ข้อความ Tab, Filters, หัวคอลัมน์ และข้อมูลใน `data.ts`. หน้า list ทั้งหมดยังใช้ component ร่วม; การแก้ตารางหรือ Filter ใน component กลางจะกระทบทุกหน้า list. หากต้องการดีไซน์ต่างเฉพาะหน้า ให้แทน `<ModuleListPage>` ใน `page.tsx` ของหน้านั้นด้วย component เฉพาะหน้า.
 
-หน้า Mock ทั้ง 20 หน้าที่ใช้ `<ModuleListPage>` มีหน้าเพิ่มรายการแยกที่ `<URL หน้ารายการ>/create` ในโฟลเดอร์ `create/page.tsx` ของหน้านั้น โดยใช้ฟอร์มร่วม `src/components/pages/mock-create-page.tsx`. หน้า `/users/create` ใช้ฟอร์มบัญชีจริงของตนเอง.
+หน้า Mock ที่ยังใช้ `<ModuleListPage>` มีหน้าเพิ่มรายการแยกที่ `<URL หน้ารายการ>/create` โดยใช้ฟอร์มร่วม `src/components/pages/mock-create-page.tsx`. หน้า `/users/create` และ `/products/create` ใช้ฟอร์มที่บันทึกฐานข้อมูลจริง.
 
 - ดีไซน์รายการที่ทุกหน้าใช้ร่วมกัน: `src/components/pages/module-list-page.tsx`
 - ดีไซน์ Sidebar: `src/components/layout/sidebar.tsx`
@@ -39,4 +41,4 @@
 - รายชื่อเมนู/URL: `src/config/navigation.ts`
 - ตัวช่วยสร้างข้อมูลตัวอย่าง: `src/features/mock/mock-config.ts`
 
-หน้าโมดูลทั่วไปยังใช้ข้อมูลตัวอย่างสำหรับนำเสนอ. รายการที่เพิ่มผ่านหน้า Create ของ Mock เก็บชั่วคราวใน session ของแท็บนั้น ไม่บันทึกฐานข้อมูลจริง. หน้า `/users` ใช้ข้อมูลและบัญชีจริงจาก Supabase Auth และฐานข้อมูล.
+หน้าโมดูล Mock ที่เหลือยังใช้ข้อมูลตัวอย่างสำหรับนำเสนอ. รายการที่เพิ่มผ่านหน้า Create ของ Mock เก็บชั่วคราวใน session ของแท็บนั้น. หน้า `/users` และ `/products` ใช้ข้อมูลจริงจากฐานข้อมูล; ข้อมูลสินค้าตัวอย่างใน DB มีป้ายกำกับและยังไม่มียอดคลังจริง.
