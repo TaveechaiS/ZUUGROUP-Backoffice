@@ -93,6 +93,7 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
   const types = [...new Set(rows.map((item) => splitSubtitle(item.subtitle)[0]))];
   const details = [...new Set(rows.map((item) => splitSubtitle(item.subtitle)[1]).filter(Boolean))];
   const isCustomerList = href === '/customers' || href === '/customers/list';
+  const detailHref = href === '/customers' || href === '/products' ? href : null;
   const tableHeaders = isCustomerList
     ? ['ชื่อลูกค้า/บริษัท', 'ประเภท', 'รหัสลูกค้า', 'จังหวัด', 'ผู้ดูแล', 'เงื่อนไข', 'สถานะ']
     : [
@@ -254,14 +255,14 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
             </thead>
             <tbody>
               {pagedRows.map((item) => (
-                <MockTableRow key={item.ref} row={item} />
+                <MockTableRow key={item.ref} row={item} detailHref={detailHref} />
               ))}
             </tbody>
           </table>
         </div>
         <div className="divide-y divide-[#e8ebef] md:hidden">
           {pagedRows.map((item) => (
-            <MockMobileRow key={item.ref} row={item} />
+            <MockMobileRow key={item.ref} row={item} detailHref={detailHref} />
           ))}
         </div>
         {filteredRows.length === 0 && (
@@ -323,7 +324,7 @@ function ModuleListContent({ href, config }: { href: string; config: MockModuleC
   );
 }
 
-function MockTableRow({ row }: { row: MockRow }) {
+function MockTableRow({ row, detailHref }: { row: MockRow; detailHref: string | null }) {
   const [type, detail] = splitSubtitle(row.subtitle);
   const cells = [row.title, type, row.ref, detail || '—', row.owner, row.value, row.status];
   return (
@@ -336,19 +337,19 @@ function MockTableRow({ row }: { row: MockRow }) {
           className={`whitespace-normal px-[14px] py-4 [overflow-wrap:anywhere] ${index === 0 ? 'font-semibold' : ''}`}
           title={cell}
         >
-          {cell}
+          {index === 0 && detailHref ? <Link href={`${detailHref}/${encodeURIComponent(row.ref)}`} className="text-[#1a58a7] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-[#1a58a7]">{cell}</Link> : cell}
         </td>
       ))}
     </tr>
   );
 }
 
-function MockMobileRow({ row }: { row: MockRow }) {
+function MockMobileRow({ row, detailHref }: { row: MockRow; detailHref: string | null }) {
   return (
     <article className="px-4 py-3.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="m-0 text-sm font-semibold text-[#26364b] [overflow-wrap:anywhere]">{row.title}</p>
+          <p className="m-0 text-sm font-semibold text-[#26364b] [overflow-wrap:anywhere]">{detailHref ? <Link href={`${detailHref}/${encodeURIComponent(row.ref)}`} className="text-[#1a58a7] underline-offset-2 hover:underline">{row.title}</Link> : row.title}</p>
           <p className="mb-0 mt-1 text-xs text-[#8492a6] [overflow-wrap:anywhere]">
             {row.ref} · {row.subtitle}
           </p>
