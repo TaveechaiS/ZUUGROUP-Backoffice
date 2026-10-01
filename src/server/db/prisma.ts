@@ -8,6 +8,13 @@ const globalForPrisma = globalThis as typeof globalThis & {
 };
 
 export function getPrismaClient(): PrismaClient {
+  // Next.js dev keeps globalThis across module reloads, including after prisma generate.
+  const staleClient = globalForPrisma.prismaClient;
+  if (staleClient && typeof staleClient.product?.findMany !== 'function') {
+    globalForPrisma.prismaClient = undefined;
+    void staleClient.$disconnect().catch(() => {});
+  }
+
   if (!globalForPrisma.prismaClient) {
     const connectionString = process.env.DATABASE_URL;
 
@@ -20,6 +27,9 @@ export function getPrismaClient(): PrismaClient {
     });
   }
 
+  if (typeof globalForPrisma.prismaClient.product?.findMany !== 'function') {
+    throw new Error('Prisma Client ไม่มีโมเดลสินค้า กรุณารัน prisma generate และรีสตาร์ต dev server');
+  }
   return globalForPrisma.prismaClient;
 }
 
