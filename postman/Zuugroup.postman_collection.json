@@ -1,8 +1,9 @@
 {
   "info": {
     "name": "Zuugroup",
-    "description": "Zuugroup API ใช้ตารางรายโมดูลจริงและข้อมูลชุดเดียว. GET No Auth เฉพาะฟิลด์ที่อนุมัติ; POST/PATCH/DELETE/restore ต้องใช้ Admin token. รายการ default 10/max50. รายงานอ่านข้อมูลต้นทาง. ไม่สร้าง Ledger หรือคำนวณเงินจากกฎที่ยังไม่กำหนด.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "description": "Zuugroup API ปัจจุบัน TASK-074: list รวม filters/config ตามโมดูล; options สำหรับ Combobox แยก view=options; DELETE ลบเชิงตรรกะ PATCH action restore กู้คืน ไม่มีคำขอ Supabase Data API หรือเส้นประกอบเก่า\n\nTASK-075: ใช้ชื่อ field ต้นทางโดยตรง code/name; relations เป็น object เช่น category.name, defaultWarehouse.name; users lastLoginAt/userRole/deletedByUser; audit actor/target; วันที่ ISO. ดู docs/API-CONTRACTS.md",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "0b3c7e3b-7989-43ae-b40a-5dc7cf699903"
   },
   "auth": {
     "type": "noauth"
@@ -34,7 +35,7 @@
                 "public"
               ]
             },
-            "description": "ดูเส้นทาง Params และคำอธิบายฟิลด์"
+            "description": "ดูเส้นทาง Params และคำอธิบายฟิลด์\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -62,7 +63,7 @@
                 "masters"
               ]
             },
-            "description": "หมวด รูปแบบยา และตัวยา สูงสุด 50 รายการต่อกลุ่ม; รายการครบใช้ list ของแต่ละกลุ่ม"
+            "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -73,7 +74,8 @@
             "auth": {
               "type": "noauth"
             },
-            "url": "{{baseUrl}}/api"
+            "url": "{{baseUrl}}/api",
+            "description": "\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -95,7 +97,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/public/products?offset=0&limit=20",
+              "raw": "{{baseUrl}}/api/public/products?offset=0&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -118,7 +120,7 @@
                 },
                 {
                   "key": "limit",
-                  "value": "20",
+                  "value": "10",
                   "description": "1 ถึง 50"
                 },
                 {
@@ -135,7 +137,7 @@
                 }
               ]
             },
-            "description": "สินค้าสถานะ Active ที่ยังไม่ลบ; ตอบ data และ pagination\n\nตัวอย่างโครงสร้างเท่านั้น (ไม่ใช่ข้อมูลจริง):\n```json\n{\n  \"data\": [\n    {\n      \"id\": \"00000000-0000-4000-8000-000000000001\",\n      \"code\": \"MED-TAB-0001\",\n      \"name\": \"ชื่อสินค้าตัวอย่าง\",\n      \"categoryId\": \"00000000-0000-4000-8000-000000000002\",\n      \"category\": \"ยาแผนปัจจุบัน\",\n      \"dosageFormId\": \"00000000-0000-4000-8000-000000000003\",\n      \"dosageForm\": \"ยาเม็ด\",\n      \"drugId\": \"00000000-0000-4000-8000-000000000004\",\n      \"drug\": \"ชื่อตัวยาตัวอย่าง\",\n      \"unit\": \"กล่อง\"\n    }\n  ],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 20,\n    \"total\": 1,\n    \"hasMore\": false\n  }\n}\n```"
+            "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -149,6 +151,76 @@
                   "}"
                 ]
               }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/public/products?offset=0&limit=10",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "public",
+                    "products"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "",
+                      "description": "ค้นหาชื่อหรือรหัส",
+                      "disabled": true
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0",
+                      "description": "เริ่มจากรายการที่ 0"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "1 ถึง 50"
+                    },
+                    {
+                      "key": "categoryId",
+                      "value": "{{categoryId}}",
+                      "description": "กรองตาม UUID หมวด",
+                      "disabled": true
+                    },
+                    {
+                      "key": "dosageFormId",
+                      "value": "{{dosageFormId}}",
+                      "description": "กรองตาม UUID รูปแบบยา",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
             }
           ]
         },
@@ -177,7 +249,7 @@
                 "{{productId}}"
               ]
             },
-            "description": "ส่ง list ก่อนหรือกำหนด productId เป็น UUID ใน Collection Variables\n\nตัวอย่างโครงสร้างเท่านั้น (ไม่ใช่ข้อมูลจริง):\n```json\n{\n  \"data\": {\n    \"id\": \"00000000-0000-4000-8000-000000000001\",\n    \"code\": \"MED-TAB-0001\",\n    \"name\": \"ชื่อสินค้าตัวอย่าง\",\n    \"categoryId\": \"00000000-0000-4000-8000-000000000002\",\n    \"category\": \"ยาแผนปัจจุบัน\",\n    \"dosageFormId\": \"00000000-0000-4000-8000-000000000003\",\n    \"dosageForm\": \"ยาเม็ด\",\n    \"drugId\": \"00000000-0000-4000-8000-000000000004\",\n    \"drug\": \"ชื่อตัวยาตัวอย่าง\",\n    \"unit\": \"กล่อง\"\n  }\n}\n```"
+            "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -199,7 +271,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/public/masters/categories?offset=0&limit=20",
+              "raw": "{{baseUrl}}/api/public/masters/categories?offset=0&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -223,12 +295,12 @@
                 },
                 {
                   "key": "limit",
-                  "value": "20",
+                  "value": "10",
                   "description": "1 ถึง 50"
                 }
               ]
             },
-            "description": "ค้นหาและแบ่งหน้าข้อมูลแม่\n\nตัวอย่างโครงสร้างเท่านั้น (ไม่ใช่ข้อมูลจริง):\n```json\n{\n  \"data\": [\n    {\n      \"id\": \"00000000-0000-4000-8000-000000000002\",\n      \"code\": \"MED\",\n      \"name\": \"ยาแผนปัจจุบัน\"\n    }\n  ],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 20,\n    \"total\": 1,\n    \"hasMore\": false\n  }\n}\n```"
+            "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -242,6 +314,65 @@
                   "}"
                 ]
               }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/public/masters/categories?offset=0&limit=10",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "public",
+                    "masters",
+                    "categories"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "",
+                      "description": "ค้นหาชื่อหรือรหัส",
+                      "disabled": true
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0",
+                      "description": "เริ่มจากรายการที่ 0"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "1 ถึง 50"
+                    }
+                  ]
+                },
+                "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
             }
           ]
         },
@@ -271,7 +402,7 @@
                 "{{categoryId}}"
               ]
             },
-            "description": "ส่ง list ก่อนหรือใส่ UUID ใน categoryId\n\nตัวอย่างโครงสร้างเท่านั้น (ไม่ใช่ข้อมูลจริง):\n```json\n{\n  \"data\": {\n    \"id\": \"00000000-0000-4000-8000-000000000002\",\n    \"code\": \"MED\",\n    \"name\": \"ยาแผนปัจจุบัน\"\n  }\n}\n```"
+            "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -293,7 +424,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/public/masters/dosage-forms?offset=0&limit=20",
+              "raw": "{{baseUrl}}/api/public/masters/dosage-forms?offset=0&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -317,12 +448,12 @@
                 },
                 {
                   "key": "limit",
-                  "value": "20",
+                  "value": "10",
                   "description": "1 ถึง 50"
                 }
               ]
             },
-            "description": "ค้นหาและแบ่งหน้าข้อมูลแม่\n\nตัวอย่างโครงสร้างเท่านั้น (ไม่ใช่ข้อมูลจริง):\n```json\n{\n  \"data\": [\n    {\n      \"id\": \"00000000-0000-4000-8000-000000000003\",\n      \"code\": \"TAB\",\n      \"name\": \"ยาเม็ด\"\n    }\n  ],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 20,\n    \"total\": 1,\n    \"hasMore\": false\n  }\n}\n```"
+            "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -336,6 +467,65 @@
                   "}"
                 ]
               }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/public/masters/dosage-forms?offset=0&limit=10",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "public",
+                    "masters",
+                    "dosage-forms"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "",
+                      "description": "ค้นหาชื่อหรือรหัส",
+                      "disabled": true
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0",
+                      "description": "เริ่มจากรายการที่ 0"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "1 ถึง 50"
+                    }
+                  ]
+                },
+                "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
             }
           ]
         },
@@ -365,7 +555,7 @@
                 "{{dosageFormId}}"
               ]
             },
-            "description": "ส่ง list ก่อนหรือใส่ UUID ใน dosageFormId\n\nตัวอย่างโครงสร้างเท่านั้น (ไม่ใช่ข้อมูลจริง):\n```json\n{\n  \"data\": {\n    \"id\": \"00000000-0000-4000-8000-000000000003\",\n    \"code\": \"TAB\",\n    \"name\": \"ยาเม็ด\"\n  }\n}\n```"
+            "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -387,7 +577,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/public/masters/drugs?offset=0&limit=20",
+              "raw": "{{baseUrl}}/api/public/masters/drugs?offset=0&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -411,12 +601,12 @@
                 },
                 {
                   "key": "limit",
-                  "value": "20",
+                  "value": "10",
                   "description": "1 ถึง 50"
                 }
               ]
             },
-            "description": "ค้นหาและแบ่งหน้าข้อมูลแม่\n\nตัวอย่างโครงสร้างเท่านั้น (ไม่ใช่ข้อมูลจริง):\n```json\n{\n  \"data\": [\n    {\n      \"id\": \"00000000-0000-4000-8000-000000000004\",\n      \"name\": \"ชื่อตัวยาตัวอย่าง\"\n    }\n  ],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 20,\n    \"total\": 1,\n    \"hasMore\": false\n  }\n}\n```"
+            "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -430,6 +620,65 @@
                   "}"
                 ]
               }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/public/masters/drugs?offset=0&limit=10",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "public",
+                    "masters",
+                    "drugs"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "",
+                      "description": "ค้นหาชื่อหรือรหัส",
+                      "disabled": true
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0",
+                      "description": "เริ่มจากรายการที่ 0"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "1 ถึง 50"
+                    }
+                  ]
+                },
+                "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
             }
           ]
         },
@@ -459,7 +708,7 @@
                 "{{drugId}}"
               ]
             },
-            "description": "ส่ง list ก่อนหรือใส่ UUID ใน drugId\n\nตัวอย่างโครงสร้างเท่านั้น (ไม่ใช่ข้อมูลจริง):\n```json\n{\n  \"data\": {\n    \"id\": \"00000000-0000-4000-8000-000000000004\",\n    \"name\": \"ชื่อตัวยาตัวอย่าง\"\n  }\n}\n```"
+            "description": "GET สาธารณะเฉพาะ allowlist เดิม ไม่ใช้ Supabase Secret. Pagination offset0/limit10 สูงสุด50; รายละเอียดใช้ UUID.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -494,7 +743,7 @@
                 }
               }
             },
-            "description": "สำเร็จเก็บ access token ใน adminToken และ activeToken ของ Environment ส่วนตัว"
+            "description": "POST {email,password}; ไม่ต้องมี token ก่อนล็อกอิน. สำเร็จ {ok,user,accessToken,tokenType,expiresIn}; error เป็น {error:string}. เก็บรหัสและ token ใน Environment ส่วนตัว.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -544,7 +793,7 @@
                 }
               }
             },
-            "description": "สำเร็จเก็บ access token ใน managerToken และ activeToken ของ Environment ส่วนตัว"
+            "description": "POST {email,password}; ไม่ต้องมี token ก่อนล็อกอิน. สำเร็จ {ok,user,accessToken,tokenType,expiresIn}; error เป็น {error:string}. เก็บรหัสและ token ใน Environment ส่วนตัว.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -594,7 +843,7 @@
                 }
               }
             },
-            "description": "สำเร็จเก็บ access token ใน salesToken และ activeToken ของ Environment ส่วนตัว"
+            "description": "POST {email,password}; ไม่ต้องมี token ก่อนล็อกอิน. สำเร็จ {ok,user,accessToken,tokenType,expiresIn}; error เป็น {error:string}. เก็บรหัสและ token ใน Environment ส่วนตัว.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -644,7 +893,7 @@
                 }
               }
             },
-            "description": "สำเร็จเก็บ access token ใน cfoToken และ activeToken ของ Environment ส่วนตัว"
+            "description": "POST {email,password}; ไม่ต้องมี token ก่อนล็อกอิน. สำเร็จ {ok,user,accessToken,tokenType,expiresIn}; error เป็น {error:string}. เก็บรหัสและ token ใน Environment ส่วนตัว.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -688,8 +937,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/customers?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/customers?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -705,7 +954,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "0ee2654b-6f8a-42e7-b4ee-393c33244987",
@@ -722,24 +972,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/customers/{{customersId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "17d732b3-dcae-4587-ad31-04acdeadd940",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/customers/filters"
+            "description": "โมดูล customers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -756,25 +989,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/customers/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "c53fc400-ee7c-4fe3-84d4-64f2dc1e74e5",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/customers/config"
-          }
+            "url": "{{baseUrl}}/api/customers?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "6e1ca55f-af1e-4fb7-bb92-205a0f97060b",
@@ -795,8 +1013,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/customers?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล customers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/customers?deleted=true&offset=0&limit=10",
+                "description": "โมดูล customers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "ecc4748a-a5aa-4928-9202-c986e42575ce",
@@ -830,7 +1082,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล customers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -880,7 +1132,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล customers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -915,14 +1167,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล customers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "9bb5091f-5226-47d0-bdfd-45c98cf820b3",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -940,17 +1192,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/customers/{{customersId}}/restore",
+            "url": "{{baseUrl}}/api/customers/{{customersId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล customers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -973,8 +1225,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/customer-groups?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/customer-groups?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -990,7 +1242,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "7da7cc89-55d0-40be-a018-397d930b0cfe",
@@ -1007,24 +1260,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/customer-groups/{{customer_groupsId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "019b923e-bcde-464c-b902-201ed93a9b1f",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/customer-groups/filters"
+            "description": "โมดูล customer-groups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -1041,25 +1277,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/customer-groups/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "ad62e58d-1d1a-4f00-a546-184d771e2cd4",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/customer-groups/config"
-          }
+            "url": "{{baseUrl}}/api/customer-groups?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "27e67faa-efe4-4aab-ae73-7cd3ead1e6c2",
@@ -1080,8 +1301,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/customer-groups?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล customer-groups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/customer-groups?deleted=true&offset=0&limit=10",
+                "description": "โมดูล customer-groups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "da7e71fd-d1f9-4e12-baf3-3399f7ac8f8a",
@@ -1115,7 +1370,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล customer-groups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -1165,7 +1420,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล customer-groups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -1200,14 +1455,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล customer-groups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "f67ffe7f-337c-4b83-82e9-14f6550c1d04",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -1225,17 +1480,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/customer-groups/{{customer_groupsId}}/restore",
+            "url": "{{baseUrl}}/api/customer-groups/{{customer_groupsId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล customer-groups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -1258,8 +1513,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/sales-territories?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/sales-territories?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -1275,7 +1530,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "a02328fc-5783-4c2c-a1c3-c92b8659061c",
@@ -1292,24 +1548,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/sales-territories/{{sales_territoriesId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "d0914b96-01e8-4fb5-a528-c2f991e33470",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/sales-territories/filters"
+            "description": "โมดูล sales-territories; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -1326,25 +1565,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/sales-territories/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "0c4151b6-d0ad-42dd-8e8c-eb801ed3aaa3",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/sales-territories/config"
-          }
+            "url": "{{baseUrl}}/api/sales-territories?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "212cdd97-da44-439b-82e5-f10103f91cb6",
@@ -1365,8 +1589,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/sales-territories?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล sales-territories; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/sales-territories?deleted=true&offset=0&limit=10",
+                "description": "โมดูล sales-territories; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "fa0d609c-10b5-492e-a2ff-ac1a7debd004",
@@ -1400,7 +1658,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล sales-territories; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -1450,7 +1708,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล sales-territories; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -1485,14 +1743,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล sales-territories; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "1cc65df5-456c-4a07-ac3a-94dbafa5070a",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -1510,17 +1768,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/sales-territories/{{sales_territoriesId}}/restore",
+            "url": "{{baseUrl}}/api/sales-territories/{{sales_territoriesId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล sales-territories; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -1543,8 +1801,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/customer-documents?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/customer-documents?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -1560,7 +1818,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "627fc9c9-294e-44b3-8bfa-763b0e53746c",
@@ -1577,24 +1836,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/customer-documents/{{customer_documentsId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "7077efce-4c91-443c-9ead-38bcd9996349",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/customer-documents/filters"
+            "description": "โมดูล customer-documents; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -1611,25 +1853,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/customer-documents/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "b9f2d894-aeb6-4251-9163-6ef819fb7cbe",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/customer-documents/config"
-          }
+            "url": "{{baseUrl}}/api/customer-documents?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "121564d6-ac32-4271-9d79-ba3118f3987e",
@@ -1650,8 +1877,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/customer-documents?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล customer-documents; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/customer-documents?deleted=true&offset=0&limit=10",
+                "description": "โมดูล customer-documents; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "4d2c2ef0-cf26-47d4-85df-1ac68e077785",
@@ -1685,7 +1946,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล customer-documents; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -1735,7 +1996,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล customer-documents; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -1770,14 +2031,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล customer-documents; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "4b47332e-7a9f-4f2b-99af-a24c51302a7e",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -1795,17 +2056,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/customer-documents/{{customer_documentsId}}/restore",
+            "url": "{{baseUrl}}/api/customer-documents/{{customer_documentsId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล customer-documents; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -1828,8 +2089,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/customer-follow-ups?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/customer-follow-ups?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -1845,7 +2106,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "58348236-3f81-442d-8eee-1d6a52da13e3",
@@ -1862,24 +2124,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/customer-follow-ups/{{customer_follow_upsId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "ef873e03-ff41-4420-8daf-d87296a7a4e0",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/customer-follow-ups/filters"
+            "description": "โมดูล customer-follow-ups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -1896,25 +2141,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/customer-follow-ups/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "ae22d5b5-773c-4432-89a0-e0709d9dfefd",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/customer-follow-ups/config"
-          }
+            "url": "{{baseUrl}}/api/customer-follow-ups?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "4c27d252-f67c-4852-8b02-8bfdb19833a1",
@@ -1935,8 +2165,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/customer-follow-ups?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล customer-follow-ups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/customer-follow-ups?deleted=true&offset=0&limit=10",
+                "description": "โมดูล customer-follow-ups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "eaeee715-d53b-46a0-9d6d-38649a984293",
@@ -1970,7 +2234,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล customer-follow-ups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -2020,7 +2284,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล customer-follow-ups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -2055,14 +2319,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล customer-follow-ups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "25eaece2-2e80-458d-93e1-6d53b91ba1a9",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -2080,17 +2344,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/customer-follow-ups/{{customer_follow_upsId}}/restore",
+            "url": "{{baseUrl}}/api/customer-follow-ups/{{customer_follow_upsId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล customer-follow-ups; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -2113,8 +2377,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/suppliers?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/suppliers?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -2130,7 +2394,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "ebdd69f4-4975-4dbd-aba6-dbb1447d804b",
@@ -2147,24 +2412,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/suppliers/{{suppliersId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "e2301c2e-151f-45c4-823e-bde30572aaca",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/suppliers/filters"
+            "description": "โมดูล suppliers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -2181,25 +2429,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/suppliers/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "0d8ce9a1-faa9-45aa-a224-dfd316c2c543",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/suppliers/config"
-          }
+            "url": "{{baseUrl}}/api/suppliers?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "0845f247-e4da-4a84-8f4b-2d976a24435b",
@@ -2220,8 +2453,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/suppliers?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล suppliers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/suppliers?deleted=true&offset=0&limit=10",
+                "description": "โมดูล suppliers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "bdf3cb76-ff69-4fb5-ac19-673dc01113d6",
@@ -2255,7 +2522,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล suppliers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -2305,7 +2572,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล suppliers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -2340,14 +2607,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล suppliers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "d2aaca32-1150-4709-8734-26bc21ff3245",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -2365,17 +2632,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/suppliers/{{suppliersId}}/restore",
+            "url": "{{baseUrl}}/api/suppliers/{{suppliersId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล suppliers; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -2398,8 +2665,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/expenses?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/expenses?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -2415,7 +2682,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "02367686-4e02-44bc-b3de-a3e33448ee90",
@@ -2432,24 +2700,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/expenses/{{expensesId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "41befb19-7d86-42be-9d65-61d8e489a69a",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/expenses/filters"
+            "description": "โมดูล expenses; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -2466,25 +2717,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/expenses/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "94b66747-7832-4b1d-9614-2e6b04820503",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/expenses/config"
-          }
+            "url": "{{baseUrl}}/api/expenses?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "719213df-30ed-4973-b9f1-b251a1dcccf1",
@@ -2505,8 +2741,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/expenses?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล expenses; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/expenses?deleted=true&offset=0&limit=10",
+                "description": "โมดูล expenses; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "ca509616-7ac9-448e-9c69-dc8e4dcefdb4",
@@ -2540,7 +2810,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล expenses; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -2590,7 +2860,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล expenses; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -2625,14 +2895,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล expenses; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "81c92c4b-562e-49f1-a9e0-04a82e9f8851",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -2650,17 +2920,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/expenses/{{expensesId}}/restore",
+            "url": "{{baseUrl}}/api/expenses/{{expensesId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล expenses; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -2683,8 +2953,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/purchases?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/purchases?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -2700,7 +2970,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "58c1d360-6cd1-4151-b672-33b55441db9c",
@@ -2717,24 +2988,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/purchases/{{purchasesId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "b17db888-553d-417f-a4f3-2b034bb1a24c",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/purchases/filters"
+            "description": "โมดูล purchases; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -2751,25 +3005,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/purchases/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "8f4ad950-5021-437d-9e88-e3a8b5b8cbf0",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/purchases/config"
-          }
+            "url": "{{baseUrl}}/api/purchases?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "d6ac4626-3627-4bff-90cd-4ab081c983cc",
@@ -2790,8 +3029,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/purchases?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล purchases; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/purchases?deleted=true&offset=0&limit=10",
+                "description": "โมดูล purchases; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "ddc76959-70ca-473d-b96b-4547ab2f0a0c",
@@ -2825,7 +3098,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล purchases; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -2875,7 +3148,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล purchases; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -2910,14 +3183,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล purchases; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "7ae0d05a-1b39-4e29-9ad2-6b2dbb828c48",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -2935,17 +3208,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/purchases/{{purchasesId}}/restore",
+            "url": "{{baseUrl}}/api/purchases/{{purchasesId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล purchases; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -2968,8 +3241,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/quotes?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/quotes?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -2985,7 +3258,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "64d02969-e928-473f-8212-fad0e127c3f2",
@@ -3002,24 +3276,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/quotes/{{quotesId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "f9c76482-beeb-417b-808f-688ec9d931f8",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/quotes/filters"
+            "description": "โมดูล quotes; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -3036,25 +3293,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/quotes/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "5a813f7d-a7a7-4c27-8e24-df3425bd8c74",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/quotes/config"
-          }
+            "url": "{{baseUrl}}/api/quotes?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "90fdf3ae-6d00-4927-9668-6d766955ea9b",
@@ -3075,8 +3317,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/quotes?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล quotes; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/quotes?deleted=true&offset=0&limit=10",
+                "description": "โมดูล quotes; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "091778e6-d398-44dc-96c7-cfbd6079531b",
@@ -3110,7 +3386,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล quotes; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -3160,7 +3436,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล quotes; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -3195,14 +3471,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล quotes; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "8ba8b086-e85f-4b54-925d-2e504773258c",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -3220,17 +3496,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/quotes/{{quotesId}}/restore",
+            "url": "{{baseUrl}}/api/quotes/{{quotesId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล quotes; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -3253,8 +3529,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/orders?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/orders?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -3270,7 +3546,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "97e9acb5-c728-4929-9e3c-999dfd73fabf",
@@ -3287,24 +3564,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/orders/{{ordersId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "e0d2912c-b600-4105-8cbd-1923ed07a8a1",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/orders/filters"
+            "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -3321,25 +3581,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/orders/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "5dd009d4-dc02-49ac-92b5-760200ef402c",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/orders/config"
-          }
+            "url": "{{baseUrl}}/api/orders?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "a420f64c-d291-4a9a-b1d5-a554e6bf8dee",
@@ -3360,8 +3605,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/orders?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/orders?deleted=true&offset=0&limit=10",
+                "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "b43a7ab1-88bc-417d-b255-42ffe4b03099",
@@ -3395,7 +3674,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -3445,7 +3724,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -3480,14 +3759,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "cd337ac9-b85f-437c-8c9a-cb4f703a85d3",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -3505,17 +3784,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/orders/{{ordersId}}/restore",
+            "url": "{{baseUrl}}/api/orders/{{ordersId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -3538,8 +3817,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/billing?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/billing?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -3555,7 +3834,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "3d69f87f-0b12-43e4-8db0-8d8a99672664",
@@ -3572,24 +3852,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/billing/{{billingId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "91728363-d500-442f-b51c-e26026f9cfbe",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/billing/filters"
+            "description": "โมดูล billing; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -3606,25 +3869,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/billing/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "644d8e67-d7e8-4b5e-95c3-0e0bed942d96",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/billing/config"
-          }
+            "url": "{{baseUrl}}/api/billing?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "64955a74-fa65-45ed-95f3-ea76e87d38da",
@@ -3645,8 +3893,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/billing?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล billing; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/billing?deleted=true&offset=0&limit=10",
+                "description": "โมดูล billing; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "086a9cd9-425a-4f22-9848-790b92a5c01e",
@@ -3680,7 +3962,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล billing; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -3730,7 +4012,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล billing; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -3765,14 +4047,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล billing; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "d41c75e6-9e6a-47a9-91f5-72d1d222a7bd",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -3790,17 +4072,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/billing/{{billingId}}/restore",
+            "url": "{{baseUrl}}/api/billing/{{billingId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล billing; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -3823,8 +4105,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/promotions?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/promotions?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -3840,7 +4122,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "2918de51-accd-4af4-a1bf-bed692193844",
@@ -3857,24 +4140,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/promotions/{{promotionsId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "0fe362c2-04d0-41cd-b6ff-603fb0ab921d",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/promotions/filters"
+            "description": "โมดูล promotions; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -3891,25 +4157,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/promotions/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "f85def34-d841-4c96-90de-ab79bc0b29ef",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/promotions/config"
-          }
+            "url": "{{baseUrl}}/api/promotions?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "8a34a0cb-0c28-4b32-ba3a-576e189abcda",
@@ -3930,8 +4181,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/promotions?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล promotions; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/promotions?deleted=true&offset=0&limit=10",
+                "description": "โมดูล promotions; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "48c204b9-21c8-4471-bb07-573b2d93bd5c",
@@ -3965,7 +4250,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล promotions; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -4015,7 +4300,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล promotions; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -4050,14 +4335,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล promotions; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "6b4cf3e4-c224-4470-8677-6a02803db040",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -4075,17 +4360,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/promotions/{{promotionsId}}/restore",
+            "url": "{{baseUrl}}/api/promotions/{{promotionsId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล promotions; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -4108,8 +4393,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/stock-counts?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/stock-counts?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -4125,7 +4410,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "86006f0c-e2ac-4d67-a917-58912e77a439",
@@ -4142,24 +4428,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/stock-counts/{{stock_countsId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "9fd523a2-11c0-4846-9089-67002f8ed510",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/stock-counts/filters"
+            "description": "โมดูล stock-counts; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -4176,25 +4445,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/stock-counts/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "8616dd60-9f7b-4196-88ae-2798696cd302",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/stock-counts/config"
-          }
+            "url": "{{baseUrl}}/api/stock-counts?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "8f6058a4-4d40-4499-9a87-5b1065cc011f",
@@ -4215,8 +4469,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/stock-counts?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล stock-counts; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/stock-counts?deleted=true&offset=0&limit=10",
+                "description": "โมดูล stock-counts; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "4977ca51-2b8a-4ee2-909e-96069609b298",
@@ -4250,7 +4538,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล stock-counts; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -4300,7 +4588,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล stock-counts; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -4335,14 +4623,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล stock-counts; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "45570e95-43f2-4d3a-81d1-cabc4b2f1bb0",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -4360,17 +4648,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/stock-counts/{{stock_countsId}}/restore",
+            "url": "{{baseUrl}}/api/stock-counts/{{stock_countsId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล stock-counts; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -4393,8 +4681,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/settings?offset=0&limit=10",
-            "description": "รายการจริงจาก DB. Params: offset,limit,search,status,owner,type,detail และ FK ของโมดูล. 400 Params ผิด; 404 ไม่พบ; 503 DB ไม่พร้อม."
+            "url": "{{baseUrl}}/api/settings?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
             {
@@ -4410,7 +4698,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "response": []
         },
         {
           "id": "c7249085-a082-4f29-a8ad-85b151180d75",
@@ -4427,24 +4716,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/settings/{{settingsId}}",
-            "description": "ส่ง list ก่อนเพื่อเก็บ ID; ใช้ข้อมูลชุดเดียวกับหน้าเว็บ."
-          }
-        },
-        {
-          "id": "fef9a0ca-ba6c-406a-9b45-7bea31884b3a",
-          "name": "filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/settings/filters"
+            "description": "โมดูล settings; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -4461,25 +4733,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/settings/options?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "da37668c-3e8e-4add-8f16-d2f364b67cc2",
-          "name": "config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/settings/config"
-          }
+            "url": "{{baseUrl}}/api/settings?offset=0&limit=10&view=options&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "c391d7ef-2e6c-4306-8f40-42b3417f3a12",
@@ -4500,8 +4757,42 @@
               }
             ],
             "url": "{{baseUrl}}/api/settings?deleted=true&offset=0&limit=10",
-            "description": "Admin เท่านั้น; ใส่ Authorization Bearer adminToken."
-          }
+            "description": "โมดูล settings; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/settings?deleted=true&offset=0&limit=10",
+                "description": "โมดูล settings; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "50467c00-077d-4382-a0a9-6ee5c69e7903",
@@ -4535,7 +4826,7 @@
                 }
               }
             },
-            "description": "ตั้ง newCode/newName และกรอกฟิลด์ก่อน Send. Admin เท่านั้น; 401/403/409 เมื่อไม่มีสิทธิ์หรือรหัสซ้ำ."
+            "description": "โมดูล settings; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -4585,7 +4876,7 @@
                 }
               }
             },
-            "description": "แก้ฟิลด์หลัก; รองรับ expectedUpdatedAt เพื่อกันทับการแก้จากผู้ใช้อื่น."
+            "description": "โมดูล settings; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
@@ -4620,14 +4911,14 @@
                 }
               }
             },
-            "description": "ลบเชิงตรรกะ ไม่ลบถาวร; Admin เท่านั้น."
+            "description": "โมดูล settings; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "acd7881b-eab5-4a85-accd-4efde800751f",
           "name": "restore",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "auth": {
               "type": "noauth"
             },
@@ -4645,17 +4936,17 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/settings/{{settingsId}}/restore",
+            "url": "{{baseUrl}}/api/settings/{{settingsId}}",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"action\": \"restore\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "กู้คืนรายการที่ลบแล้ว; Admin เท่านั้น."
+            "description": "โมดูล settings; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -4678,7 +4969,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/dashboard"
+            "url": "{{baseUrl}}/api/dashboard",
+            "description": "\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]
@@ -4701,42 +4993,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/reports/sales?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "881c0ad2-0cc9-421b-bb29-8f8c76749dc7",
-          "name": "sales filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/reports/sales/filters"
-          }
-        },
-        {
-          "id": "359003d4-1244-4e67-940a-f6afab17a342",
-          "name": "sales config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/reports/sales/config"
-          }
+            "url": "{{baseUrl}}/api/reports/sales?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "ffb62e05-f9f7-44cd-9830-38500f7f3c90",
@@ -4752,42 +5012,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/reports/inventory?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "f24d398e-d7e2-4503-9398-401490a7b5f5",
-          "name": "inventory filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/reports/inventory/filters"
-          }
-        },
-        {
-          "id": "c88e1eff-a461-4d3e-a03f-2feff5182ba4",
-          "name": "inventory config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/reports/inventory/config"
-          }
+            "url": "{{baseUrl}}/api/reports/inventory?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         },
         {
           "id": "82cd08f6-10e9-4575-a852-0e54e2fb66a6",
@@ -4803,42 +5031,10 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/reports/finance?offset=0&limit=10"
-          }
-        },
-        {
-          "id": "8e8b912e-309b-4915-bb98-df4dca75f736",
-          "name": "finance filters",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/reports/finance/filters"
-          }
-        },
-        {
-          "id": "d6ec8921-abe4-47b4-9cd2-81d160c52ce7",
-          "name": "finance config",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/reports/finance/config"
-          }
+            "url": "{{baseUrl}}/api/reports/finance?offset=0&limit=10&include=filters,config",
+            "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
+          },
+          "response": []
         }
       ]
     },
@@ -4860,8 +5056,38 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/warehouses/options?offset=0&limit=10"
-          }
+            "url": "{{baseUrl}}/api/warehouses?offset=0&limit=10&view=options",
+            "description": "\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/warehouses?offset=0&limit=10&view=options"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"hasMore\": false\n  }\n}"
+            }
+          ]
         },
         {
           "id": "5e3bdb7e-28b8-4c24-923e-e7b76ec229f9",
@@ -4877,7 +5103,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/warehouses/{{warehouseId}}"
+            "url": "{{baseUrl}}/api/warehouses/{{warehouseId}}",
+            "description": "\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         }
       ]

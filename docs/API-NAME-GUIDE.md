@@ -1,6 +1,6 @@
 # คู่มือชื่อ API — Zuugroup / API Folder Guide
 
-คู่มือนี้อธิบาย **ชื่อโฟลเดอร์ใน Postman Collection `Zuugroup`** ตามลำดับที่เห็นในหน้าจอ ไม่ใช่รายชื่อตารางฐานข้อมูลหรือ URL ทั้งหมดของระบบ อ้างอิงไฟล์ [`Zuugroup.postman_collection.json`](../postman/Zuugroup.postman_collection.json) ณ วันที่ 1 ตุลาคม 2569: 23 โฟลเดอร์ รวม 167 คำขอ. `{{baseUrl}}` คือ URL ของเว็บ เช่น `http://localhost:5000`.
+คู่มือนี้อธิบาย **ชื่อโฟลเดอร์ใน Postman Collection `Zuugroup`** ตามลำดับที่เห็นในหน้าจอ ไม่ใช่รายชื่อตารางฐานข้อมูลหรือ URL ทั้งหมดของระบบ อ้างอิงไฟล์ [`Zuugroup.postman_collection.json`](../postman/Zuugroup.postman_collection.json) ณ วันที่ 1 ตุลาคม 2569: 23 โฟลเดอร์ รวม 133 คำขอ. `{{baseUrl}}` คือ URL ของเว็บ เช่น `http://localhost:5000`.
 
 ## ชื่อโฟลเดอร์: ไทย / English / หน้าที่
 
@@ -28,7 +28,7 @@
 | 20 | `settings` | รายการตั้งค่า | Settings records | เก็บรายการหมวดตั้งค่า คำอธิบาย และค่า: `/api/settings`. การแก้รายการนี้ไม่เปลี่ยนการตั้งค่า Auth อัตโนมัติ. |
 | 21 | `dashboard` | ภาพรวมระบบ | Dashboard overview | อ่านจำนวนรายการและกิจกรรมที่ใช้แสดงหน้า Dashboard: `GET /api/dashboard`. |
 | 22 | `reports` | รายงาน | Reports | อ่านรายงานสามกลุ่ม: ยอดขาย (`/api/reports/sales`), สินค้า/คลัง (`/api/reports/inventory`) และการเงิน (`/api/reports/finance`). เป็นข้อมูลจากต้นทางตามที่มี ไม่ใช่การคำนวณยอดคลังหรือการเงินจากกฎที่ยังไม่กำหนด. |
-| 23 | `warehouses` | คลังสินค้า | Warehouses | ดูตัวเลือกคลังและรายละเอียดคลัง: `GET /api/warehouses/options`, `GET /api/warehouses/{id}`. ใน Collection นี้ไม่มีคำขอสร้าง/แก้ไข/ลบคลัง. |
+| 23 | `warehouses` | คลังสินค้า | Warehouses | ดูตัวเลือกคลังและรายละเอียดคลัง: `GET /api/warehouses?view=options`, `GET /api/warehouses/{id}`. ใน Collection นี้ไม่มีคำขอสร้าง/แก้ไข/ลบคลัง. |
 
 ชื่อที่ใช้ขีดล่าง (`product_categories`, `dosage_forms`) เป็น **ชื่อโฟลเดอร์ Postman**; URL จริงแสดงในคอลัมน์สุดท้าย. `/{id}` หมายถึง UUID ของข้อมูลรายการนั้น ไม่ใช่ข้อความ `{id}` ที่ส่งตรงไปยัง API.
 
@@ -38,16 +38,14 @@
 
 | ชื่อใน Postman | HTTP method และ path | ความหมายภาษาไทย / English |
 |---|---|---|
-| `list` | `GET /api/{module}` | รายการข้อมูล / List records; ใช้ `offset`, `limit`, `search` ตามโมดูล |
+| `list` | `GET /api/{module}` | รายการข้อมูล / List records; ใช้ `offset`, `limit`, `search` และ `include=filters,config` ตามโมดูล |
 | `getbyid` | `GET /api/{module}/{id}` | รายละเอียดหนึ่งรายการ / Get one record |
-| `filters` | `GET /api/{module}/filters` | ค่าที่ใช้กรองรายการ / Filter values |
-| `options` | `GET /api/{module}/options` | ตัวเลือกสำหรับฟอร์มหรือการอ้างอิง / Form options |
-| `config` | `GET /api/{module}/config` | โครงข้อมูลหน้าและคอลัมน์ / Module configuration |
+| `options` | `GET /api/{module}?view=options` | ตัวเลือกสำหรับฟอร์มหรือการอ้างอิง / Form options |
 | `deleted` | `GET /api/{module}?deleted=true` | รายการที่ลบเชิงตรรกะ / Soft-deleted records |
 | `create` | `POST /api/{module}` | สร้างรายการ / Create record |
 | `update` | `PATCH /api/{module}/{id}` | แก้ข้อมูลบางส่วน / Update record |
 | `delete` | `DELETE /api/{module}/{id}` | ลบเชิงตรรกะ / Soft delete record |
-| `restore` | `POST /api/{module}/{id}/restore` | กู้คืนรายการ / Restore record |
+| `restore` | `PATCH /api/{module}/{id} — body action=restore` | กู้คืนรายการ / Restore record |
 
 ตัวอย่าง: หากต้องการดูรายการลูกค้า ให้เปิด `customers` → `list` (`GET /api/customers`). หากต้องการแก้ลูกค้ารายหนึ่ง ให้ใช้ `customers` → `update` (`PATCH /api/customers/{id}`) และใส่ข้อมูลที่จะแก้ใน Body.
 
@@ -55,5 +53,27 @@
 
 - คำขอ GET ใน Collection นี้เปิดเฉพาะฟิลด์ที่ระบบอนุญาตให้อ่านตามปัจจุบัน; คำขอ `create`, `update`, `delete`, `restore` ใช้ token ของ Admin ตามตัวอย่าง Collection. ตั้ง `baseUrl` และตัวแปร ID ก่อนส่งคำขอ.
 - `products` ในตารางด้านบนเป็น **สินค้าแบบสาธารณะ** (`/api/public/products`). ระบบยังมี API สินค้าที่ต้องยืนยันตัวตน (`/api/products`) ซึ่งแยกจากสองคำขอในโฟลเดอร์นี้.
-- โฟลเดอร์ `reports` มีคำขอ `list`, `filters`, `config` สำหรับ `sales`, `inventory`, `finance`; ไม่มีคำขอเขียนรายงาน. `dashboard` มี `overview` อย่างเดียว.
+- โฟลเดอร์ `reports` มีคำขอ `list` พร้อม `include=filters,config` สำหรับ `sales`, `inventory`, `finance`; ไม่มีคำขอเขียนรายงาน. `dashboard` มี `overview` อย่างเดียว.
 - ดูขั้นตอนตั้งค่า Postman และ token ใน [Postman README](../postman/README.md). คู่มือนี้อธิบายชื่อและหน้าที่ของ API; ตัวอย่าง Body/Response ให้ดูในแต่ละคำขอของ Collection.
+
+
+## Pagination TASK-064 — 2026-10-02
+
+สินค้าและผู้ใช้ GET เดิมเพิ่ม pagination ค่าเริ่มต้น10; เพิ่ม GET /api/products?view=filters, /api/users/export, /api/audit-logs และ /api/audit-logs?view=filters สิทธิ์ authenticated/Admin ตาม [คู่มือ](TEST-API-PAGINATION.md) ข้อมูล users/audit ไม่ใช่ public API
+# สัญญาข้อมูลปัจจุบัน TASK-073
+
+ดู [API-CONTRACTS](API-CONTRACTS.md) สำหรับ request/response/query/body/validation/auth และรายชื่อเส้นทางจากโค้ด Collection local ปรับแล้ว ไม่ sync Cloud และไม่เปลี่ยน URL/สิทธิ์
+
+
+## TASK-074 รวม API ตามโมดูล (อนุมัติ 2026-10-02)
+
+เส้นประกอบ filters/options/config ย้ายเป็น query view=filters/options/config ที่ GET collection; include ขอ metadata พร้อมรายการตามที่โมดูลรองรับ DELETE ลบเชิงตรรกะ PATCH action restore กู้คืน เส้น restore เดิมถอนแล้ว ตัวอย่างการกู้คืนใช้ PATCH detail พร้อม action=restore รายการทั้งหมดและสิทธิ์จริงดู [API-CONTRACTS](API-CONTRACTS.md)
+
+Import Collection local ใหม่โดยใช้ collection ID เดิม ไม่มี Cloud sync ไม่มี live HTTP/login/DB ในรอบนี้ ชุด Zuugroup133คำขอและ authenticated24คำขอ รวม app157คำขอ ถอน Supabase Data API5คำขอแล้ว
+
+คำขอ filters/config แยกลบออกแล้ว options ยังใช้สำหรับฟอร์มค้นหา ตัวกรอง/config ใช้ include ที่ list ได้ รองรับ view ใน API ต่อไปแต่ไม่มีคำขอแยกที่ซ้ำในCollection
+
+
+## ชื่อฟิลด์ API (TASK-075)
+
+ใช้ชื่อข้อมูลต้นทางโดยตรง: records code/name และฟิลด์ของโมดูล สินค้า category.name/dosageForm.name/drug.name/defaultWarehouse.name ผู้ใช้ lastLoginAt/userRole/deletedByUser และ Audit actor/target รายละเอียด [API Contracts](API-CONTRACTS.md) วันที่ใน JSON เป็น ISO; เว็บแสดง พ.ศ.

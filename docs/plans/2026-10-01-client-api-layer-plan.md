@@ -1,5 +1,9 @@
 # แผนย่อย TASK-053 — ชั้นเรียก API ฝั่ง Client
 
+## งานย่อยแก้ dependency ในเครื่อง 2026-10-02
+
+เจ้าของรายงาน Module not found: axios. package.json และ package-lock.json ระบุ 1.20.0 ตรงกัน แต่ไม่มี node_modules/axios. ติดตั้ง dependencies ที่อนุมัติเดิมด้วย npm install --ignore-scripts --no-audit --no-fund; ไม่เปลี่ยนโค้ด/URL/schema. ตรวจ require.resolve และ type-check; ตรวจ lock diff ถ้ามี. เอกสารผลใน tasks/TASK-053-client-api-layer.md และ ACTIVE. ตรวจรับ: เปิด localhost:5000 แล้วต้องไม่มี Can't resolve axios.
+
 | ลำดับ | ผลลัพธ์ | ไฟล์ที่จะเปลี่ยน | ตรวจรับ |
 |---|---|---|---|
 | 1 | บันทึกข้อกำหนดและขอบเขต | Project Specs/Plan, Specs/Plan/Task TASK-053, `tasks/ACTIVE.md` | ข้อกำหนดตรงคำขอและไม่เปลี่ยน URL/API server |

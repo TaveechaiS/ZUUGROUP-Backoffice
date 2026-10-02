@@ -1,49 +1,30 @@
 # จุดแก้แต่ละหน้าของ ZUU
 
-แต่ละ URL มีโฟลเดอร์ของตัวเองใน `src/app` เช่น:
+ทุกหน้าเก็บข้อความ JSX state และฟังก์ชันเรียก API ใน page.tsx ของ route นั้นแล้ว (TASK-071) ไม่ใช้ components/pages หรือ import/re-export component ทั้งหน้าจากไฟล์อื่น
 
-| URL | ดีไซน์หน้า | แหล่งข้อมูล |
-|---|---|---|
-| `/` Dashboard | `page.tsx`, `dashboard-page-content.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/customers` ลูกค้า | `customers/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/customers/dashboard` | `customers/dashboard/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/customers/list` | `customers/list/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/customers/groups` | `customers/groups/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/customers/territories` | `customers/territories/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/customers/documents` | `customers/documents/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/products` สินค้า | `products/page.tsx`, `products/products-list.tsx` | ฐานข้อมูลจริง |
-| `/products/create` เพิ่มสินค้า | `products/create/page.tsx`, `create-product-form.tsx` | ฐานข้อมูลจริง |
-| `/products/<รหัสสินค้า>` รายละเอียดสินค้า | `products/[ref]/page.tsx`, `product-detail.tsx` | ฐานข้อมูลจริง |
-| `/stock-counts` ตรวจนับ | `stock-counts/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/suppliers` ผู้ขาย | `suppliers/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/purchases` จัดซื้อ | `purchases/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/expenses` ค่าใช้จ่าย | `expenses/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/quotes` ใบเสนอราคา | `quotes/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/orders` คำสั่งซื้อ | `orders/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/billing` วางบิล | `billing/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/promotions` โปรโมชัน | `promotions/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/users` รายชื่อผู้ใช้งาน | `users/page.tsx`, `users/users-list-content.tsx` | ฐานข้อมูลจริง |
-| `/users/create` เพิ่มผู้ใช้งาน | `users/create/page.tsx`, `create-user-form.tsx` | ฐานข้อมูลจริง |
-| `/users/<รหัสพนักงาน>` รายละเอียดผู้ใช้งาน | `users/[employeeCode]/page.tsx`, `user-detail-content.tsx` | ฐานข้อมูลจริง |
-| `/reports/sales` รายงานยอดขาย | `reports/sales/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/reports/inventory` รายงานคลัง | `reports/inventory/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/reports/finance` รายงานการเงิน | `reports/finance/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
-| `/audit-logs` ประวัติการทำรายการ | `audit-logs/page.tsx`, `audit-logs/audit-list.tsx` | ฐานข้อมูลจริง (`audit_events`) |
-| `/settings` ตั้งค่า | `settings/page.tsx` | ตารางรายโมดูลจริงผ่าน API |
+| หน้า | จุดแก้ |
+|---|---|
+| Dashboard | src/app/page.tsx |
+| Orders รายการ | src/app/orders/page.tsx |
+| Orders เพิ่ม | src/app/orders/create/page.tsx |
+| Orders รายละเอียด/แก้/ลบ | src/app/orders/[id]/page.tsx |
+| โมดูลอื่น | src/app/{ชื่อโมดูล}/page.tsx, create/page.tsx, [id]/page.tsx |
+| ลูกค้าและกลุ่มย่อย | src/app/customers/**/page.tsx; ลูกค้ารายละเอียดใช้ [id] |
+| สินค้า | src/app/products/page.tsx, create/page.tsx, [id]/page.tsx |
+| ผู้ใช้ | src/app/users/page.tsx, create/page.tsx, [employeeCode]/page.tsx |
+| ประวัติ | src/app/audit-logs/page.tsx |
+| รายงาน | src/app/reports/{sales,inventory,finance}/page.tsx |
 
-เริ่มจาก page.tsx ของหน้านั้นเพื่อปรับดีไซน์เฉพาะหน้า. ฟิลด์/ชื่อคอลัมน์อยู่ใน src/features/records/modules.json ซึ่งเป็น metadata เท่านั้น. รายการอ่าน DB ผ่าน API รายโมดูล ค้นหาและแบ่งหน้า default 10/max50 ฝั่ง DB.
+ไฟล์ layout.tsx ของ route เก็บการตรวจสิทธิ์และการอ่านข้อมูลเริ่มต้นที่ต้องอยู่บน server เท่านั้น ไม่ประกอบ UI ทั้งหน้า การแก้ field/คอลัมน์/label ให้แก้ใน page.tsx ที่ต้องการ
 
-ข้อมูลหลักและหัวเอกสาร 14 โมดูลใช้ RecordFormPage/RecordDetailPage ร่วม: หน้า create และหน้า UUID มีฟอร์มจริง; Admin สร้าง แก้ ลบเชิงตรรกะ และกู้คืนได้. Role อื่นอ่านตามขอบเขตที่อนุมัติ. ลูกค้า list ใช้ customers ตารางเดียวกับหน้าหลัก.
+ชิ้นส่วนเล็กยังใช้ร่วมกัน: Pagination, SearchCombobox, StatusBadge, Loading, SuccessAlert, ConfirmationDialog และ HTTP transport แต่ endpoint/query/data flow อยู่ในหน้าแต่ละ route Combobox รับ options/callback และไม่โหลด API เอง
 
-- Component ร่วม: src/components/pages/module-list-page.tsx, record-form-page.tsx, record-detail-page.tsx
-- API: /api/<module>, /[id], /config, /filters, /options, /[id]/restore
-- Dashboard: /api/dashboard นับต้นทาง; ไม่แสดงยอดรับรู้รายได้/หนี้สุทธิ/ยอด Lot ที่ยังไม่มี
-- รายงาน: /api/reports/sales (หัวคำสั่งซื้อ), inventory (รายการสินค้า), finance (หัววางบิล); ไม่ใช่ผลสต็อก/รับชำระ
-- Sidebar/Topbar: src/components/layout/sidebar.tsx, admin-shell.tsx
-- เมนู: src/config/navigation.ts
-- เติมข้อมูล: npm run seed:records (ไม่ทับข้อมูลเดิม; ไม่มีผลยอดคลัง)
-- ประวัติย้ายข้อมูล: scripts/fixtures/operational-migration-backup.json เก็บออฟไลน์ ไม่ใช่แหล่ง runtime
+API handler อยู่ src/app/api/**/route.ts ตามเดิม types/api.ts และ types/api/* เก็บรูปร่าง request/response ไม่ใช่ endpoint; runtime validators อยู่ src/server/validation/* ห้ามย้าย Prisma/secret เข้า client หากเพิ่ม field จริงต้องแก้ Specs/API/DB ตามกติกา ดู [API-CONTRACTS](../../docs/API-CONTRACTS.md)
 
-ถอน /api/demo, component Mock และตาราง demo_rows/demo_datasets แล้ว. Users/Products/Audit ใช้ตารางจริงเดิม. สินค้าใหม่ราคาเริ่มต้น 0 ให้กรอกราคาจริงภายหลัง; ไม่มี Lot/ยอดคลังจากการ seed.
+Alias /customers/list/create และ report create ที่เดิม redirect คง behavior เดิม
 
-Client Component เรียก API ผ่าน `src/service/http.ts`: `Get`, `Post`, `Update` (PATCH), `Delete` และ `Logins` สำหรับ API login. ชั้นนี้ส่ง session cookie ของ origin เดียวกัน, รวม try/catch และข้อความ error; 401 ไปหน้า Login ส่วน 403 แสดงข้อผิดพลาดสิทธิ์. หน้า Login ปัจจุบันยังใช้ Server Action เพื่อจัดการ session cookie หลังตรวจบัญชี. URL และ `route.ts` ของ API คงเดิม.
+คู่มือพร้อมขั้นตอนตรวจ: [ROUTE-PAGES-GUIDE](../../docs/ROUTE-PAGES-GUIDE.md)
+
+TASK-072 เกษียณ /design-preview และ placeholder เก่าที่ไม่มีจุดเรียกใช้แล้ว หน้าข้อมูลปัจจุบันอ่าน API/DB; modules.json เป็น definition ที่ server ใช้ ไม่ใช่แถวข้อมูล Mock
+
+TASK-074: หน้าแต่ละ route ใช้ GET collection พร้อม include filters/config เฉพาะครั้งแรกหรือ reload; Combobox ใช้ view=options/status ใช้ view=filters; ลบ DELETE และกู้คืน PATCH action restore ดู API-CONTRACTS ไม่เปลี่ยน JSX/state/text ไปไว้หน้ากลาง

@@ -1,30 +1,39 @@
+import {
+  RecordError,
+  uuid,
+  text,
+  integer,
+  cleanBody,
+  recordReason,
+} from '@/server/validation/records';
+export { RecordError } from '@/server/validation/records';
+import type {
+  RecordListResponse,
+  RecordDetailResponse,
+  RecordOptionsResponse,
+  RecordFiltersResponse,
+  RecordConfigResponse,
+} from '@/types/api/records';
 import 'server-only';
 import { Prisma } from '@/generated/prisma/client';
 import { getPrismaClient, readWithConnectionRetry } from '@/server/db/prisma';
-import {
-  moduleFor,
-  RECORD_MODULES,
-  type RecordModule,
-  type RecordRow,
-} from '@/features/records/types';
-export class RecordError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+import { moduleFor, RECORD_MODULES } from '@/features/records/types';
+import type { RecordModule, RecordRow } from '@/types/api/records';
 const snake = (key: string) => key.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
 // All identifiers originate in our static module registry. Values are bound parameters.
 const column = (key: string) => Prisma.raw('"' + snake(key) + '"');
 const table = (module: RecordModule) => Prisma.raw('"' + module.table + '"');
 const select = (m: RecordModule) =>
-  Prisma.join(
-    [...['id', ...m.fields.map((f) => f.key), 'createdAt', 'updatedAt', 'deletedAt'].map(
+  Prisma.join([
+    ...['id', ...m.fields.map((f) => f.key), 'createdAt', 'updatedAt', 'deletedAt'].map(
       (key) => Prisma.sql`${column(key)} AS ${Prisma.raw('"' + key + '"')}`,
-    ),...(m.key==='customer-groups'||m.key==='sales-territories'?[Prisma.sql`(SELECT count(*)::int FROM customers c WHERE ${Prisma.raw(m.key==='customer-groups'?'c.group_id':'c.territory_id')}=${table(m)}.id AND c.deleted_at IS NULL) AS "memberCount"`]:[])],
-  );
+    ),
+    ...(m.key === 'customer-groups' || m.key === 'sales-territories'
+      ? [
+          Prisma.sql`(SELECT count(*)::int FROM customers c WHERE ${Prisma.raw(m.key === 'customer-groups' ? 'c.group_id' : 'c.territory_id')}=${table(m)}.id AND c.deleted_at IS NULL) AS "memberCount"`,
+        ]
+      : []),
+  ]);
 type DbRow = Record<string, unknown> & {
   id: string;
   code: string;
@@ -39,45 +48,20 @@ export function recordModule(key: string) {
   if (!m) throw new RecordError(404, 'ไม่พบโมดูล');
   return m;
 }
-const uuid = (id: string) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 function output(m: RecordModule, row: DbRow): RecordRow {
-  const value = (key: string | null) => (key ? String(row[key] ?? '') : '');
-  const [type, detail, owner, valueKey] = m.display;
-  const fields = Object.fromEntries(
-    m.fields.map((f) => [f.key, row[f.key] === null ? null : String(row[f.key] ?? '')]),
-  );
   return {
+    ...Object.fromEntries(
+      m.fields.map((f) => [f.key, row[f.key] === null ? null : String(row[f.key] ?? '')]),
+    ),
     id: row.id,
-    ref: row.code,
-    title: row.name,
-    subtitle: [value(type), value(detail)].filter(Boolean).join(' · '),
-    owner: value(owner),
-    value:
-      row.memberCount !== undefined ? `${row.memberCount} ราย` : valueKey === 'amount'
-        ? row.amount === null
-          ? '—'
-          : new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(
-              Number(row.amount),
-            )
-        : value(valueKey),
+    code: row.code,
+    name: row.name,
     status: row.status,
-    deletedAt: row.deletedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-    fields,
+    deletedAt: row.deletedAt?.toISOString() ?? null,
+    ...(row.memberCount !== undefined ? { memberCount: Number(row.memberCount) } : {}),
   };
-}
-function text(params: URLSearchParams, key: string) {
-  const v = (params.get(key) ?? '').trim();
-  if (v.length > 200) throw new RecordError(400, `${key} ยาวเกิน 200 ตัวอักษร`);
-  return v;
-}
-function integer(params: URLSearchParams, key: string, fallback: number, min: number, max: number) {
-  const v = params.get(key);
-  if (v === null) return fallback;
-  if (!/^\d+$/.test(v) || !Number.isSafeInteger(Number(v)) || Number(v) < min || Number(v) > max)
-    throw new RecordError(400, `${key} ต้องเป็นจำนวนเต็ม ${min}–${max}`);
-  return Number(v);
 }
 function predicate(m: RecordModule, params: URLSearchParams) {
   const removed = params.get('deleted') ?? 'false';
@@ -97,14 +81,11 @@ function predicate(m: RecordModule, params: URLSearchParams) {
       )})`,
     );
   }
-  for (const [param, key] of [
-    ['status', 'status'],
-    ['owner', m.display[2]],
-    ['type', m.display[0]],
-    ['category', m.display[0]],
-    ['detail', m.display[1]],
-  ] as const) {
-    const v = text(params, param);
+  for (const key of new Set([
+    'status',
+    ...m.display.slice(0, 3).filter((key): key is string => Boolean(key)),
+  ])) {
+    const v = text(params, key);
     if (v && key) clauses.push(Prisma.sql`${column(key)}=${v}`);
   }
   for (const f of m.fields.filter((f) => f.relation)) {
@@ -116,7 +97,10 @@ function predicate(m: RecordModule, params: URLSearchParams) {
   }
   return Prisma.join(clauses, ' AND ');
 }
-export async function recordList(m: RecordModule, params: URLSearchParams) {
+export async function recordList(
+  m: RecordModule,
+  params: URLSearchParams,
+): Promise<RecordListResponse> {
   const offset = integer(params, 'offset', 0, 0, 100000),
     limit = integer(params, 'limit', 10, 1, 50),
     where = predicate(m, params);
@@ -139,7 +123,11 @@ export async function recordList(m: RecordModule, params: URLSearchParams) {
     };
   });
 }
-export async function recordDetail(m: RecordModule, id: string, includeDeleted = false) {
+export async function recordDetail(
+  m: RecordModule,
+  id: string,
+  includeDeleted = false,
+): Promise<RecordDetailResponse> {
   if (id.length > 200) throw new RecordError(400, 'รหัสยาวเกินกำหนด');
   const match = uuid(id) ? Prisma.sql`id=${id}::uuid OR code=${id}` : Prisma.sql`code=${id}`;
   const rows = await readWithConnectionRetry((db) =>
@@ -159,35 +147,36 @@ export async function recordDetail(m: RecordModule, id: string, includeDeleted =
   }
   return { data: output(m, rows[0]) };
 }
-export async function recordFilters(m: RecordModule) {
-  const groups = await Promise.all(
-    ['status', m.display[2], m.display[0], m.display[1]].map((key) =>
-      key
-        ? readWithConnectionRetry((db) =>
-            db.$queryRaw<{ value: string }[]>(
-              Prisma.sql`SELECT DISTINCT ${column(key)} AS value FROM ${table(m)} WHERE deleted_at IS NULL AND ${column(key)}<>'' ORDER BY value`,
-            ),
-          )
-        : Promise.resolve([]),
-    ),
+export async function recordFilters(m: RecordModule): Promise<RecordFiltersResponse> {
+  const keys = [
+    ...new Set(['status', ...m.display.slice(0, 3).filter((key): key is string => Boolean(key))]),
+  ];
+  const entries = await Promise.all(
+    keys.map(async (key) => {
+      const rows = await readWithConnectionRetry((db) =>
+        db.$queryRaw<{ value: string }[]>(
+          Prisma.sql`SELECT DISTINCT ${column(key)} AS value FROM ${table(m)} WHERE deleted_at IS NULL AND ${column(key)}<>'' ORDER BY value`,
+        ),
+      );
+      return [key, rows.map((row) => row.value)] as const;
+    }),
   );
-  return {
-    data: {
-      statuses: groups[0].map((r) => r.value),
-      owners: groups[1].map((r) => r.value),
-      types: groups[2].map((r) => r.value),
-      details: groups[3].map((r) => r.value),
-    },
-  };
+  return { data: Object.fromEntries(entries) };
 }
-export async function recordOptions(m: RecordModule, params: URLSearchParams) {
+export async function recordOptions(
+  m: RecordModule,
+  params: URLSearchParams,
+): Promise<RecordOptionsResponse> {
   const rows = await recordList(m, params);
   return {
-    data: rows.data.map((r) => ({ id: r.id, code: r.ref, name: r.title })),
+    data: rows.data.map((r) => ({ id: r.id, code: r.code, name: r.name })),
     pagination: rows.pagination,
   };
 }
-export async function recordConfig(m: RecordModule, canWrite: boolean) {
+export async function recordConfig(
+  m: RecordModule,
+  canWrite: boolean,
+): Promise<RecordConfigResponse> {
   const counts = await readWithConnectionRetry((db) =>
     db.$queryRaw<{ total: number }[]>(
       Prisma.sql`SELECT count(*)::int total FROM ${table(m)} WHERE deleted_at IS NULL`,
@@ -202,46 +191,6 @@ export async function recordConfig(m: RecordModule, canWrite: boolean) {
   };
 }
 type Actor = { id: string; roleId: string };
-function cleanBody(m: RecordModule, body: unknown, partial: boolean) {
-  if (!body || typeof body !== 'object' || Array.isArray(body))
-    throw new RecordError(400, 'กรุณาส่ง JSON object');
-  const input = body as Record<string, unknown>;
-  const allowed = new Set([...m.fields.map((f) => f.key), 'expectedUpdatedAt']);
-  if (Object.keys(input).some((k) => !allowed.has(k)))
-    throw new RecordError(400, 'มีฟิลด์ที่ไม่รองรับ');
-  const values: Record<string, string | null> = {};
-  for (const f of m.fields) {
-    if (!(f.key in input) && partial) continue;
-    const raw = input[f.key] ?? '';
-    if (typeof raw !== 'string' && typeof raw !== 'number')
-      throw new RecordError(400, `${f.label} ไม่ถูกต้อง`);
-    const v = String(raw).trim();
-    if (v.length > (f.type === 'textarea' ? 4000 : 500))
-      throw new RecordError(400, `${f.label} ยาวเกินกำหนด`);
-    if (f.required && !v) throw new RecordError(400, `กรุณากรอก${f.label}`);
-    if (f.type === 'number' && v && !/^\d{1,12}(\.\d{1,2})?$/.test(v))
-      throw new RecordError(400, `${f.label} ต้องเป็นจำนวนไม่ติดลบและทศนิยมไม่เกิน 2 หลัก`);
-    if (f.relation && v && !uuid(v))
-      throw new RecordError(400, `${f.label} ต้องเป็น ID ที่ถูกต้อง`);
-    if (f.key === 'fileUrl' && v) {
-      try {
-        const u = new URL(v);
-        if (!['https:', 'http:'].includes(u.protocol)) throw new Error();
-      } catch {
-        throw new RecordError(400, 'ลิงก์ไฟล์ต้องเป็น http หรือ https');
-      }
-    }
-    values[f.key] = (f.type === 'number' || f.relation) && !v ? null : v;
-  }
-  if (!Object.keys(values).length) throw new RecordError(400, 'ไม่มีข้อมูลที่แก้ไข');
-  if (
-    'expectedUpdatedAt' in input &&
-    (typeof input.expectedUpdatedAt !== 'string' ||
-      Number.isNaN(Date.parse(input.expectedUpdatedAt)))
-  )
-    throw new RecordError(400, 'expectedUpdatedAt ไม่ถูกต้อง');
-  return { values, expected: input.expectedUpdatedAt as string | undefined };
-}
 export async function recordWrite(
   m: RecordModule,
   action: 'create' | 'update' | 'delete' | 'restore',
@@ -252,12 +201,7 @@ export async function recordWrite(
   const parsed =
     action === 'create' || action === 'update' ? cleanBody(m, body, action === 'update') : null;
   if (id && !uuid(id)) throw new RecordError(400, 'ID ต้องเป็น UUID');
-  const deleteBody =
-    body && typeof body === 'object' && !Array.isArray(body)
-      ? (body as Record<string, unknown>)
-      : {};
-  const reason = String(deleteBody.reason ?? '').trim();
-  if (reason.length > 1000) throw new RecordError(400, 'เหตุผลยาวเกินกำหนด');
+  const reason = recordReason(body);
   try {
     return await getPrismaClient().$transaction(async (tx) => {
       let before: DbRow | null = null;
@@ -354,7 +298,7 @@ export async function recordCatalog() {
       title: m.title,
       list: '/api/' + m.key,
       detail: '/api/' + m.key + '/{id}',
-      filters: '/api/' + m.key + '/filters',
+      filters: '/api/' + m.key + '?view=filters',
     })),
   };
 }

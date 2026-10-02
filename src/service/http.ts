@@ -24,7 +24,11 @@ function apiPath(url: string) {
 
 function errorMessage(data: unknown): string | undefined {
   if (!data || typeof data !== 'object') return undefined;
-  const value = data as { error?: string | { message?: string }; message?: string; res_message?: string };
+  const value = data as {
+    error?: string | { message?: string };
+    message?: string;
+    res_message?: string;
+  };
   return (
     (typeof value.error === 'string' ? value.error : value.error?.message) ||
     value.message ||
@@ -44,18 +48,11 @@ function fail(error: unknown, redirectOnUnauthorized: boolean): never {
   }
   throw new HttpError(
     errorMessage(error.response?.data) ||
-      (status ? 'คำขอไม่สำเร็จ กรุณาลองอีกครั้ง' : 'เชื่อมต่อระบบไม่ได้ กรุณาตรวจเครือข่ายแล้วลองอีกครั้ง'),
+      (status
+        ? 'คำขอไม่สำเร็จ กรุณาลองอีกครั้ง'
+        : 'เชื่อมต่อระบบไม่ได้ กรุณาตรวจเครือข่ายแล้วลองอีกครั้ง'),
     status,
   );
-}
-
-export async function Logins<T>(url: string, payload: unknown): Promise<T> {
-  try {
-    const response = await client.post<T>(apiPath(url), payload);
-    return response.data;
-  } catch (error) {
-    return fail(error, false);
-  }
 }
 
 export async function Get<T>(url: string, signal?: AbortSignal): Promise<T> {

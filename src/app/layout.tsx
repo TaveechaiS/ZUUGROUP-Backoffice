@@ -10,13 +10,13 @@ import './globals.css';
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-   variable: '--font-poppins',
+  variable: '--font-poppins',
   display: 'swap',
 });
 const notoSansThai = Noto_Sans_Thai({
   subsets: ['thai', 'latin'],
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-   variable: '--font-noto-sans-thai',
+  variable: '--font-noto-sans-thai',
   display: 'swap',
 });
 
@@ -28,7 +28,9 @@ export const metadata: Metadata = {
 async function AuthenticatedShell({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = (await headers()).get('x-zuu-pathname');
   const user = pathname === '/login' ? null : await getCurrentUser();
-  const account = user ? { name: user.name, role: user.userRole?.role.name ?? '', roleId: user.userRole?.roleId ?? '' } : null;
+  const account = user
+    ? { name: user.name, role: user.userRole?.role.name ?? '', roleId: user.userRole?.roleId ?? '' }
+    : null;
   return <AdminShell account={account}>{children}</AdminShell>;
 }
 

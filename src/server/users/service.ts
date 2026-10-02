@@ -1,56 +1,95 @@
 import 'server-only';
 
-import { getPrismaClient } from '@/server/db/prisma';
+import { getPrismaClient, readWithConnectionRetry } from '@/server/db/prisma';
+import type { Prisma } from '@/generated/prisma/client';
+import { paginationQuery, paginationResult, queryChoice, queryText } from '@/server/pagination';
 
-export const ROLE_IDS = ['ADMIN', 'SALES', 'MANAGER', 'ACCOUNTING_CFO'] as const;
-export type RoleId = (typeof ROLE_IDS)[number];
-
-export function isRoleId(value: unknown): value is RoleId {
-  return typeof value === 'string' && ROLE_IDS.some((role) => role === value);
-}
-
-export function passwordIsValid(password: string): boolean {
-  return [...password].length >= 8;
-}
-
+import { ROLE_IDS } from '@/server/validation/users';
+export { ROLE_IDS, isRoleId, passwordIsValid } from '@/server/validation/users';
+import type { UserRow, UsersListResponse } from '@/types/api/users';
 const userInclude = {
   userRole: { include: { role: true } },
   deletedByUser: { select: { name: true, employeeCode: true } },
 } as const;
-const dateFormat = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
-  dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok',
-});
 
 function toUserRow(user: {
-  id: string; employeeCode: string; name: string; email: string;
-  team: string | null; status: 'ACTIVE' | 'SUSPENDED'; lastLoginAt: Date | null;
+  id: string;
+  employeeCode: string;
+  name: string;
+  email: string;
+  team: string | null;
+  status: 'ACTIVE' | 'SUSPENDED';
+  lastLoginAt: Date | null;
   userRole: { roleId: string; role: { name: string } } | null;
-  deletedAt: Date | null; deleteReason: string | null;
+  deletedAt: Date | null;
+  deleteReason: string | null;
   deletedByUser: { name: string; employeeCode: string } | null;
-}) {
+}): UserRow {
   return {
     id: user.id,
     employeeCode: user.employeeCode,
     name: user.name,
     email: user.email,
-    roleId: user.userRole?.roleId ?? null,
-    role: user.userRole?.role.name ?? 'ยังไม่มีบทบาท',
+    userRole: user.userRole
+      ? { roleId: user.userRole.roleId, role: { name: user.userRole.role.name } }
+      : null,
     team: user.team ?? '',
     status: user.status,
-    lastActive: user.lastLoginAt ? dateFormat.format(user.lastLoginAt) : 'ยังไม่เคยเข้าใช้',
-    deletedAt: user.deletedAt ? dateFormat.format(user.deletedAt) : null,
-    deletedBy: user.deletedByUser
-      ? `${user.deletedByUser.name} (${user.deletedByUser.employeeCode})` : null,
+    lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+    deletedAt: user.deletedAt?.toISOString() ?? null,
+    deletedByUser: user.deletedByUser,
     deleteReason: user.deleteReason,
   };
 }
 
-export async function listUsers() {
-  const users = await getPrismaClient().user.findMany({
-    include: userInclude,
-    orderBy: { createdAt: 'desc' },
+export function userListWhere(params: URLSearchParams): Prisma.UserWhereInput {
+  const search = queryText(params, 'search');
+  const role = queryChoice(params, 'role', ['', ...ROLE_IDS]);
+  const status = queryChoice(params, 'status', ['', 'ACTIVE', 'SUSPENDED']);
+  const deleted = queryChoice(params, 'deleted', ['false', 'true'], 'false');
+  return {
+    deletedAt: deleted === 'true' ? { not: null } : null,
+    ...(role ? { userRole: { is: { roleId: role } } } : {}),
+    ...(status ? { status: status as 'ACTIVE' | 'SUSPENDED' } : {}),
+    ...(search
+      ? {
+          OR: ['name', 'email', 'employeeCode'].map((key) => ({
+            [key]: { contains: search, mode: 'insensitive' },
+          })),
+        }
+      : {}),
+  };
+}
+export async function paginatedUsers(params: URLSearchParams): Promise<UsersListResponse> {
+  const { offset, limit } = paginationQuery(params);
+  const where = userListWhere(params);
+  return readWithConnectionRetry(async (db) => {
+    const [total, rows] = await db.$transaction(
+      [
+        db.user.count({ where }),
+        db.user.findMany({
+          where,
+          include: userInclude,
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          skip: offset,
+          take: limit,
+        }),
+      ],
+      { isolationLevel: 'RepeatableRead' },
+    );
+    return { users: rows.map(toUserRow), pagination: paginationResult(total, offset, limit) };
   });
-  return users.map(toUserRow);
+}
+export async function exportUsers(params: URLSearchParams) {
+  const where = userListWhere(params);
+  const rows = await readWithConnectionRetry((db) =>
+    db.user.findMany({
+      where,
+      include: userInclude,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    }),
+  );
+  return rows.map(toUserRow);
 }
 
 export async function getUserByEmployeeCode(employeeCode: string) {
@@ -58,5 +97,12 @@ export async function getUserByEmployeeCode(employeeCode: string) {
     where: { employeeCode: { equals: employeeCode, mode: 'insensitive' } },
     include: userInclude,
   });
+  return user ? toUserRow(user) : null;
+}
+
+export async function getUserById(id: string) {
+  const user = await readWithConnectionRetry((db) =>
+    db.user.findUnique({ where: { id }, include: userInclude }),
+  );
   return user ? toUserRow(user) : null;
 }

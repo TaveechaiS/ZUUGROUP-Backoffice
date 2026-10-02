@@ -1,8 +1,9 @@
+import { inventoryQuery } from '@/server/validation/reports';
 import 'server-only';
 import { readWithConnectionRetry } from '@/server/db/prisma';
 import { Prisma } from '@/generated/prisma/client';
 import { recordModule, recordList, recordFilters, RecordError } from './service';
-import type { RecordRow } from '@/features/records/types';
+import type { RecordRow } from '@/types/api/records';
 export const REPORTS = {
   sales: {
     source: 'orders',
@@ -23,7 +24,8 @@ export const REPORTS = {
     note: 'ข้อมูลหลักสินค้า ยังไม่มียอดคงเหลือหรือ Lot',
   },
 } as const;
-export type ReportKey = keyof typeof REPORTS;
+import type { ReportKey } from '@/types/api/reports';
+export type { ReportKey } from '@/types/api/reports';
 export function reportKey(value: string): ReportKey {
   if (!(value in REPORTS)) throw new RecordError(404, 'ไม่พบรายงาน');
   return value as ReportKey;
@@ -31,17 +33,7 @@ export function reportKey(value: string): ReportKey {
 export async function reportData(key: ReportKey, params: URLSearchParams) {
   if (params.get('deleted') === 'true') throw new RecordError(400, 'รายงานไม่รวมข้อมูลที่ลบแล้ว');
   if (key !== 'inventory') return recordList(recordModule(REPORTS[key].source), params);
-  const integer = (k: string, d: number, max: number) => {
-    const v = params.get(k);
-    if (v === null) return d;
-    if (!/^\d+$/.test(v) || Number(v) > max || Number(v) < (k === 'limit' ? 1 : 0))
-      throw new RecordError(400, `${k} ไม่ถูกต้อง`);
-    return Number(v);
-  };
-  const offset = integer('offset', 0, 100000),
-    limit = integer('limit', 10, 50),
-    search = params.get('search')?.trim() ?? '';
-  if (search.length > 200) throw new RecordError(400, 'คำค้นยาวเกินกำหนด');
+  const { offset, limit, search } = inventoryQuery(params);
   const where = {
     deletedAt: null,
     status: 'ACTIVE' as const,
@@ -53,8 +45,10 @@ export async function reportData(key: ReportKey, params: URLSearchParams) {
           ],
         }
       : {}),
-    ...(params.get('type') ? { category: { name: params.get('type')! } } : {}),
-    ...(params.get('detail') ? { dosageForm: { name: params.get('detail')! } } : {}),
+    ...(params.get('category.name') ? { category: { name: params.get('category.name')! } } : {}),
+    ...(params.get('dosageForm.name')
+      ? { dosageForm: { name: params.get('dosageForm.name')! } }
+      : {}),
   };
   return readWithConnectionRetry(async (db) => {
     const [products, total] = await db.$transaction([
@@ -66,6 +60,7 @@ export async function reportData(key: ReportKey, params: URLSearchParams) {
           name: true,
           unit: true,
           status: true,
+          createdAt: true,
           updatedAt: true,
           category: { select: { name: true } },
           dosageForm: { select: { name: true } },
@@ -81,13 +76,13 @@ export async function reportData(key: ReportKey, params: URLSearchParams) {
         (p) =>
           ({
             id: p.id,
-            ref: p.code,
-            title: p.name,
-            subtitle: p.category.name + ' · ' + p.dosageForm.name,
-            owner: '',
-            value: p.unit,
-            status: 'ใช้งานอยู่',
-            fields: { code: p.code, name: p.name },
+            code: p.code,
+            name: p.name,
+            category: p.category,
+            dosageForm: p.dosageForm,
+            unit: p.unit,
+            status: p.status,
+            createdAt: p.createdAt.toISOString(),
             deletedAt: null,
             updatedAt: p.updatedAt.toISOString(),
           }) satisfies RecordRow,
@@ -113,10 +108,9 @@ export async function reportFilters(key: ReportKey) {
     ]);
     return {
       data: {
-        owners: [],
-        statuses: [],
-        types: categories.map((c) => c.name),
-        details: forms.map((c) => c.name),
+        status: [],
+        'category.name': categories.map((c) => c.name),
+        'dosageForm.name': forms.map((c) => c.name),
       },
     };
   });
@@ -131,7 +125,7 @@ export async function reportConfig(key: ReportKey) {
           table: 'products',
           page: '/products',
           fields: [],
-          display: [],
+          display: ['category.name', 'dosageForm.name', null, 'unit'],
           columns: ['สินค้า', 'หมวด / รูปแบบ', '', 'หน่วย'],
           action: '',
           tabs: ['ทั้งหมด'],

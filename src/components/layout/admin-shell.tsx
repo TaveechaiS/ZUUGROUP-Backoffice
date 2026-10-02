@@ -8,7 +8,13 @@ import { ADMIN_PAGES, getAdminPage, type AdminPage } from '@/config/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { logout } from '@/app/login/actions';
 
-export function AdminShell({ children, account }: { children: ReactNode; account: { name: string; role: string; roleId: string } | null }) {
+export function AdminShell({
+  children,
+  account,
+}: {
+  children: ReactNode;
+  account: { name: string; role: string; roleId: string } | null;
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const currentPath = usePathname();
   const page: AdminPage = getAdminPage(currentPath) ?? ADMIN_PAGES[0];
@@ -17,7 +23,11 @@ export function AdminShell({ children, account }: { children: ReactNode; account
 
   return (
     <main className="min-h-screen">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} roleId={account?.roleId ?? ''} />
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((value) => !value)}
+        roleId={account?.roleId ?? ''}
+      />
       <section
         className={`${collapsed ? 'min-h-[calc(100vh-64px)]' : 'min-h-[calc(100vh-102px)]'} border-t-[10px] border-[var(--blue-700)] bg-[var(--blue-700)] md:min-h-screen ${collapsed ? 'md:ml-[var(--collapsed-sidebar-width)]' : 'md:ml-[var(--expanded-sidebar-width)]'}`}
       >
@@ -71,78 +81,27 @@ export function AdminShell({ children, account }: { children: ReactNode; account
               </span>
               <span className="hidden gap-px text-xs text-[var(--ink-950)] md:grid">
                 <strong>{account?.name ?? 'ผู้ใช้งาน'}</strong>
-                <small className="text-xs poppins-regular text-[var(--ink-700)]">{account?.role ?? ''}</small>
+                <small className="text-xs poppins-regular text-[var(--ink-700)]">
+                  {account?.role ?? ''}
+                </small>
               </span>
             </span>
-            <form action={logout}><button type="submit" className="rounded-md border border-[#d7e3f0] px-2 py-1.5 text-xs text-[#344256] hover:bg-white">ออกจากระบบ</button></form>
+            <form action={logout}>
+              <button
+                type="submit"
+                className="rounded-md border border-[#d7e3f0] px-2 py-1.5 text-xs text-[#344256] hover:bg-white"
+              >
+                ออกจากระบบ
+              </button>
+            </form>
           </div>
         </header>
         <div
           className={`flex flex-col ${collapsed ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-182px)]'} bg-white md:min-h-[calc(100vh-92px)]`}
         >
-          <div className="flex min-w-0 flex-1 flex-col">
-            {children}
-          </div>
+          <div className="flex min-w-0 flex-1 flex-col">{children}</div>
         </div>
       </section>
     </main>
-  );
-}
-
-export function DashboardPlaceholder() {
-  return (
-    <div
-      className="flex min-h-[400px] flex-1 flex-col items-center justify-center px-2 pb-[42px] pt-7 text-center md:min-h-[480px] md:px-5 md:pb-[62px] md:pt-9"
-      aria-label="พื้นที่ Dashboard ยังไม่มีข้อมูล"
-    >
-      <div className="relative mb-[15px] h-[150px] w-[184px]" aria-hidden="true">
-        <div className="absolute left-[21px] top-[9px] h-[116px] w-[142px] -rotate-[19deg] rounded-full border border-[var(--blue-100)]" />
-        <div className="absolute left-[14px] top-6 h-[91px] w-[153px] rotate-[23deg] rounded-full border border-[#e9eff8]" />
-        <div className="absolute left-[34px] top-[25px] h-[104px] w-[92px] -rotate-[11deg] rounded-[10px] border border-[#dbe6f2] bg-[var(--blue-50)] shadow-[0_8px_25px_rgb(33_73_119_/_8%)]" />
-        <div className="absolute left-[61px] top-7 flex h-[104px] w-[92px] rotate-[6deg] flex-col gap-2 rounded-[10px] border border-[#dbe6f2] bg-white px-3 py-[14px] shadow-[0_8px_25px_rgb(33_73_119_/_8%)]">
-          <span className="block h-[5px] w-[62px] rounded-[3px] bg-[var(--blue-200)]" />
-          <span className="block h-1 w-[42px] rounded-[3px] bg-[#d8e2ee]" />
-          <span className="mt-[3px] block h-1 w-[62px] rounded-[3px] bg-[#e7edf5]" />
-          <span className="mt-[3px] block h-1 w-[46px] rounded-[3px] bg-[#e7edf5]" />
-          <span className="mt-[3px] block h-1 w-[62px] rounded-[3px] bg-[#e7edf5]" />
-        </div>
-        <span className="absolute right-6 top-[15px] text-2xl text-[var(--blue-500)]">✦</span>
-        <span className="absolute bottom-[19px] left-[15px] text-2xl text-[var(--blue-300)]">
-          ✧
-        </span>
-      </div>
-      <h2 className="m-0 text-base font-[650] text-[var(--ink-950)]">
-        Dashboard กำลังเตรียมข้อมูล
-      </h2>
-      <p className="mb-[18px] mt-2 max-w-[320px] text-xs leading-[1.8] text-[var(--ink-500)] md:max-w-[450px]">
-        หน้านี้จะสรุปภาพรวมหลังจากจัดทำโมดูลข้อมูลย่อยเรียบร้อยแล้ว
-      </p>
-      <span className="inline-flex max-w-full items-center gap-[7px] rounded-[7px] border border-[#e7edf5] bg-white px-3 py-2 text-xs text-[var(--ink-700)]">
-        <span className="h-[6px] w-[6px] rounded-full bg-[var(--blue-500)]" />{' '}
-        เริ่มจากจัดทำข้อมูลหลักและการทำงานแต่ละส่วน
-      </span>
-    </div>
-  );
-}
-
-export function ModulePlaceholder({ page }: { page: AdminPage }) {
-  return (
-    <div className="flex min-h-[400px] flex-1 flex-col items-center justify-center px-[10px] py-9 text-center md:min-h-[480px] md:px-5 md:py-12">
-      <span
-        className="mb-5 flex h-[68px] w-[68px] items-center justify-center gap-1 rounded-[20px] border border-[var(--blue-100)] bg-[linear-gradient(145deg,#fff,var(--blue-50))] shadow-[0_8px_24px_rgb(33_73_119_/_6%)]"
-        aria-hidden="true"
-      >
-        <span className="h-6 w-[5px] rounded bg-[var(--blue-300)]" />
-        <span className="h-[34px] w-[5px] rounded bg-[var(--blue-600)]" />
-        <span className="h-4 w-[5px] rounded bg-[var(--blue-400)]" />
-      </span>
-      <span className="rounded-full border border-[var(--blue-100)] bg-[var(--blue-50)] px-[9px] py-[5px] text-xs poppins-semibold text-[var(--blue-800)]">
-        เตรียมโครงหน้าแล้ว
-      </span>
-      <h2 className="mt-[14px] text-lg font-[650] text-[var(--ink-950)]">หน้า{page.label}</h2>
-      <p className="mt-2 max-w-[430px] text-xs leading-[1.8] text-[var(--ink-500)]">
-        หน้านี้เตรียมไว้สำหรับส่วนงาน{page.label} รายละเอียดและการจัดการข้อมูลจะทำตามลำดับโครงการ
-      </p>
-    </div>
   );
 }

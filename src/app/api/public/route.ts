@@ -15,7 +15,7 @@ export async function GET() {
       product: { id: 'UUID สินค้า', code: 'รหัสสินค้า', name: 'ชื่อสินค้า', categoryId: 'UUID หมวด', category: 'ชื่อหมวด', dosageFormId: 'UUID รูปแบบยา', dosageForm: 'ชื่อรูปแบบยา', drugId: 'UUID ตัวยา', drug: 'ชื่อตัวยา', unit: 'หน่วยประจำ' },
       master: { id: 'UUID', code: 'รหัส (หมวดและรูปแบบยา)', name: 'ชื่อ' },
     },
-    pagination: { offset: 'เริ่มต้น 0 สูงสุด 100000', limit: 'เริ่มต้น 20 สูงสุด 50', total: 'จำนวนรายการที่ตรงตัวกรอง', hasMore: 'มีหน้าถัดไปหรือไม่' },
+    pagination: { offset: 'เริ่มต้น 0 สูงสุด 100000', limit: 'เริ่มต้น 10 สูงสุด 50', total: 'จำนวนรายการที่ตรงตัวกรอง', hasMore: 'มีหน้าถัดไปหรือไม่' },
     errors: { 400: 'Params หรือ UUID ไม่ถูกต้อง', 404: 'ไม่พบข้อมูล', 503: 'ฐานข้อมูลไม่พร้อม' },
   }, { headers: { 'Cache-Control': 'no-store' } });
 }

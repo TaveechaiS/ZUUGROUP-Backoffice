@@ -1,18 +1,3 @@
-export type UserRow = {
-  id: string;
-  employeeCode: string;
-  name: string;
-  email: string;
-  roleId: string | null;
-  role: string;
-  team: string;
-  status: 'ACTIVE' | 'SUSPENDED';
-  lastActive: string;
-  deletedAt: string | null;
-  deletedBy: string | null;
-  deleteReason: string | null;
-};
-
 export const roles = [
   ['ADMIN', 'Admin'],
   ['SALES', 'Sales'],
@@ -20,7 +5,8 @@ export const roles = [
   ['ACCOUNTING_CFO', 'Accounting & CFO'],
 ] as const;
 
-export const fieldClass = 'mt-1.5 h-10 w-full rounded-lg border border-[#dce4ed] bg-white px-3 text-sm text-[#26364b] outline-none focus:border-[#1a58a7]';
+export const fieldClass =
+  'mt-1.5 h-10 w-full rounded-lg border border-[#dce4ed] bg-white px-3 text-sm text-[#26364b] outline-none focus:border-[#1a58a7]';
 
 export function userPath(employeeCode: string) {
   return `/users/${encodeURIComponent(employeeCode)}`;

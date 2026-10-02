@@ -1,26 +1,33 @@
 # Postman — Zuugroup
 
-คู่มือชื่อโฟลเดอร์ API ภาษาไทย/อังกฤษและหน้าที่: [API-NAME-GUIDE](../docs/API-NAME-GUIDE.md)
+## Collection ปัจจุบัน
 
-Collection [Zuugroup ใน Workspace](https://sir34771-498818.postman.co/workspace/7734105b-3c13-40b1-8adc-cfa12f7e7db8/collection/55942202-0b3c7e3b-7989-43ae-b40a-5dc7cf699903) และไฟล์ Zuugroup.postman_collection.json ใช้ API ของเว็บที่อ่าน DB จริง. มี 167 คำขอ แบ่ง 23 กลุ่ม ไม่มีโฟลเดอร์ Demo.
+- [Zuugroup](Zuugroup.postman_collection.json): 133คำขอ ใน23กลุ่ม ข้อมูลสาธารณะ/โมดูล/รายงาน/CRUD และ Login4Role
+- [Zuugroup-authenticated](Zuugroup-authenticated.postman_collection.json): 24คำขอ ใน4กลุ่ม เข้าสู่ระบบ/สินค้า/ผู้ใช้งาน/ประวัติ สำหรับเส้นที่ต้องมีสิทธิ์
+- คง collection IDs เดิม ลบ44คำขอที่ซ้ำหรือไม่ได้ใช้ รวมถึง Supabase Data API5คำขอ ไม่มี Cloud sync; ต้อง Import ไฟล์ใหม่และเลือก Replace/อัปเดต Collection เดิม
 
 ## เริ่มใช้งาน
 
-1. รัน npm run dev แล้วตั้ง Collection Variable baseUrl เป็น http://localhost:5000. เมื่อ Deploy แล้วเปลี่ยนเป็น URL เว็บ.
-2. GET รายการ/รายละเอียด/filters/options ใช้ No Auth ตามฟิลด์สาธารณะที่อนุมัติ. ไม่ต้องใส่ Supabase secret key.
-3. รายการใช้ limit=10 และ offset=0; หน้าถัดไป offset=10. รองรับ search และ filters ตามโมดูล, limit สูงสุด 50.
-4. สำหรับเขียน ให้สร้าง Environment ส่วนตัวและตั้ง loginPassword เป็นรหัสของบัญชี. เลือก POST Login Admin; script เก็บ adminToken ใน Environment. ไม่มีรหัสหรือ token จริงในไฟล์ Collection.
-5. เลือกโมดูลและใส่ newCode/newName รวมถึงฟิลด์ที่ต้องการใน Body แล้ว Send POST Create. เมื่อสำเร็จ script จะเก็บ UUID ของรายการใหม่ใน Variable ของโมดูลเพื่อใช้ PATCH/DELETE/restore ต่อ.
-6. DELETE เป็นการซ่อนพร้อม deleteReason; GET Deleted และ POST Restore ใช้ Admin token. Role อื่นเขียนไม่ได้.
+1. รัน npm run dev ตั้ง baseUrl เป็น http://localhost:5000 หรือ URL เว็บที่ Deploy แล้ว
+2. GET list ของ records/reports มี include=filters,config; products/audit มี include=filters ขอ metadata พร้อมรายการ ไม่ต้องมี request filters/config แยก หากต้องการเฉพาะรายการให้เอา include ออก
+3. limit=10/offset=0; หน้าถัดไป offset=10 สูงสุด50รายการต่อหน้า ค่าตัวกรองอ่านจาก DB ไม่จำกัด10แถว
+4. options ยังเก็บเพราะฟอร์มค้นหาตัวเลือกผ่าน view=options/search/limit/offset โดยไม่โหลด list พร้อม config
+5. API public อ่านได้ตาม allowlist เดิม protected GET และ mutation ยังต้องมี session/token ตาม Role ตั้งรหัส/token ใน Environment ส่วนตัวแล้วเลือก Login Role ที่ต้องการ ไม่มีรหัส/tokenจริงในCollection
+6. เขียนใช้ POST เพิ่ม PATCH แก้/สถานะ/role/password/profile DELETE ลบเชิงตรรกะ PATCH body action=restore กู้คืน ตั้ง ID/ข้อมูล/เหตุผลใน Variables ก่อนส่ง ข้อมูลที่บันทึกจะลง DB จริง
 
-## กลุ่มข้อมูล
+เก็บคำขอ public กับ protected ของสินค้าแยกเพราะข้อมูลและสิทธิ์ต่างกัน Login4Role เป็นตัวอย่างคนละบัญชี เก็บตามเดิม คำขอเพิ่ม/ลบ/กู้คืนไม่ถือเป็นรายการซ้ำแม้ path เดียวกัน
 
-ข้อมูลหลัก/หัวเอกสาร 14 กลุ่ม: customers, customer-groups, sales-territories, customer-documents, customer-follow-ups, suppliers, expenses, purchases, quotes, orders, billing, promotions, stock-counts, settings. แต่ละกลุ่มมี list/detail/filters/options/config และ create/update/delete/restore. ข้อมูลสินค้า/หมวด/รูปแบบ/ตัวยา/คลังใช้ endpoint ของตัวเอง.
+รายละเอียด method/query/body/response/auth: [API-CONTRACTS](../docs/API-CONTRACTS.md) และ [ชื่อ API ไทย/อังกฤษ](../docs/API-NAME-GUIDE.md)
 
-Dashboard และรายงานอ่านข้อมูลต้นทาง. Sales เป็นหัวคำสั่งซื้อ, Finance เป็นหัววางบิล, Inventory เป็นรายการสินค้า; ยังไม่ใช่ยอดรับรู้รายได้/หนี้สุทธิ/ยอดคลัง. ฟิลด์เงินใหม่ว่าง และสินค้าใหม่ราคา 0 รอกรอกจริง. Settings เป็นข้อมูลรายการ ไม่เปลี่ยนการตั้งค่า Auth อัตโนมัติ.
+## ⚠️ ต้องทดสอบโดยคุณ
 
-## ข้อมูลตั้งต้น
+Import ไฟล์ใหม่แบบ Replace ควรเหลือ133และ24คำขอ ไม่มีโฟลเดอร์ Supabase Data API หรือ request filters/config แยก เปิด list ต้องเห็น include ใน Params และ options ต้องเห็น view=options; รอบนี้ตรวจ JSON/contract ออฟไลน์เท่านั้น ไม่ส่งคำขอ HTTP/login/DB
 
-ลง DB แล้วโมดูลละ 15 รายการและสินค้า 15 รายการ; หมวด 15, รูปแบบยา 15, ตัวยา 17, คลัง 18. ใช้บัญชี 4 Role เดิม. รัน npm run seed:records เพื่อเติมให้ครบเป้าหมายโดยไม่ทับข้อมูลเดิม. Script migrate-operational-data.mjs/operational-import.sql เป็นประวัติการย้ายครั้งเดียว ห้ามรันหลังถอนตารางเดิม.
+## อัปเดต Workspace ตามภาพเจ้าของ 2026-10-02
 
-รอบนี้ตรวจโครงสร้าง Collection และ static checks เท่านั้น ไม่ส่งคำขอ API/ล็อกอินตามคำสั่งผู้ใช้. localhost ต้องเปิดเว็บและใช้ Postman Desktop หรือ Desktop Agent.
+Collection Cloud Zuugroup เดิมอัปเดตเป็น133คำขอและตรวจอ่านกลับแล้ว คงID/auth/variables/scripts เติม_postman_idในไฟล์localเดิม Refresh Postmanเพื่อเห็นfilters/configแยกหายและrestoreเป็นPATCH ชุดAuthenticated24คำขอยังคงเป็นไฟล์localในรอบนี้ ไม่ได้สร้างCollectionใหม่ในCloud ไม่Sendเว็บ/DB
+
+
+## ชื่อฟิลด์ API (TASK-075)
+
+ใช้ชื่อข้อมูลต้นทางโดยตรง: records code/name และฟิลด์ของโมดูล สินค้า category.name/dosageForm.name/drug.name/defaultWarehouse.name ผู้ใช้ lastLoginAt/userRole/deletedByUser และ Audit actor/target รายละเอียด [API Contracts](../docs/API-CONTRACTS.md) วันที่ใน JSON เป็น ISO; เว็บแสดง พ.ศ.

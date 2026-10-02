@@ -14,6 +14,8 @@
 12. งานย่อยต้องมีแผนย่อยที่บอกลำดับ ผลลัพธ์ ไฟล์ที่จะเปลี่ยน และวิธีตรวจรับ แม้งานนั้นอยู่ใน Phase ที่อนุมัติแล้วก็ตาม
 13. สไตล์ของ Sidebar, Topbar, พื้นที่เนื้อหา และ placeholder ให้เขียนด้วย Tailwind utility ใน `className` ของ component เช่น `text-sm font-bold`, `md:px-5`, `bg-[var(--blue-700)]`; ใช้ `globals.css` เฉพาะ imports, design tokens และกฎพื้นฐานของทั้งแอป ตาม [ข้อกำหนดสั้น](docs/specs/2026-09-24-ui-inline-utilities.md)
 
+14. ทุกหน้าที่แสดงป้ายสถานะ รวมถึงสถานะใหม่ในอนาคต ต้องใช้ `src/components/ui/status-badge.tsx` ตาม [มาตรฐานป้ายสถานะ](docs/STATUS-BADGE-GUIDE.md): พื้นหลังระดับ `50`, ตัวหนังสือระดับ `600`, มุมมนและจุดสีด้านหน้า. เพิ่มการจับคู่สีใน component กลาง ห้ามเขียน pill/style สถานะแยกในแต่ละหน้า; คงข้อความและค่าธุรกิจจริง. คอลัมน์ที่แสดงสถานะต้องมีหัวชื่อ `สถานะ` และใช้ `scope="col"`; ตรวจทั้ง desktop และ mobile.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

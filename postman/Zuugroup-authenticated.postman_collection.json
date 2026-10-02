@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Zuugroup — Authenticated",
-    "description": "ส่ง POST ของบัญชีที่ต้องการเพื่อรับ access token ลง Environment ส่วนตัว แล้ว GET ใช้ Bearer {{activeToken}}; อย่าแชร์ Environment ที่มี token หรือรหัสผ่าน",
+    "description": "Zuugroup API ปัจจุบัน TASK-074: list รวม filters/config ตามโมดูล; options สำหรับ Combobox แยก view=options; DELETE ลบเชิงตรรกะ PATCH action restore กู้คืน ไม่มีคำขอ Supabase Data API หรือเส้นประกอบเก่า\n\nTASK-075: ใช้ชื่อ field ต้นทางโดยตรง code/name; relations เป็น object เช่น category.name, defaultWarehouse.name; users lastLoginAt/userRole/deletedByUser; audit actor/target; วันที่ ISO. ดู docs/API-CONTRACTS.md",
     "schema": "https://schema.postman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -35,7 +35,7 @@
                 }
               }
             },
-            "description": "สำเร็จเก็บ access token ใน adminToken และ activeToken ของ Environment ส่วนตัว"
+            "description": "POST {email,password}; ไม่ต้องมี token ก่อนล็อกอิน. สำเร็จ {ok,user,accessToken,tokenType,expiresIn}; error เป็น {error:string}. เก็บรหัสและ token ใน Environment ส่วนตัว.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -84,7 +84,7 @@
                 }
               }
             },
-            "description": "สำเร็จเก็บ access token ใน managerToken และ activeToken ของ Environment ส่วนตัว"
+            "description": "POST {email,password}; ไม่ต้องมี token ก่อนล็อกอิน. สำเร็จ {ok,user,accessToken,tokenType,expiresIn}; error เป็น {error:string}. เก็บรหัสและ token ใน Environment ส่วนตัว.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -133,7 +133,7 @@
                 }
               }
             },
-            "description": "สำเร็จเก็บ access token ใน salesToken และ activeToken ของ Environment ส่วนตัว"
+            "description": "POST {email,password}; ไม่ต้องมี token ก่อนล็อกอิน. สำเร็จ {ok,user,accessToken,tokenType,expiresIn}; error เป็น {error:string}. เก็บรหัสและ token ใน Environment ส่วนตัว.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -182,7 +182,7 @@
                 }
               }
             },
-            "description": "สำเร็จเก็บ access token ใน cfoToken และ activeToken ของ Environment ส่วนตัว"
+            "description": "POST {email,password}; ไม่ต้องมี token ก่อนล็อกอิน. สำเร็จ {ok,user,accessToken,tokenType,expiresIn}; error เป็น {error:string}. เก็บรหัสและ token ใน Environment ส่วนตัว.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "event": [
             {
@@ -219,8 +219,8 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/products",
-            "description": "ผู้ใช้ที่ Active อ่านได้; Admin จะเห็นสินค้าที่ลบเชิงตรรกะด้วย ตอบ { products: [...] }",
+            "url": "{{baseUrl}}/api/products?offset=0&limit=10&deleted=false&include=filters",
+            "description": "แบ่งหน้าผ่าน DB คืน products และ pagination; filters search/categoryId/status/deleted\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -231,7 +231,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "GET ข้อมูลแม่สินค้า",
@@ -244,7 +245,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/products/masters",
-            "description": "หมวด รูปแบบยา ตัวยา และคลังที่เกี่ยวข้อง; ใช้ ID หมวดและรูปแบบยาในคำขอเลขลำดับ",
+            "description": "หมวด รูปแบบยา ตัวยา และคลังที่เกี่ยวข้อง; ใช้ ID หมวดและรูปแบบยาในคำขอเลขลำดับ\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -283,7 +284,7 @@
               }
             ],
             "url": "{{baseUrl}}/api/products/next-sequence?categoryId={{categoryId}}&dosageFormId={{dosageFormId}}",
-            "description": "ส่ง GET ข้อมูลแม่สินค้าก่อนเพื่อเติม categoryId และ dosageFormId; เลขที่เสนออาจเปลี่ยนก่อนสร้างสินค้าจริง",
+            "description": "ส่ง GET ข้อมูลแม่สินค้าก่อนเพื่อเติม categoryId และ dosageFormId; เลขที่เสนออาจเปลี่ยนก่อนสร้างสินค้าจริง\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -293,6 +294,251 @@
                   "type": "string"
                 }
               ]
+            }
+          }
+        },
+        {
+          "name": "POST เพิ่มสินค้า",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{newProductName}}\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"dosageFormId\": \"{{dosageFormId}}\",\n  \"drugId\": \"{{drugId}}\",\n  \"defaultWarehouseId\": \"{{warehouseId}}\",\n  \"unit\": \"กล่อง\",\n  \"salePrice\": \"0\",\n  \"status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "PATCH แก้สินค้า",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"update\",\n  \"name\": \"{{newProductName}}\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"dosageFormId\": \"{{dosageFormId}}\",\n  \"drugId\": \"{{drugId}}\",\n  \"defaultWarehouseId\": \"{{warehouseId}}\",\n  \"unit\": \"กล่อง\",\n  \"salePrice\": \"0\",\n  \"status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "DELETE ลบสินค้า",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "PATCH กู้คืนสินค้า",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"restore\",\n  \"reason\": \"{{reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "POST เพิ่มตัวยา",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/masters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "masters"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"drug\",\n  \"name\": \"{{newProductName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "GET products รายละเอียด UUID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
             }
           }
         }
@@ -311,8 +557,69 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/users",
-            "description": "เฉพาะ Admin; ตอบ { users: [...] } และรวมบัญชีที่ลบเชิงตรรกะ",
+            "url": "{{baseUrl}}/api/users?offset=0&limit=10&deleted=false",
+            "description": "Admin: แบ่งหน้าผ่าน DB คืน users และ pagination; filters search/role/status/deleted\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{activeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 — รูปแบบเมื่อไม่มีรายการ (เอกสาร)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users?offset=0&limit=10&deleted=false",
+                "description": "Admin: แบ่งหน้าผ่าน DB คืน users และ pagination; filters search/role/status/deleted",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{activeToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"users\": [],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 0,\n    \"page\": 1,\n    \"pageSize\": 10,\n    \"totalPages\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET ส่งออกผู้ใช้ตามตัวกรอง (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/export?deleted=false",
+            "description": "CSV ครบทุกแถวที่ตรง filter; Admin เท่านั้น\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -324,137 +631,369 @@
               ]
             }
           }
+        },
+        {
+          "name": "POST เพิ่มผู้ใช้",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{newUserName}}\",\n  \"email\": \"{{newUserEmail}}\",\n  \"team\": \"\",\n  \"password\": \"{{newUserPassword}}\",\n  \"roleId\": \"SALES\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "PATCH ผู้ใช้ — role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"role\",\n  \"roleId\": \"SALES\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "PATCH ผู้ใช้ — status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"status\",\n  \"status\": \"SUSPENDED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "PATCH ผู้ใช้ — password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"password\",\n  \"password\": \"{{newUserPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "PATCH ผู้ใช้ — profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"profile\",\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"name\": \"{{newUserName}}\",\n  \"email\": \"{{newUserEmail}}\",\n  \"team\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "DELETE ผู้ใช้ — delete",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"{{reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "PATCH ผู้ใช้ — restore",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"restore\",\n  \"reason\": \"{{reason}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Admin เท่านั้น: เติม variables และ Admin token ใน Environment ส่วนตัวก่อนส่ง. คำขอนี้เปลี่ยนข้อมูล DB จริง; ดูฟิลด์/ข้อจำกัดใน docs/API-CONTRACTS.md. ไม่ได้ส่งคำขอระหว่าง TASK-073.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
+          }
+        },
+        {
+          "name": "GET users รายละเอียด UUID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
         }
       ]
     },
     {
-      "name": "Supabase Data API (อ่านตรง)",
-      "description": "ใช้ publishable key และ JWT ของผู้ใช้; ตารางสินค้าใน DB ปัจจุบันยังไม่เปิด GRANT/RLS สำหรับ Data API จึงอาจตอบ 403/42501 ห้ามใช้ secret key แทน",
+      "name": "ประวัติ",
       "item": [
         {
-          "name": "GET หมวดสินค้า",
+          "name": "GET ประวัติแบ่งหน้า (Admin)",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
-              {
-                "key": "apikey",
-                "value": "{{supabasePublishableKey}}"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{activeToken}}"
-              },
               {
                 "key": "Accept",
                 "value": "application/json"
               }
             ],
-            "url": "{{supabaseUrl}}/rest/v1/product_categories?select=id,code,name&order=code.asc&limit=50",
-            "description": "อ่านตาราง product_categories โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
-          }
-        },
-        {
-          "name": "GET รูปแบบยา",
-          "request": {
-            "method": "GET",
+            "url": "{{baseUrl}}/api/audit-logs?offset=0&limit=10&include=filters",
+            "description": "GET DB จริง; สิทธิ์ตาม endpoint ใน docs/TEST-API-PAGINATION.md\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน.",
             "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "apikey",
-                "value": "{{supabasePublishableKey}}"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{activeToken}}"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{supabaseUrl}}/rest/v1/dosage_forms?select=id,code,name&order=code.asc&limit=50",
-            "description": "อ่านตาราง dosage_forms โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
-          }
-        },
-        {
-          "name": "GET ตัวยา",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "apikey",
-                "value": "{{supabasePublishableKey}}"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{activeToken}}"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{supabaseUrl}}/rest/v1/drugs?select=id,name&order=name.asc&limit=50",
-            "description": "อ่านตาราง drugs โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
-          }
-        },
-        {
-          "name": "GET คลัง",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "apikey",
-                "value": "{{supabasePublishableKey}}"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{activeToken}}"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{supabaseUrl}}/rest/v1/warehouses?select=id,code,name&order=code.asc&limit=50",
-            "description": "อ่านตาราง warehouses โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
-          }
-        },
-        {
-          "name": "GET สินค้า",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "apikey",
-                "value": "{{supabasePublishableKey}}"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{activeToken}}"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{supabaseUrl}}/rest/v1/products?select=id,code,name,category_id,dosage_form_id,drug_id,default_warehouse_id,unit,sale_price,status&deleted_at=is.null&order=created_at.desc&limit=50",
-            "description": "อ่านตาราง products โดยตรง; ต้องมี GRANT และ RLS ที่อนุมัติแยก"
-          }
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{activeToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
@@ -476,13 +1015,53 @@
       "type": "string"
     },
     {
-      "key": "supabaseUrl",
-      "value": "https://wiikzseotpjxssbcdayk.supabase.co",
+      "key": "productId",
+      "value": "",
       "type": "string"
     },
     {
-      "key": "supabasePublishableKey",
-      "value": "sb_publishable_cn7FIe4jhUy49brBx7YtWw_8zTSqDJa",
+      "key": "newProductName",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "drugId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "warehouseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newUserName",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newUserEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "newUserPassword",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employeeCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reason",
+      "value": "",
       "type": "string"
     }
   ]

@@ -1,5 +1,9 @@
 # TASK-053 — รวมการเรียก API ฝั่ง Client
 
+## แก้ dependency ในเครื่อง 2026-10-02
+
+เจ้าของรายงาน Cannot resolve axios. package/lock ระบุ 1.20.0 แต่ node_modules ไม่มี. npm install --ignore-scripts --no-audit --no-fund เพิ่ม 11 packages สำเร็จ; resolve axios 1.20.0 ได้และ type-check ผ่าน. ไม่แก้ HTTP client/API/DB; lock JSON ไม่เปลี่ยนเนื้อหาและคืนรูปแบบเดิม. next-env.d.ts เปลี่ยนก่อนงานนี้และเก็บไว้. รอผู้ใช้ reload localhost:5000; ต้องไม่พบ Can't resolve axios.
+
 - สถานะ: READY_FOR_USER_TEST — เจ้าของอนุมัติ 2026-10-01 พร้อมตัวอย่าง Axios
 - Branch: AI
 - ผู้รับผิดชอบ: AI

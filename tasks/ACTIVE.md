@@ -1,5 +1,127 @@
 # งานที่กำลังทำ
 
+## TASK-077 Commit และ checkpoint — 2026-10-02
+
+- CHECKPOINTED เจ้าของสั่งcommit/checkpoint รวมworkingtreeหลัง17c7423 TASK-063–076 บนAI บันทึกพร้อมtasks/CHECKPOINT-2026-10-02.md/TASK-077 ตรวจstaged282files/diff/credentialผ่าน ไม่มีenv/snapshotsเข้าGit ไม่เปลี่ยนพฤติกรรม/DB ไม่push/deploy hashดูGit logและผลส่งมอบ ดูcheckpointสำหรับUATค้างและงานต่อ
+
+## TASK-076 ชุดข้อมูลชื่อสมจริง — 2026-10-02
+
+- READY_FOR_USER_TEST ลง DB แล้ว240แถวไม่ซ้ำ (records210/products15/warehouses15) ชื่อรันเลข/ชื่อซ้ำศูนย์ เติมnative fields/relationsว่าง คงID/code/status/softdelete/auth5/roles4/test productเดิม Snapshotก่อนหลัง/plan/rollbackอยู่scripts/snapshotsและignoreGit; seedcatalog/SQLใหม่พร้อมrunner ตรวจoffline/lint/SQLdryrollback/DBreadbackครบและrepeat plan0 changes ไม่มี API/login/Schema/stock/ledger/commit/push คู่มือ docs/REALISTIC-DATA-RESULT.md
+
+- IN_PROGRESS เจ้าของอนุมัติ “ทำได้เลย” เริ่ม catalog/seed/refresh/snapshot/rollback/offline checks และลงDBธุรกิจ projectเดิมตามแผนย่อย ตรวจค่าเดิมรายฟิลด์รักษาข้อมูลผู้ใช้ ไม่ Auth/schema/API/stock/ledger ลำดับ snapshot → catalog → guarded plan/seed → offline → transaction → verify/UAT
+
+- PLANNING เจ้าของขอชื่อสมจริง/รายละเอียด/ผู้ดูแลทุกข้อมูลแทนชื่อรันเลข ตรวจ registry/seed/schema และ DB read-only ผ่าน Supabase connector พบ14โมดูล×15=210records,16products,18warehouses จัด Specs/Plan/TASK-076 พร้อมตัวอย่างทุกกลุ่ม รออนุมัติเอกสารตาม AGENTSข้อ3 ก่อน seed/DB write ลำดับ catalog → snapshot/ค่าเดิม → seed/refresh → transaction → อ่านกลับ/UAT ไม่ Auth/schema/API/stock/ledger
+
+## TASK-075 ชื่อฟิลด์ API — 2026-10-02
+
+- READY_FOR_USER_TEST ปรับ native code/name/ฟิลด์ records และ query/filter keys, nested products/public/users/audit, reports, 46หน้า records และหน้าสินค้า/ผู้ใช้/Audit/CSV, state defaultWarehouseId; Postman local เดิม133+24คำขอ URL/method/scriptsเดิมพร้อมคู่มือ contract ตรวจ type-check/lint/build, 5ชุดทดสอบ offline (payload names/null/ISO/public allowlist/filters/reports + contracts/pagination/pages/resource guards), diff ผ่าน ดู docs/TEST-API-FIELD-NAMES.md ไม่ schema/DB/live HTTP/login/Cloudsync/commit/push
+
+- IN_PROGRESS เจ้าของอนุมัติ “ok ปรับ” หลังรายงาน audit ชื่อ field ขอบเขต types/services records/products/public/users/audit/reports/handlers, page.tsx ผู้เรียกและ CSV, Postman local/คู่มือ/offline tests ตาม specs/2026-10-02-api-field-names.md และ plans/2026-10-02-api-field-names-plan.md ลำดับ contract → services/types → ผู้เรียก → Postman/docs → offline/type-check/lint/build ไม่ DB/live HTTP/login/commit/push
+
+## ข้อกำหนดชื่อ Field API — 2026-10-02
+
+- REVIEWED เจ้าของให้ตรวจว่ามีการเปลี่ยนชื่อหรือไม่ ตรวจ adapters records/products/public products/users/audit/reports/login และจุดเรียกหน้าเว็บ พบ aliases/flattened relations/ตัวแปรwarehouseId บันทึกผลใน docs/API-FIELD-NAMING-REVIEW.md รอบนี้เฉพาะตรวจ+เอกสาร ไม่เปลี่ยนcontract/source/DB ไม่HTTP/login ต้องจัดแผน contract migration ก่อนแก้จริง
+
+- DOCUMENTED เจ้าของกำชับชื่อในการต่อ API ต้องตรงกัน ไม่ดึง product.name แล้วเปลี่ยนเป็น fieldชื่อใหม่เอง บันทึกในSpecs/Plan/API-CONTRACTSเฉพาะเอกสาร ไม่มีการเปลี่ยนcode/contract/DBในรอบนี้ งานถัดไปใช้ fieldตามresponseจริง และต้องตกลงcontractก่อนเปลี่ยนชื่อ
+
+## TASK-074 รวม API ตามโมดูล (2026-10-02)
+
+- READY_FOR_USER_TEST แก้ Cloud Collection Zuugroup เดิมแล้ว55942202-0b3c7e3b-7989-43ae-b40a-5dc7cf699903: ลบ34requests อัปเดต46requests อ่านกลับ133คำขอ ไม่มีเส้น filters/config/options/restore เก่า restore14คำขอใช้PATCH action restore คงrequest IDs/auth/variables/scriptsครบ ใช้granular update/deleteหลังbulk connectorปฏิเสธschema ไม่สร้างCollectionใหม่ ไม่SendAPI/DB เติม_postman_idในไฟล์localเดิมเพื่อระบุCollectionตรงกัน
+
+- IN_PROGRESS แก้ตามภาพเจ้าของ: ยืนยัน Cloud Collection Zuugroup เดิมใน workspace7734105b-3c13-40b1-8adc-cfa12f7e7db8 มี167คำขอยังไม่อัปเดต เจ้าของท้วงให้แก้ชุดที่เห็น จึงอัปเดต collection55942202-0b3c7e3b-7989-43ae-b40a-5dc7cf699903 เดิมให้133รายการตามไฟล์ local เก็บitem IDs/variables/auth/scripts ไม่สร้างCollectionใหม่ ไม่รันAPI/DB ตรวจอ่านกลับหลังupdate
+
+- READY_FOR_USER_TEST ติดตาม Postmanตามคำสั่งเจ้าของ: ลบ44คำขอ เหลือ Zuugroup133/Authenticated24 รวม157app requests; ถอนกลุ่ม Supabase Data API และ filters/configแยก/combined examplesซ้ำ รวมmetadataในlist เก็บoptionsที่ฟอร์มใช้/Login4Role/CRUD จัดกลุ่มAuthenticatedตามโมดูล ถอน2variablesไม่มีผู้ใช้ คงIDsเดิม offline contract157ผ่าน ไม่แก้API/DB ไม่HTTP/Cloudsync/commit/push
+
+- IN_PROGRESS ติดตามตามเจ้าของขอ “ใน postman อันไม่ใช้ลบออก”: ขอบเขตเฉพาะ collections local/คู่มือ/Specs/Plan/Task ลบ requests filters/config ซ้ำและกลุ่ม Supabase Data API ที่ยังไม่ได้ใช้ รวม metadata ใน list เก็บ view options ที่ฟอร์มใช้และ Login4Role/CRUD คง collection IDs ไม่แก้ API/DB ไม่ยิง HTTP ไม่ sync Cloud
+
+- READY_FOR_USER_TEST ทำครบแล้ว: GET collection รองรับ include/view ตามโมดูล; DELETE users/products ใช้ transaction/guardsเดิม; PATCH restore; เพิ่ม GET detail users/products ตามสิทธิ์เดิม; ย้าย18หน้ารายการ+ฟอร์ม/รายละเอียด/Combobox ถอน65routesประกอบ; Postman local167+34คำขอ คง IDsเดิม; contracts/inventory/คู่มือครบ ตรวจ type-check/lint/build/offline contracts196app requests/pagination/59page integrity/resource dispatch+auth+last Admin/diff ผ่าน ไม่เปลี่ยน schema/DB ไม่ยิง live HTTP/login ไม่ syncCloud/Deploy/commit/push รอUAT
+
+- IN_PROGRESS เจ้าของอนุมัติเอกสาร 2026-10-02 เริ่ม validators/types → routes/handlers → consumers/catalog → ถอนเส้นประกอบเก่า/Postman/docs → offline/type-check/lint/build ขอบเขตตามแผนย่อยเดิม ไม่ DB/live HTTP/Deploy/commit/push
+
+- PLANNING เจ้าของตอบ “ok” กับแนวทางรวม resource/Method/include ตรวจ routes/consumer แล้ว จัด Specs/Plan/Task รออนุมัติเอกสารตาม AGENTS ข้อ3 ก่อน implementation ขอบเขต routes/services/validators/types/client pages/Postman local/docs/offline tests คง DB/RBAC/transaction/audit/last Admin guard ไม่รัน live HTTP/DB ไม่ deploy/commit/push
+
+## TASK-073 จัด API types/validation/Postman (2026-10-02)
+
+- READY_FOR_USER_TEST TASK-073 เจ้าของอนุมัติเอกสารแล้ว ทำ types6กลุ่ม/shared envelope + pure validators10ไฟล์ และย้าย client imports/response annotations ครบ Postman local167+29คำขอ/docs/API-CONTRACTS.md มี inventoryจากrouteจริง ตรวจtype-check/build/offline contracts191app requests/pagination/59page integrity/diffผ่าน full lint0errors แก้14unused type warningsและตรวจcreate filesซ้ำผ่าน เทียบ39validator outcomesก่อนหลังตรง ไม่DB/HTTP/login/cloudsync/Deploy/commit/push รอUAT
+
+- PLANNING เจ้าของตกลงเดินงาน types/validation/Postman หลังยืนยันสิทธิ์4Roleใช้ได้และรอข้อมูลจริงก่อนกำหนด field/filter/scope เพิ่ม ตรวจปัจจุบัน: types/api.ts มีPagination, validationอยู่services/routes, collections v2.1 มี167+17คำขอ จัด Specs/Plan/Task รออนุมัติเอกสารตาม AGENTSข้อ3 ก่อน source changes คง endpoint/response/RBAC/DBและหน้าแยกเดิม ไม่ยิง liveAPI/login ไม่ sync Cloud
+
+## TASK-072 วางแผนเก็บกวาดโค้ด (2026-10-02)
+
+- READY_FOR_USER_TEST เจ้าของอนุมัติ “ok” ทำ TASK-072 ครบแล้ว ลบ dead exports/placeholders/fixture/เครื่องมือ import/preview/@heroui-react ปรับ Seed/ProductView/คู่มือ คง DB/schema/migrations/backup typegen/type-check/lint/build/offline integrity+pagination/seed static/diff ผ่าน ผล docs/CODE-CLEANUP-RESULT.md ไม่รัน live API/seed ไม่ commit/push
+
+- ผลตรวจ exports เพิ่มในขอบเขตเก็บกวาด: formatThaiDate, listProducts, getProductById, listUsers, Logins พบเฉพาะ declaration ไม่มี consumer ใน src/scripts จะลบและคง paginated services/Next convention exports; @heroui/react ไม่ถูก import ถอนจาก package/lock แล้ว คง @heroui/styles ที่ CSS ใช้
+
+- PLANNING ตามคำขอ “ไล่ลบข้อมูลที่ไม่ใช้และ mock ที่เป็น code ออก plan ก่อน” ตรวจ src/scripts/package และจุดอ้างอิงแล้ว จัด Specs/Plan/Task เพื่ออนุมัติก่อน implementation รอบนี้แก้เฉพาะเอกสาร ไม่ลบโค้ด/DB ไม่รัน seed/live API ขอบเขต proposed: dead exports, fixture ไม่มีผู้ใช้, preview เก่า, สคริปต์ import ที่ถอนตารางแล้ว และปรับ seed เก็บ migrations/backup/ข้อมูล DB
+
+## TASK-071 เปลี่ยนชื่อพารามิเตอร์ (2026-10-02)
+
+- READY_FOR_USER_TEST เปลี่ยน customers/products `[ref]` เป็น `[id]` รวม params และคู่มือแล้ว คงรหัสใน URL/การค้นหาข้อมูลเดิม next typegen/type-check/offline integrity/diff ผ่าน ไม่เหลือ `[ref]` ใน src/scripts ไม่แก้ DB/API รอเจ้าของเปิดรายละเอียดเดิม
+
+## TASK-071 เริ่มแยก Route (2026-10-02)
+
+- READY_FOR_USER_TEST เจ้าของอนุมัติ “ok ทำได้เลย” ย้าย54หน้าให้ UI/text/state/query/API functions อยู่ในแต่ละ page.tsx รวม create/detail/edit แยกComboboxไม่มีHTTP, auth/server dataอยู่layout, ลบ full-page components/components/pages/hookโหลดหน้ากลางแล้ว ใช้endpointเดิมไม่เพิ่มGETเพราะใช้serverdataเดิมได้ type-check/lint/build/test-route-pages/test-pagination/diffผ่าน รอUAT docs/ROUTE-PAGES-GUIDE.md ไม่แก้DB/schema ไม่ยิงliveAPI ไม่commit/push
+
+## แยกโค้ดรายหน้า — TASK-071 (2026-10-02)
+
+- PLANNING เจ้าของขอทุก page มีโครงหน้าเองรวมcreate/id และเอา components/pages ออก ยืนยัน shared Pagination/Combobox ได้ พร้อมตัวอย่าง text/JSX/endpoint/query/API functions/state อยู่ใน page.tsx ปรับ Specs/Plan/Task-071 แล้ว รออนุมัติTaskตาม AGENTSข้อ3 ขอบเขต src/app/**/page.tsx, layouts/data boundary, shared UIเล็ก, ลบ full-page components และคู่มือ ไม่แก้DB/กฎธุรกิจ
+
+## TASK-064 เริ่ม implementation (2026-10-02)
+
+- READY_FOR_USER_TEST เจ้าของอนุมัติ “ทำ” หลังผลตรวจ ทำ pagination/query/API users/products/audit, filters/CSV, client pages, shared clamp/abort, public default10 และ Postman local แล้ว type-check/lint/build/offline query tests ผ่าน รอ UAT ตาม docs/TEST-API-PAGINATION.md ไม่แก้ schema/seed ไม่ยิง live API ไม่ commit/push
+
+## ตรวจ Pagination รอบติดตาม (2026-10-02)
+
+- TASK-064: สำรวจโค้ดทุกหน้ารายการตามคำขอเจ้าของ ไม่แก้ implementation รอบนี้ พบ shared list 18 URL ใช้ API limit10/offset แล้ว; products ไม่มี pagination, users แบ่ง10ใน browserแต่ดึงทั้งหมด, audit แบ่ง20ที่ DBผ่าน server page ไม่มี REST endpoint; รายละเอียดใน TASK-064 รออนุมัติแผน implementation เดิม
+
+## สถานะ Combobox (2026-10-02)
+
+- TASK-070: READY_FOR_USER_TEST ช่องสถานะใน shared record form เป็น combobox แล้ว ใช้ filters statuses API เดิมรวมค่าปัจจุบัน/ค่าเริ่มต้นเดิม ดึงครั้งเดียวและค้นหาฝั่งหน้าเว็บ คงค่าจนเลือกรายการ type-check/eslint/diff ผ่าน รอทดสอบตาม TASK-070 ไม่สร้างกฎธุรกิจ
+
+## ข้อความตรวจฟอร์มและ * สีแดง (2026-10-02)
+
+- TASK-069: READY_FOR_USER_TEST ตามคำขอเจ้าของ แก้ shared RecordFormPage ตามภาพแล้ว required * สีแดงและข้อความไทยใต้ช่องแทน native tooltip ตรวจ input/textarea/relation ก่อนส่งหรือยืนยันแก้ไข type-check/eslint/diff ผ่าน รอทดสอบตาม TASK-069 ไม่แก้ API/DB
+
+## Combobox ค้นหาและเลือก (2026-10-02)
+
+- TASK-068: READY_FOR_USER_TEST ตามคำขอเจ้าของ เปลี่ยน RelationPicker ใน record-form-page.tsx เป็นช่องเดียวค้นหา/เลือกผ่าน options API เดิมแล้ว รองรับคีย์บอร์ด pagination และคง ID ที่เลือก type-check/lint/diff ผ่าน รอทดสอบตาม TASK-068; ไม่แก้ DB หรือ filter ทั่วไป
+
+## พื้นหลัง Filter สีขาว (2026-10-02)
+
+- TASK-067: READY_FOR_USER_TEST เจ้าของขอ bg filter สีขาว ตรวจแถบ/ช่องค้นหาและตัวเลือกใน shared list/users/products/audit → บันทึก Specs/Plan → เปลี่ยนพื้นเทาเป็น bg-white ครบสี่จุดแล้ว lint/diff ผ่าน รอเจ้าของตรวจหน้าจอ
+
+## ป้ายสถานะตามภาพอ้างอิง (2026-10-02)
+
+- TASK-065 งานแก้หัวสถานะ/coverage: เจ้าของกำหนดหัวคอลัมน์ “สถานะ”. ตรวจพบทุกtableที่มีstatusมีheaderแล้ว แต่ RecordTableRow desktopยังrenderข้อความ. แก้ module-list-page.tsx desktop StatusBadge/mobilelabel/deletedbadge, scope=col ในหัว shared/products/users และบันทึกมาตรฐานheaderในAGENTS/คู่มือ/Specs/Plan/Task. ลำดับเอกสาร→render→type-check/lint;ไม่เพิ่มคอลัมน์สถานะที่ไม่มีข้อมูล.
+
+- TASK-065 งานต่อ: เจ้าของกำหนดให้ทุกหน้าที่แสดงสถานะใช้รูปแบบนี้และเป็นมาตรฐานถาวร. ตรวจ src ทั้งหมด, เปลี่ยนสถานะใน ModulePlaceholder เป็น StatusBadge และบันทึกข้อ14ใน AGENTS.md/STATUS-BADGE-GUIDE.md. อัปเดต Specs/Plan/Taskก่อนโค้ด; ไม่เปลี่ยนข้อความอธิบายหรือformselectเป็นป้าย. ตรวจ type-check/lint/diff.
+
+ผลมาตรฐานถาวร: ป้ายModulePlaceholderที่เหลือใช้StatusBadgeแล้ว; AGENTS.mdข้อ14/คู่มือกำหนดสถานะใหม่ต้องใช้componentกลาง. type-check/lint/diff-checkผ่าน;ไม่เพิ่มAPI/DBหรือcommit/push.
+
+- TASK-065: IN_PROGRESS. เจ้าของยืนยันให้ทำทุกสถานะและให้เลือกสีได้ 2026-10-02: bgระดับ50/textระดับ600. ขอบเขต status-badge.tsx, shared module list/detail/activity, users list/detail, products list/detail, Dashboard status และ Specs/Plan/Task. ลำดับ: ลงข้อกำหนด → mappingสีชัดเจน+fallback → เชื่อมทุกป้าย → lint/type-check/diff-check/UAT. คงข้อความ/สถานะเดิม ไม่สร้างกฎสต็อก. TASK-064 pagination ยังรออนุมัติ.
+
+ผล TASK-065: READY_FOR_USER_TEST — StatusBadgeใช้ครบตามขอบเขต, bg50/text600/dot600, type-check/lint/diff-checkผ่าน. ไม่มีการเพิ่มข้อมูลหรือเปลี่ยนกฎธุรกิจ; รอตรวจหน้าเว็บจริง. ยังไม่ commit/push.
+
+## Pagination ผ่าน API โดยคงดีไซน์เดิม (2026-10-02)
+
+- TASK-064: PLANNING. เจ้าของขอทุกหน้ารายการ pagination ผ่าน API และย้ำว่ามี design แล้ว. สำรวจ shared list/reports ที่มี API10, จุดค้าง products/users/audit. ขอบเขตเอกสาร Specs/Plan/Task ก่อนอนุมัติ; ไม่แก้โค้ด/DB ในขั้นนี้. เสนอเปลี่ยนเฉพาะ data flow/query และใช้ markup pagination เดิม, default10/max50, total ฝั่ง DB, search/filter ฝั่ง DB; เก็บ CSV ผู้ใช้เป็นข้อมูลทั้งหมดตาม filter ผ่าน API ส่งออกแยก.
+
+## แผน SuccessAlert ครบทุกการเปลี่ยนข้อมูล (2026-10-02)
+
+- TASK-063 แก้ตามคำท้วงรอบนี้: จุดแก้ไขมี success หลังบันทึกแล้วแต่ยังไม่มี custom confirmation ก่อนบันทึก. เพิ่ม confirmation สำหรับ shared record edit, product edit และ user profile edit พร้อม pending snapshot/ยกเลิกไม่ส่งคำขอ; ปรับ ConfirmationDialog ให้รองรับ primary/ข้อความบันทึก. แก้เฉพาะไฟล์เหล่านี้และ Specs/Plan/Task/คู่มือ; ไม่แก้ API/DB. ไม่ขยายไปสร้างหรือปุ่มค้นหา. ตรวจ lint/type-check และเจ้าของ UAT.
+
+ผลรอบแก้ไข: confirmation สำหรับแก้ข้อมูลครบสามกลุ่มแล้ว; type-check/lint/diff-check ผ่าน; รอเจ้าของทดสอบยกเลิก/ยืนยันและ success/error จริง.
+
+- TASK-063: IN_PROGRESS เจ้าของอนุมัติ 2026-10-02 และกำหนดให้ใช้ modal ของเว็บแทน native alert/confirm ในภาพ. ขอบเขต confirmation-dialog.tsx, shared record CRUD/list, product create/detail, user create/detail, SuccessAlert เท่าที่จำเป็น และคู่มือ UAT/Specs/Plan/Task. ลำดับ: บันทึกข้อกำหนดใหม่ → custom confirm ลบรายการ/ผู้ใช้/สินค้า → pending guards/ข้อความสำเร็จครบทุก mutation → lint/type-check/build → เจ้าของตรวจหน้าจอ. ไม่แก้ API/DB; ไม่ยิง HTTP อัตโนมัติ.
+
+ผล TASK-063: READY_FOR_USER_TEST — implementation และ lint/type-check/build/diff-check ผ่าน; ไม่พบ browser confirm/alert ใน src. รอ UAT ตาม docs/TEST-SUCCESS-ALERT.md; ยังไม่ commit/push งานนี้.
+
+## แก้ dependency ในเครื่อง (2026-10-02)
+
+- TASK-053 งานย่อย: เจ้าของรายงาน Cannot resolve axios; package.json/lock ระบุ axios 1.20.0 แล้วแต่ node_modules ไม่มี. ขอบเขตเฉพาะติดตั้ง dependency ตามข้อกำหนดที่อนุมัติเดิมและบันทึกผลในแผน/Task TASK-053; ไม่แก้ HTTP client/API/DB และเก็บ next-env.d.ts ที่เปลี่ยนก่อนงานนี้. ลำดับ: ตรวจ lock/installed → npm install โดยงด lifecycle scripts → resolve axios/type-check → ให้เจ้าของ reload หน้าเว็บ.
+
+ผล: ติดตั้งแล้ว resolve axios 1.20.0 และ type-check ผ่าน; lockfile เนื้อหาเดิม. รอผู้ใช้ reload ตรวจรับ.
+
 ## ขอบเขตรอบนี้ (2026-10-01)
 
 - TASK-062: เจ้าของสั่ง checkpoint และ commit งาน SuccessAlert หลัง `f25284d`. ตรวจ branch/diff และไฟล์ข้อมูลลับ; สร้าง `tasks/CHECKPOINT-2026-10-01-3.md` กับ `tasks/TASK-062-checkpoint-commit.md`; stage เฉพาะงานใน working tree, ตรวจ staged diff/secret แล้ว commit บน branch `AI` โดยไม่ push. ผลตรวจ static ของ TASK-061 ผ่านแล้ว; UAT ยังรอเจ้าของ.
@@ -66,3 +188,8 @@
 | TASK-045 | AI | READY_FOR_USER_TEST | ย้าย Audit Logs จาก Mock ไปอ่าน `audit_events`: `docs/specs/2026-10-01-audit-log-db-view.md`, `docs/plans/2026-10-01-audit-log-db-view-plan.md`, `tasks/TASK-045-audit-log-db-view.md`, `tasks/ACTIVE.md`, `src/app/audit-logs/*`, `src/server/audit-logs/*`, `src/app/README.md`; ไม่แก้ schema | เจ้าของโครงการอนุมัติ 2026-10-01; query จริงพบ 12 เหตุการณ์, TypeScript/lint/build ผ่าน, ปิด `/audit-logs/create`; รอ UAT ด้วยบัญชี Admin และ Role อื่น |
 | TASK-046 | AI | READY_FOR_USER_TEST | จัด Postman Collection ชื่อ Zuugroup เฉพาะ GET ที่มีจริง: `docs/specs/2026-10-01-postman-get.md`, `docs/plans/2026-10-01-postman-get-plan.md`, `postman/*`, `tasks/TASK-046-postman-get.md`, `tasks/ACTIVE.md`; ไม่เพิ่ม API/DB | สร้าง Collection ใน Postman Workspace แล้ว ID `56ce2cc3-c4bc-4d0b-b84d-0f17bc254c64`; อ่านกลับพบ 4 GET ครบ; รอทดสอบด้วย Cookie ของบัญชีจริง |
 | TASK-047 | AI | IN_PROGRESS | เตรียม Postman Data requests แบบอ่าน DB โดยตรง: `docs/specs/2026-10-01-postman-direct-db.md`, `docs/plans/2026-10-01-postman-direct-db-plan.md`, `postman/README.md`, `postman/sql/*`, `tasks/TASK-047-postman-direct-db.md`, `tasks/ACTIVE.md`; ไม่เก็บ credential และไม่แก้ DB | เชื่อม Postman Workspace แล้ว แต่ connector ไม่มีคำสั่งสร้าง Data request และไม่เห็น Postman Desktop; เตรียม SELECT และคู่มือ Read-only แล้ว รอสร้างคำขอใน Desktop |
+
+
+## ตัวหนังสือปุ่มเพิ่มข้อมูล — 2026-10-02 (TASK-066)
+
+เจ้าของขอข้อความสีขาว ปรับ text-white! ในปุ่มเพิ่ม shared list/users/products และพื้นน้ำเงินข้อความขาวในปุ่มเพิ่มรายการแม่แล้ว lint/diff ผ่าน รอเจ้าของตรวจหน้าจอ ปลายทางและพฤติกรรมเดิม
