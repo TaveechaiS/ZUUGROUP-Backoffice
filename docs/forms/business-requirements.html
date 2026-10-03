@@ -1,0 +1,1354 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ZUUGROUP · แบบฟอร์มข้อกำหนด</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --blue: #1a58a7;
+        --ink: #172b45;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f5f7fa;
+        color: var(--ink);
+        font-family: Tahoma, Arial, sans-serif;
+        font-size: 15px;
+        line-height: 1.65;
+      }
+      header {
+        border-top: 8px solid var(--blue);
+        background: white;
+        padding: 28px max(24px, calc((100% - 1000px) / 2));
+        border-bottom: 1px solid #e2e8f0;
+      }
+      header strong {
+        font-size: 25px;
+        letter-spacing: 1px;
+        color: var(--blue);
+      }
+      h1 {
+        font-size: 22px;
+        margin: 8px 0;
+      }
+      p {
+        margin: 8px 0;
+        color: #526478;
+      }
+      main {
+        max-width: 1000px;
+        margin: 24px auto;
+        padding: 0 24px 48px;
+      }
+      section {
+        padding: 24px 0;
+        border-bottom: 1px solid #dce3eb;
+      }
+      h2 {
+        font-size: 19px;
+        margin: 0 0 16px;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 0 0 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      .field {
+        display: block;
+        margin-bottom: 18px;
+      }
+      .field span {
+        display: block;
+        margin-bottom: 7px;
+        font-weight: bold;
+      }
+      input,
+      textarea,
+      select {
+        font: inherit;
+        color: var(--ink);
+        padding: 11px 13px;
+        width: 100%;
+        border: 1px solid #becbd9;
+        border-radius: 7px;
+        background: white;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: 0;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px #dbeafa;
+      }
+      small {
+        color: #526478;
+      }
+      button,
+      .file-button {
+        font: inherit;
+        cursor: pointer;
+        border: 1px solid #bccbdc;
+        border-radius: 7px;
+        background: white;
+        color: var(--ink);
+        padding: 10px 17px;
+        transition:
+          background 0.15s,
+          transform 0.15s;
+      }
+      button:hover,
+      .file-button:hover {
+        background: #eaf0f7;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      button.primary {
+        background: var(--blue);
+        border-color: var(--blue);
+        color: white;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 18px 0;
+      }
+      #status {
+        min-height: 28px;
+        display: block;
+        color: var(--blue);
+      }
+      details {
+        margin-bottom: 18px;
+      }
+      summary {
+        cursor: pointer;
+        color: var(--blue);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px;
+        border-bottom: 1px solid #dce3eb;
+      }
+      th {
+        background: #edf2f8;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      #printView {
+        display: none;
+      }
+      .hint {
+        margin: 8px 0 18px;
+      }
+      .muted {
+        font-size: 13px;
+      }
+      #importFile {
+        display: none;
+      }
+      @media (max-width: 640px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        header {
+          padding: 20px;
+        }
+        main {
+          padding: 0 18px;
+        }
+        button,
+        .file-button {
+          flex: 1;
+          text-align: center;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+      @media print {
+        body {
+          background: white;
+          font-size: 12px;
+        }
+        header {
+          padding: 12px;
+          border-top: 4px solid var(--blue);
+        }
+        main {
+          margin: 0;
+          max-width: none;
+          padding: 0;
+        }
+        #editor {
+          display: none;
+        }
+        #printView {
+          display: block;
+        }
+        #printView section {
+          break-inside: avoid;
+        }
+        #printView p {
+          white-space: pre-wrap;
+          color: black;
+        }
+        h2 {
+          break-after: avoid;
+        }
+        button {
+          display: none;
+        }
+      }
+      .point {
+        padding: 18px 0;
+        border-bottom: 1px solid #dce3eb;
+        margin-bottom: 18px;
+      }
+      .point h3 {
+        color: var(--blue);
+      }
+      details .grid {
+        margin-top: 16px;
+      }
+      .help {
+        display: block;
+        margin: 7px 0 0;
+        color: #526478;
+        font-size: 13px;
+        font-weight: normal;
+        line-height: 1.65;
+      }
+      @media print {
+        .point {
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>ZUUGROUP</strong>
+      <h1>แบบฟอร์มข้อกำหนดธุรกิจ</h1>
+      <p>เลือกส่วนงาน แล้วตอบทีละช่อง ส่วนที่ยังไม่แน่ใจเลือก “ยังไม่สรุป” หรือเว้นไว้ได้</p>
+    </header>
+    <main>
+      <div id="editor">
+        <p class="muted">
+          คำตอบเก็บในเบราว์เซอร์นี้ ไม่ส่งขึ้นระบบ · ส่งออกไฟล์เพื่อเก็บสำรองหรือส่งให้ผู้ทำงาน ·
+          ไม่ใส่รหัสผ่านหรือกุญแจเข้าถึงระบบ
+        </p>
+        <p class="muted">
+          แบบฟอร์มนี้ใช้บอกความต้องการ ไม่เปลี่ยนข้อมูลหรือสิทธิ์ในระบบจริง
+          ตัวอย่างใต้ช่องมีไว้ช่วยอธิบาย ไม่ใช่คำตอบที่ต้องเลือกตาม
+        </p>
+        <section>
+          <h2>01 · ข้อมูลผู้ให้คำตอบ</h2>
+          <div class="grid">
+            <label class="field"
+              ><span>ผู้ให้ข้อมูล / ทีม</span
+              ><input
+                id="respondent"
+                autocomplete="off"
+                placeholder="ชื่อหรือทีมที่ให้ข้อมูล"
+                aria-describedby="respondent-help"
+              />
+              <small id="respondent-help" class="help"
+                >ระบุผู้ที่รู้ขั้นตอนของงานนี้ เช่น ทีมขาย
+                เพื่อให้สอบถามรายละเอียดเพิ่มเติมได้</small
+              >
+            </label>
+            <label class="field"
+              ><span>วันที่ให้ข้อมูล</span
+              ><input id="date" type="date" aria-describedby="date-help" /><small
+                id="date-help"
+                class="help"
+                >วันที่ตอบแบบฟอร์ม ใช้แยกคำตอบแต่ละรอบ ไม่ใช่วันที่เอกสารมีผล</small
+              ></label
+            >
+          </div>
+          <label class="field"
+            ><span>ส่วนงานที่อยากเริ่มก่อน / ข้อมูลร่วม</span
+            ><textarea
+              id="general"
+              placeholder="เช่น เริ่มข้อมูลลูกค้าก่อน แล้วค่อยทำใบเสนอราคา"
+              aria-describedby="general-help"
+            ></textarea>
+            <small id="general-help" class="help"
+              >บอกลำดับงานที่สำคัญ หรือข้อมูลที่หลายส่วนงานใช้ร่วมกัน เช่น
+              ทุกทีมใช้รายชื่อลูกค้าชุดเดียวกัน เว้นได้ถ้ายังไม่สรุป</small
+            >
+          </label>
+        </section>
+        <section>
+          <h2>02 · เลือกส่วนงาน</h2>
+          <label class="field"
+            ><span>ส่วนงานที่ต้องการให้ข้อมูล</span
+            ><select id="module" aria-describedby="module-help"></select
+          ></label>
+          <small id="module-help" class="help"
+            >เช่น ลูกค้า สินค้า หรือใบเสนอราคา ตอบทีละส่วนงานได้
+            เมื่อเปลี่ยนส่วนงานคำตอบเดิมยังเก็บอยู่</small
+          >
+          <p id="moduleHint" class="hint"></p>
+          <details>
+            <summary>ดูช่องข้อมูลที่ระบบมีอยู่ปัจจุบัน (ข้อมูลประกอบ)</summary>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">ชื่อไทย</th>
+                    <th scope="col">ชื่อที่ผู้พัฒนาใช้</th>
+                    <th scope="col">ลักษณะข้อมูล</th>
+                    <th scope="col">ต้องกรอกในระบบปัจจุบัน</th>
+                    <th scope="col">เชื่อมกับข้อมูลส่วนงานใด</th>
+                  </tr>
+                </thead>
+                <tbody id="fields"></tbody>
+              </table>
+            </div>
+            <p id="fieldNote" class="muted"></p>
+          </details>
+          <div id="questions"></div>
+        </section>
+        <section>
+          <h2>03 · ใครทำอะไรได้บ้าง</h2>
+          <p>
+            เลือกงานที่แต่ละกลุ่มผู้ใช้ทำได้ “อนุญาต” คือให้ทำได้ “ไม่อนุญาต” คือห้ามทำ ส่วน
+            “ยังไม่สรุป” คือรอตัดสินใจ การเลือกที่นี่ไม่เปลี่ยนสิทธิ์จริง
+          </p>
+          <div id="roles"></div>
+        </section>
+        <section>
+          <h2>04 · บันทึกและส่งคำตอบ</h2>
+          <p id="progress"></p>
+          <div class="actions">
+            <button id="save" class="primary" type="button">บันทึกร่าง</button
+            ><button id="export" type="button">ส่งออกคำตอบ (.json)</button
+            ><label class="file-button" for="importFile"
+              >นำเข้าร่าง<input
+                id="importFile"
+                type="file"
+                accept=".json,application/json" /></label
+            ><button id="print" type="button">พิมพ์ / บันทึก PDF</button>
+          </div>
+          <output id="status" role="status" aria-live="polite"></output>
+          <p class="muted">
+            บันทึกร่าง = เก็บไว้กรอกต่อในเครื่องนี้ · ส่งออกคำตอบ = ดาวน์โหลดไฟล์คำตอบเพื่อส่งกลับ
+            ไม่ต้องเปิดแก้ไฟล์เอง · นำเข้าร่าง = เปิดไฟล์คำตอบที่เคยส่งออกเพื่อกรอกต่อ · พิมพ์ =
+            พิมพ์กระดาษหรือเลือกบันทึกเป็น PDF
+          </p>
+          <p class="muted">
+            ควรส่งออกไฟล์ก่อนปิดหรือย้ายเครื่อง การล้างข้อมูลเบราว์เซอร์อาจทำให้ร่างหาย
+          </p>
+        </section>
+      </div>
+      <div id="printView"></div>
+    </main>
+    <script id="moduleData" type="application/json">
+      [
+        {
+          "key": "customers",
+          "title": "ลูกค้า",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            { "key": "category", "label": "ประเภทลูกค้า", "type": "text", "required": false },
+            { "key": "province", "label": "จังหวัด", "type": "text", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            {
+              "key": "paymentTerms",
+              "label": "เงื่อนไขชำระเงิน",
+              "type": "text",
+              "required": false
+            },
+            {
+              "key": "groupId",
+              "label": "กลุ่มลูกค้า",
+              "type": "relation",
+              "relation": "customer-groups",
+              "required": false
+            },
+            {
+              "key": "territoryId",
+              "label": "เขตขาย",
+              "type": "relation",
+              "relation": "sales-territories",
+              "required": false
+            },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "customer-groups",
+          "title": "กลุ่มลูกค้า",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            { "key": "category", "label": "ประเภทกลุ่ม", "type": "text", "required": false },
+            { "key": "description", "label": "คำอธิบาย", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "sales-territories",
+          "title": "เขตและผู้แทนขาย",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            { "key": "area", "label": "พื้นที่ดูแล", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "customer-documents",
+          "title": "เอกสารลูกค้า",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            {
+              "key": "customerId",
+              "label": "ลูกค้า",
+              "type": "relation",
+              "relation": "customers",
+              "required": false
+            },
+            { "key": "documentType", "label": "ประเภทเอกสาร", "type": "text", "required": false },
+            { "key": "dateText", "label": "วันที่ตามเอกสาร", "type": "text", "required": false },
+            { "key": "fileUrl", "label": "ลิงก์ไฟล์", "type": "text", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "customer-follow-ups",
+          "title": "ภาพรวมลูกค้า",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            {
+              "key": "customerId",
+              "label": "ลูกค้า",
+              "type": "relation",
+              "relation": "customers",
+              "required": false
+            },
+            { "key": "category", "label": "ประเภทลูกค้า", "type": "text", "required": false },
+            { "key": "province", "label": "จังหวัด", "type": "text", "required": false },
+            { "key": "followUpText", "label": "งานติดตาม", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "suppliers",
+          "title": "ผู้ขาย",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            { "key": "category", "label": "ประเภทผู้ขาย", "type": "text", "required": false },
+            { "key": "location", "label": "พื้นที่", "type": "text", "required": false },
+            { "key": "contact", "label": "ผู้ติดต่อ", "type": "text", "required": false },
+            {
+              "key": "paymentTerms",
+              "label": "เงื่อนไขชำระเงิน",
+              "type": "text",
+              "required": false
+            },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "expenses",
+          "title": "ค่าใช้จ่าย",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            { "key": "category", "label": "หมวดค่าใช้จ่าย", "type": "text", "required": false },
+            { "key": "description", "label": "รายละเอียด", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "amount", "label": "จำนวนเงิน", "type": "number", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "purchases",
+          "title": "จัดซื้อและรับเข้าสินค้า",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            {
+              "key": "supplierId",
+              "label": "ผู้ขาย",
+              "type": "relation",
+              "relation": "suppliers",
+              "required": false
+            },
+            { "key": "description", "label": "รายละเอียด", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "amount", "label": "จำนวนเงิน", "type": "number", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "quotes",
+          "title": "ใบเสนอราคา",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            {
+              "key": "customerId",
+              "label": "ลูกค้า",
+              "type": "relation",
+              "relation": "customers",
+              "required": false
+            },
+            { "key": "description", "label": "รายละเอียด", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "amount", "label": "จำนวนเงิน", "type": "number", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "orders",
+          "title": "คำสั่งซื้อและจัดส่ง",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            {
+              "key": "customerId",
+              "label": "ลูกค้า",
+              "type": "relation",
+              "relation": "customers",
+              "required": false
+            },
+            { "key": "description", "label": "รายละเอียด", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "amount", "label": "จำนวนเงิน", "type": "number", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "billing",
+          "title": "วางบิลและลูกหนี้",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            {
+              "key": "customerId",
+              "label": "ลูกค้า",
+              "type": "relation",
+              "relation": "customers",
+              "required": false
+            },
+            { "key": "dueText", "label": "ข้อความครบกำหนด", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "amount", "label": "ยอดหัวเอกสาร", "type": "number", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "promotions",
+          "title": "โปรโมชันและของแถม",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            { "key": "category", "label": "ประเภท", "type": "text", "required": false },
+            { "key": "description", "label": "รายละเอียด", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "conditions", "label": "เงื่อนไข", "type": "textarea", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "stock-counts",
+          "title": "ตรวจนับสินค้า",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            {
+              "key": "warehouseId",
+              "label": "คลัง",
+              "type": "relation",
+              "relation": "warehouses",
+              "required": false
+            },
+            { "key": "description", "label": "รายละเอียด", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            {
+              "key": "resultText",
+              "label": "ผลตรวจนับตามบันทึก",
+              "type": "textarea",
+              "required": false
+            },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "settings",
+          "title": "ตั้งค่าระบบ",
+          "fields": [
+            { "key": "code", "label": "รหัส / เลขอ้างอิง", "type": "text", "required": true },
+            { "key": "name", "label": "ชื่อ / หัวข้อ", "type": "text", "required": true },
+            { "key": "status", "label": "สถานะ", "type": "text", "required": true },
+            { "key": "category", "label": "หมวดตั้งค่า", "type": "text", "required": false },
+            { "key": "description", "label": "คำอธิบาย", "type": "textarea", "required": false },
+            { "key": "owner", "label": "ผู้ดูแล / ผู้บันทึก", "type": "text", "required": false },
+            { "key": "value", "label": "ค่า", "type": "text", "required": false },
+            { "key": "notes", "label": "หมายเหตุ", "type": "textarea", "required": false }
+          ]
+        },
+        {
+          "key": "products",
+          "title": "สินค้า",
+          "hint": "หมวด/รูปแบบยา/ตัวยา/หน่วย/คลัง รหัส ราคา ภาษี ต้นทุน Lot และหมดอายุ",
+          "fields": []
+        },
+        {
+          "key": "users",
+          "title": "ผู้ใช้และสิทธิ์",
+          "hint": "ทีม/เขตจริง สิทธิ์เห็นข้อมูล การย้ายทีม/พักบัญชี; ใช้ 4 Role เดิม",
+          "fields": []
+        },
+        {
+          "key": "warehouses",
+          "title": "คลังสินค้า",
+          "hint": "รหัส/ชื่อ/ที่อยู่/ผู้ดูแล การย้าย/ปรับยอดและผู้อนุมัติ",
+          "fields": []
+        },
+        {
+          "key": "dashboard",
+          "title": "Dashboard",
+          "hint": "การ์ด/กราฟต่อ Role แหล่งข้อมูลและนิยามแต่ละยอด ช่วงเวลา",
+          "fields": []
+        },
+        {
+          "key": "reports",
+          "title": "รายงาน",
+          "hint": "นิยามยอด/สถานะที่นับ/วันตัดยอด ตัวกรองและการส่งออก",
+          "fields": []
+        },
+        {
+          "key": "audit",
+          "title": "ประวัติการทำงาน",
+          "hint": "ผู้มีสิทธิ์ดู อายุเก็บ ฟิลด์ที่ซ่อน เหตุผลบังคับและ Archive",
+          "fields": []
+        },
+        {
+          "key": "attachments",
+          "title": "เอกสารและ PDF",
+          "hint": "แบบ PDF บริษัท/ตรา/ลายเซ็น ประเภท/ขนาดไฟล์และเอกสารบังคับ",
+          "fields": []
+        },
+        {
+          "key": "import",
+          "title": "นำเข้าข้อมูลจริง",
+          "hint": "ไฟล์เก่า รหัส/ความสัมพันธ์/ข้อมูลซ้ำ ผู้ตรวจยอดและการย้อนนำเข้า",
+          "fields": []
+        }
+      ]
+    </script>
+    <script>
+      'use strict';
+      const modules = JSON.parse(document.getElementById('moduleData').textContent);
+      const questionDefs = [
+        [
+          'examples',
+          'ตัวอย่างข้อมูลจริงและฟิลด์ที่ต้องเพิ่ม/ไม่ใช้',
+          'ยกตัวอย่างที่ไม่ใช่ข้อมูลลับ 3–5 รายการ พร้อมชื่อฟิลด์',
+        ],
+        [
+          'codes',
+          'รหัส / ข้อมูลซ้ำ / ช่องบังคับ',
+          'รูปแบบรหัส ข้อมูลใดห้ามซ้ำ และช่องบังคับเฉพาะสถานะ',
+        ],
+        [
+          'workflow',
+          'สถานะและขั้นตอนการทำงาน',
+          'สถานะเริ่มต้น → สถานะถัดไป ผู้ทำ/ผู้อนุมัติ และเงื่อนไข',
+        ],
+        [
+          'locked',
+          'ข้อมูลที่ห้ามแก้หลังอนุมัติหรือปิดรายการ',
+          'อะไรแก้ได้ อะไรต้องเปิดรายการใหม่หรือขออนุมัติ',
+        ],
+        ['filters', 'การค้นหา / ตัวกรอง / ลำดับรายการ', 'ค้นจากฟิลด์ใด ตัวกรองใด และเรียงตามอะไร'],
+        [
+          'effects',
+          'สูตรและผลต่อโมดูลอื่น',
+          'สูตรเงิน/ภาษี/ส่วนลด/การปัดเศษ หรือผลต่อคลังและเอกสารอื่น ถ้ามี',
+        ],
+        [
+          'exceptions',
+          'กรณีผิดพลาด / ยกเลิก / ลบ / กู้คืน',
+          'เงื่อนไขที่ต้องบล็อก ข้อความที่ควรแจ้ง และผู้แก้ปัญหา',
+        ],
+        [
+          'approval',
+          'ผู้ตรวจรับ / ประเด็นที่ยังรอสรุป',
+          'ชื่อผู้ตรวจรับ สิ่งที่ยืนยันแล้ว และสิ่งที่ยังต้องรอ',
+        ],
+      ];
+
+      const roleDefs = ['Admin', 'Manager', 'Sales', 'CFO'];
+      const roleNames = {
+        Admin: 'ผู้ดูแลระบบ (Admin)',
+        Manager: 'ผู้จัดการ (Manager)',
+        Sales: 'ฝ่ายขาย (Sales)',
+        CFO: 'ผู้บริหารการเงิน (CFO)',
+      };
+      const fieldRuleHelp = {
+        use: 'ต้องการให้มีช่องข้อมูลนี้ในระบบจริงหรือไม่ เช่น “จังหวัด”: ใช่ = เก็บจังหวัด, ไม่ใช่ = ไม่ต้องใช้ช่องนี้ ต่างจากบังคับกรอกซึ่งถามว่าห้ามเว้นว่างหรือไม่',
+        required:
+          'ต้องกรอกช่องนี้ก่อนบันทึกหรือไม่ เช่น ชื่อลูกค้าต้องมีเสมอ แต่หมายเหตุเว้นว่างได้ การใช้ช่องข้อมูลไม่ได้แปลว่าต้องบังคับกรอก',
+        unique:
+          'ห้ามหลายรายการใช้ค่าเดียวกันหรือไม่ เช่น รหัสลูกค้าไม่ควรซ้ำ แต่ลูกค้าหลายรายอยู่จังหวัดเดียวกันได้',
+        search:
+          'ต้องการพิมพ์คำเพื่อค้นจากช่องนี้หรือไม่ เช่น พิมพ์ชื่อร้านเพื่อหาลูกค้า โดยไม่ต้องรู้ชื่อเต็ม',
+        filter:
+          'ต้องการใช้ช่องนี้เลือกกรองรายการหรือไม่ เช่น เลือกจังหวัดเชียงใหม่ เพื่อแสดงเฉพาะลูกค้าในจังหวัดนั้น ต่างจากการพิมพ์ค้นหา',
+        locked:
+          'หลังรายการผ่านการอนุมัติแล้ว ห้ามแก้ช่องนี้หรือไม่ เช่น ล็อกเลขเอกสารเพื่อให้ตรงกับเอกสารที่ส่งออกแล้ว หากงานนี้ไม่มีการอนุมัติให้เว้นไว้',
+      };
+      const pointHelp = {
+        format:
+          'ต้องการให้รหัสหน้าตาแบบใด เช่น QT-2569-0001 ระบุรูปแบบที่ใช้จริง หรือเว้นไว้ถ้าอยากให้ช่วยออกแบบ',
+        initialStatus:
+          'เมื่อสร้างรายการใหม่ อยากให้เริ่มที่สถานะอะไร เช่น “ร่าง” หรือ “รอตรวจ” ไม่ใช่สถานะของทุกขั้นตอน',
+        sortField:
+          'อยากให้ตารางเรียงตามข้อมูลใด เช่น วันที่สร้าง ชื่อลูกค้า หรือเลขเอกสาร ใช้ชื่อภาษาไทยได้',
+        sortOrder:
+          'ถ้าเรียงตามวันที่: ใหม่ไปเก่าจะแสดงงานล่าสุดก่อน ถ้าเรียงตามจำนวนเงิน: มากไปน้อยจะแสดงยอดสูงก่อน',
+        vat: 'จำนวนเงินที่กรอกเป็นราคาที่รวมภาษีแล้ว หรือยังต้องบวกภาษีเพิ่ม หากส่วนงานนี้ไม่มีเรื่องเงินเลือก “ไม่เกี่ยวข้อง”',
+        vatRate:
+          'กรอกอัตราภาษีที่ธุรกิจใช้เป็นตัวเลข เช่น 7 หมายถึง 7% ตัวอย่างนี้ไม่ได้กำหนดอัตราภาษีให้ธุรกิจ ถ้าไม่เกี่ยวข้องให้เว้นว่าง',
+        rounding:
+          'ต้องการเก็บจำนวนเงินกี่หลักหลังจุด เช่น 2 หลักจะแสดง 125.50 วิธีปัดขึ้น/ลงเพิ่มเติมระบุในหมายเหตุ ถ้าไม่เกี่ยวข้องให้เว้นว่าง',
+        reviewer:
+          'ใครเป็นคนตรวจว่าระบบส่วนงานนี้ตรงกับการทำงานจริง เช่น หัวหน้าทีมขาย ไม่จำเป็นต้องเป็นผู้อนุมัติเอกสาร',
+        note: 'เรื่องอื่นที่ช่องย่อยยังไม่มีให้ตอบ เช่น ข้อยกเว้นสำหรับลูกค้ารายพิเศษ เว้นได้ ไม่จำเป็นต้องอธิบายซ้ำทุกข้อ',
+      };
+      const actionHelp = {
+        read: 'เปิดดูรายการและรายละเอียดได้หรือไม่',
+        create: 'สร้างรายการใหม่ได้หรือไม่ เช่น เพิ่มลูกค้าใหม่',
+        update: 'เปลี่ยนข้อมูลของรายการที่มีอยู่ได้หรือไม่',
+        delete: 'ซ่อนรายการจากรายการปกติได้หรือไม่ ไม่ใช่ลบถาวร',
+        restore: 'นำรายการที่ถูกลบกลับมาใช้งานได้หรือไม่',
+        approve:
+          'ยืนยันให้รายการผ่านขั้นอนุมัติได้หรือไม่ การตอบไม่ได้หมายความว่าทุกส่วนงานมีขั้นอนุมัติแล้ว',
+        export: 'นำข้อมูลออกเป็นไฟล์หรือรายงานได้หรือไม่ เช่น ดาวน์โหลดรายการไปใช้นอกระบบ',
+      };
+      function helpFor(id) {
+        const rule = id.match(/^field_(.+)_(use|required|unique|search|filter|locked)$/);
+        if (rule) return fieldRuleHelp[rule[2]];
+        if (id.startsWith('field_') && id.endsWith('_example')) {
+          const name = id.slice(6, -8);
+          const examples = {
+            code: 'CUST-0001',
+            name: 'ร้านยาตัวอย่าง',
+            status: 'รอตรวจ',
+            category: 'ร้านยา',
+            province: 'เชียงใหม่',
+            owner: 'ทีมขายภาคเหนือ',
+            notes: 'ติดต่อช่วงบ่าย',
+            description: 'ลูกค้าขายปลีก',
+            paymentTerms: 'ชำระภายใน 30 วัน',
+            customerId: 'ชื่อร้านที่เป็นลูกค้า',
+            groupId: 'ชื่อกลุ่มลูกค้าที่ต้องการเลือก',
+            territoryId: 'ชื่อเขตขาย',
+            supplierId: 'ชื่อผู้ขาย',
+            warehouseId: 'ชื่อคลังสินค้า',
+            amount: '1250.50',
+            fileUrl: 'ลิงก์เปิดเอกสาร',
+            followUpText: 'นัดโทรกลับวันจันทร์',
+            unit: 'กล่อง',
+            salePrice: '150.00',
+            dosageForm: 'ยาเม็ด',
+            drug: 'ชื่อตัวยาที่ใช้',
+            warehouse: 'คลังกลาง',
+            team: 'ทีมขายกรุงเทพฯ',
+            address: 'ที่อยู่คลังตัวอย่าง',
+            metric: 'จำนวนคำสั่งซื้อวันนี้',
+            source: 'ข้อมูลคำสั่งซื้อ',
+            period: 'เดือนปัจจุบัน',
+            reportName: 'รายการวางบิลรายเดือน',
+            exportFormat: 'Excel',
+            retention: 'เก็บ 3 ปี',
+            hiddenFields: 'ข้อมูลส่วนตัวของลูกค้า',
+            reason: 'ต้องระบุเหตุผลเมื่อยกเลิก',
+            documentName: 'ใบเสนอราคา',
+            fileTypes: 'PDF และรูปภาพ',
+            maxSize: 'ไม่เกิน 5 MB',
+            companyName: 'ชื่อบริษัทที่ต้องพิมพ์บนเอกสาร',
+            sourceFile: 'ไฟล์รายชื่อลูกค้าเดิม',
+            uniqueKey: 'รหัสลูกค้าเดิม',
+            duplicateRule: 'แจ้งให้ตรวจเมื่อรหัสซ้ำ',
+            reviewer: 'หัวหน้าทีมขาย',
+          };
+          return (
+            'กรอกตัวอย่างหนึ่งค่า' +
+            (examples[name] ? ' เช่น “' + examples[name] + '”' : 'ในช่องนี้') +
+            ' ใช้ข้อมูลสมมติได้ ไม่ต้องอธิบายยาว ตัวอย่างนี้ไม่ได้กำหนดเงื่อนไขให้ธุรกิจของคุณ'
+          );
+        }
+        if (id.startsWith('point_')) return pointHelp[id.slice(6)];
+        if (/^status_\d+$/.test(id))
+          return 'ชื่อช่วงของงานหนึ่งสถานะ เช่น “ร่าง”, “รอตรวจ” หรือ “เสร็จแล้ว” ใส่หนึ่งชื่อในหนึ่งช่อง เพิ่มช่องได้ ชื่อเหล่านี้เป็นเพียงตัวอย่าง';
+        const step = id.match(/^step_\d+_(.+)$/);
+        if (step)
+          return {
+            from: 'สถานะก่อนทำขั้นตอนนี้ เช่น “ร่าง” ใช้ชื่อเดียวกับที่กรอกในรายการสถานะ',
+            to: 'สถานะหลังทำขั้นตอนนี้ เช่น จาก “ร่าง” ไป “รอตรวจ” แยกหนึ่งการเปลี่ยนต่อหนึ่งขั้นตอน',
+            actor: 'กลุ่มผู้ใช้ที่กดเปลี่ยนจากสถานะเดิมไปสถานะใหม่ เช่น ฝ่ายขายส่งงานให้ตรวจ',
+            approver:
+              'ใครต้องตรวจและยืนยันขั้นตอนนี้ก่อนผ่าน เช่น ผู้จัดการ หากไม่ต้องมีคนอนุมัติให้เลือก “ไม่ต้องอนุมัติ”',
+            condition:
+              'สิ่งที่ต้องครบก่อนทำขั้นตอนนี้ เช่น “กรอกข้อมูลลูกค้าครบ” หรือ “แนบเอกสารแล้ว” หากไม่มีเงื่อนไขให้เว้นไว้',
+          }[step[1]];
+        const permission = id.match(/^permission_(Admin|Manager|Sales|CFO)_(.+)$/);
+        if (permission) return actionHelp[permission[2]];
+        if (id.startsWith('scope_'))
+          return 'กลุ่มผู้ใช้นี้เห็นข้อมูลของใครบ้าง: ทั้งบริษัท = ทุกทีม, เฉพาะทีม = ทีมที่ตนอยู่, เฉพาะตนเอง = รายการของตน หากมีข้อยกเว้นให้เลือกอื่น ๆ แล้วเขียนหมายเหตุ';
+        return 'รายละเอียดเพิ่มเติม ไม่บังคับกรอก หากเคยตอบในฟอร์มรุ่นก่อน คำตอบเดิมจะอยู่ที่นี่';
+      }
+      const actionDefs = [
+        ['read', 'ดู'],
+        ['create', 'เพิ่ม'],
+        ['update', 'แก้'],
+        ['delete', 'ลบ'],
+        ['restore', 'กู้คืน'],
+        ['approve', 'อนุมัติ'],
+        ['export', 'ส่งออก'],
+      ];
+      const $ = (id) => document.getElementById(id),
+        key = 'zuugroup-requirements-v1';
+      let state = {
+        version: 1,
+        respondent: '',
+        date: '',
+        general: '',
+        selected: modules[0].key,
+        answers: {},
+      };
+      let savedAt = '',
+        rendered = [];
+      const specific = {
+        products: [
+          ['name', 'ชื่อสินค้า'],
+          ['category', 'หมวดสินค้า'],
+          ['dosageForm', 'รูปแบบยา'],
+          ['drug', 'ตัวยา'],
+          ['unit', 'หน่วย'],
+          ['salePrice', 'ราคาขาย'],
+          ['warehouse', 'คลัง'],
+        ],
+        users: [
+          ['team', 'ชื่อทีม/เขต'],
+          ['status', 'สถานะผู้ใช้'],
+        ],
+        warehouses: [
+          ['code', 'รหัสคลัง'],
+          ['name', 'ชื่อคลัง'],
+          ['address', 'ที่อยู่คลัง'],
+          ['owner', 'ผู้ดูแล'],
+        ],
+        dashboard: [
+          ['metric', 'ชื่อการ์ด/ตัวชี้วัด'],
+          ['source', 'แหล่งข้อมูล'],
+          ['period', 'ช่วงเวลา'],
+        ],
+        reports: [
+          ['reportName', 'ชื่อรายงาน'],
+          ['source', 'แหล่งข้อมูล'],
+          ['period', 'ช่วงเวลา'],
+          ['exportFormat', 'รูปแบบส่งออก'],
+        ],
+        audit: [
+          ['retention', 'อายุเก็บข้อมูล'],
+          ['hiddenFields', 'ฟิลด์ที่ต้องซ่อน'],
+          ['reason', 'คำสั่งที่บังคับเหตุผล'],
+        ],
+        attachments: [
+          ['documentName', 'ชื่อเอกสาร'],
+          ['fileTypes', 'ประเภทไฟล์'],
+          ['maxSize', 'ขนาดไฟล์สูงสุด'],
+          ['companyName', 'ชื่อบริษัทในเอกสาร'],
+        ],
+        import: [
+          ['sourceFile', 'ชื่อไฟล์ต้นทาง'],
+          ['uniqueKey', 'รหัสอ้างอิงเดิม'],
+          ['duplicateRule', 'วิธีจัดการข้อมูลซ้ำ'],
+          ['reviewer', 'ผู้ตรวจยอด'],
+        ],
+      };
+      const fieldDefs = (m) =>
+        m.fields.length
+          ? m.fields
+          : (specific[m.key] || []).map(([key, label]) => ({ key, label }));
+      const choice = ['', 'ใช่', 'ไม่ใช่'];
+      const commonDefs = [
+        ['format', 'รูปแบบรหัส', 'input', 'เช่น QT-2569-0001'],
+        ['initialStatus', 'สถานะเริ่มต้น', 'input', 'ชื่อสถานะจริง'],
+        ['sortField', 'เรียงรายการตาม', 'input', 'เช่น วันที่สร้าง หรือชื่อลูกค้า'],
+        [
+          'sortOrder',
+          'ลำดับการเรียง',
+          'select',
+          ['', 'น้อยไปมาก / เก่าไปใหม่', 'มากไปน้อย / ใหม่ไปเก่า'],
+        ],
+        ['vat', 'การคิดภาษี', 'select', ['', 'รวมภาษี', 'ไม่รวมภาษี', 'ไม่เกี่ยวข้อง']],
+        ['vatRate', 'อัตราภาษี (%)', 'input', 'เช่น 7'],
+        ['rounding', 'จำนวนหลักทศนิยมที่ปัดเศษ', 'input', 'เช่น 2'],
+        ['reviewer', 'ผู้ตรวจรับ', 'input', 'ชื่อหรือทีม'],
+        ['note', 'หมายเหตุเพิ่มเติม', 'textarea', 'เว้นได้'],
+      ];
+      function definitions(m) {
+        const defs = questionDefs.map(([key, label]) => ({ key, label }));
+        roleDefs.forEach((r) => defs.push({ key: 'role' + r, label: 'คำตอบเดิม · ' + r }));
+        for (const f of fieldDefs(m)) {
+          defs.push({ key: 'field_' + f.key + '_example', label: f.label + ' · ตัวอย่าง' });
+          for (const [suffix, label] of [
+            ['use', 'ใช้งาน'],
+            ['required', 'บังคับกรอก'],
+            ['unique', 'ห้ามซ้ำ'],
+            ['search', 'ใช้ค้นหา'],
+            ['filter', 'ใช้กรอง'],
+            ['locked', 'ห้ามแก้หลังอนุมัติ'],
+          ])
+            defs.push({ key: 'field_' + f.key + '_' + suffix, label: f.label + ' · ' + label });
+        }
+        commonDefs.forEach(([key, label]) => defs.push({ key: 'point_' + key, label }));
+        for (let i = 0; i < 20; i++) {
+          defs.push({ key: 'status_' + i, label: 'สถานะ ' + (i + 1) });
+          for (const [suffix, label] of [
+            ['from', 'จากสถานะ'],
+            ['to', 'ไปสถานะ'],
+            ['actor', 'ผู้เปลี่ยน'],
+            ['approver', 'ผู้อนุมัติ'],
+            ['condition', 'เงื่อนไข'],
+          ])
+            defs.push({
+              key: 'step_' + i + '_' + suffix,
+              label: 'ขั้นตอน ' + (i + 1) + ' · ' + label,
+            });
+        }
+        roleDefs.forEach((r) => {
+          actionDefs.forEach(([key, label]) =>
+            defs.push({ key: 'permission_' + r + '_' + key, label: r + ' · ' + label }),
+          );
+          defs.push({ key: 'scope_' + r, label: r + ' · ขอบเขตข้อมูล' });
+        });
+        return defs;
+      }
+      function message(text) {
+        $('status').textContent = text;
+      }
+      function heading(text, parent) {
+        const h = document.createElement('h3');
+        h.textContent = text;
+        parent.append(h);
+      }
+      function control(id, label, kind, option, parent) {
+        const wrap = document.createElement('label');
+        wrap.className = 'field';
+        const title = document.createElement('span');
+        title.textContent = label;
+        const input = document.createElement(
+          kind === 'select' ? 'select' : kind === 'textarea' ? 'textarea' : 'input',
+        );
+        input.id = id;
+        input.setAttribute('aria-label', label);
+        if (kind === 'select')
+          for (const value of option) {
+            const item = document.createElement('option');
+            item.value = value;
+            item.textContent = roleNames[value] || value || 'ยังไม่สรุป';
+            input.append(item);
+          }
+        else {
+          input.maxLength = 20000;
+          input.placeholder = option || 'กรอกทีละค่า';
+          if (kind === 'input') input.type = 'text';
+        }
+        input.value = state.answers[state.selected]?.[id] || '';
+        rendered.push(id);
+        wrap.append(title, input);
+        const help = document.createElement('small');
+        help.id = id + '-help';
+        help.className = 'help';
+        help.textContent = helpFor(id);
+        input.setAttribute('aria-describedby', help.id);
+        wrap.append(help);
+        parent.append(wrap);
+        return input;
+      }
+      function grid(parent) {
+        const element = document.createElement('div');
+        element.className = 'grid';
+        parent.append(element);
+        return element;
+      }
+      function rowsCount(key) {
+        const n = Number(state.answers[state.selected]?.[key]);
+        return Number.isInteger(n) && n >= 2 && n <= 20 ? n : 2;
+      }
+      function addRowsButton(label, key, parent) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = label;
+        button.disabled = rowsCount(key) >= 20;
+        button.addEventListener('click', () => {
+          capture();
+          state.answers[state.selected][key] = String(rowsCount(key) + 1);
+          refresh();
+          persist();
+        });
+        parent.append(button);
+      }
+      function renderPoints(m) {
+        rendered = [];
+        $('questions').replaceChildren();
+        $('roles').replaceChildren();
+        const root = $('questions');
+        heading('ข้อมูลตัวอย่าง · หนึ่งช่องต่อหนึ่งข้อมูล', root);
+        if (!m.fields.length) {
+          const p = document.createElement('p');
+          p.className = 'muted';
+          p.textContent = 'หัวข้อสำหรับบอกความต้องการของส่วนงานนี้ ไม่ใช่ช่องที่มีครบแล้วในระบบ';
+          root.append(p);
+        }
+        for (const f of fieldDefs(m)) {
+          const block = document.createElement('div');
+          block.className = 'point';
+          root.append(block);
+          control('field_' + f.key + '_example', f.label, 'input', 'ตัวอย่างหนึ่งค่า', block);
+          const detail = document.createElement('details'),
+            summary = document.createElement('summary');
+          summary.textContent = 'เลือกข้อกำหนดของ ' + f.label;
+          detail.append(summary);
+          block.append(detail);
+          const group = grid(detail);
+          for (const [suffix, label] of [
+            ['use', 'ใช้ช่องข้อมูลนี้'],
+            ['required', 'บังคับกรอก'],
+            ['unique', 'ห้ามข้อมูลซ้ำ'],
+            ['search', 'ใช้ค้นหา'],
+            ['filter', 'ใช้เป็นตัวกรอง'],
+            ['locked', 'ห้ามแก้หลังอนุมัติ'],
+          ])
+            control('field_' + f.key + '_' + suffix, label, 'select', choice, group);
+        }
+        heading('รหัส การเรียง และเงื่อนไข', root);
+        const common = grid(root);
+        commonDefs.forEach(([key, label, type, option]) =>
+          control('point_' + key, label, type, option, common),
+        );
+        const statuses = document.createElement('div');
+        statuses.className = 'point';
+        root.append(statuses);
+        heading('ชื่อสถานะ · หนึ่งช่องต่อหนึ่งสถานะ', statuses);
+        const statusGrid = grid(statuses);
+        for (let i = 0; i < rowsCount('_statusRows'); i++)
+          control('status_' + i, 'สถานะ ' + (i + 1), 'input', 'ชื่อสถานะจริง', statusGrid);
+        addRowsButton('+ เพิ่มสถานะ', '_statusRows', statuses);
+        heading('ขั้นตอนการทำงาน', root);
+        for (let i = 0; i < rowsCount('_stepRows'); i++) {
+          const block = document.createElement('div');
+          block.className = 'point';
+          root.append(block);
+          heading('ขั้นตอน ' + (i + 1), block);
+          const group = grid(block);
+          control('step_' + i + '_from', 'จากสถานะ', 'input', 'สถานะต้นทาง', group);
+          control('step_' + i + '_to', 'ไปสถานะ', 'input', 'สถานะปลายทาง', group);
+          control('step_' + i + '_actor', 'ผู้เปลี่ยนสถานะ', 'select', ['', ...roleDefs], group);
+          control(
+            'step_' + i + '_approver',
+            'ผู้อนุมัติ',
+            'select',
+            ['', ...roleDefs, 'ไม่ต้องอนุมัติ'],
+            group,
+          );
+          control(
+            'step_' + i + '_condition',
+            'เงื่อนไขของขั้นตอนนี้',
+            'input',
+            'หนึ่งเงื่อนไขสั้น ๆ',
+            group,
+          );
+        }
+        addRowsButton('+ เพิ่มขั้นตอน', '_stepRows', root);
+        const legacy = document.createElement('details'),
+          summary = document.createElement('summary');
+        summary.textContent = 'รายละเอียดเพิ่มเติม / คำตอบจากฟอร์มเดิม';
+        legacy.append(summary);
+        root.append(legacy);
+        questionDefs.forEach(([id, label, placeholder]) =>
+          control(id, label, 'textarea', placeholder, legacy),
+        );
+        roleDefs.forEach((r) =>
+          control('role' + r, 'คำตอบเดิม · ' + r, 'textarea', 'เว้นได้', legacy),
+        );
+        for (const role of roleDefs) {
+          const block = document.createElement('div');
+          block.className = 'point';
+          $('roles').append(block);
+          heading(roleNames[role], block);
+          const group = grid(block);
+          actionDefs.forEach(([key, label]) =>
+            control(
+              'permission_' + role + '_' + key,
+              label,
+              'select',
+              ['', 'อนุญาต', 'ไม่อนุญาต'],
+              group,
+            ),
+          );
+          control(
+            'scope_' + role,
+            'ขอบเขตข้อมูลที่เห็น',
+            'select',
+            ['', 'ทั้งบริษัท', 'เฉพาะทีม', 'เฉพาะตนเอง', 'อื่น ๆ (ระบุในหมายเหตุ)'],
+            group,
+          );
+        }
+      }
+      modules.forEach((m) => {
+        const option = document.createElement('option');
+        option.value = m.key;
+        option.textContent = m.title;
+        $('module').append(option);
+      });
+      function validate(value) {
+        if (
+          !value ||
+          value.version !== 1 ||
+          typeof value.answers !== 'object' ||
+          !value.answers ||
+          Array.isArray(value.answers)
+        )
+          throw Error('รูปแบบไฟล์ไม่ถูกต้อง หรือเป็นรุ่นที่ไม่รองรับ');
+        const next = { version: 1, answers: {} };
+        for (const k of ['respondent', 'date', 'general']) {
+          if (typeof value[k] !== 'string' || value[k].length > 20000)
+            throw Error('ข้อมูลไม่ถูกต้อง');
+          next[k] = value[k];
+        }
+        next.selected = modules.some((m) => m.key === value.selected)
+          ? value.selected
+          : modules[0].key;
+        for (const m of modules) {
+          const a = value.answers[m.key];
+          if (a === undefined) continue;
+          if (!a || typeof a !== 'object' || Array.isArray(a)) throw Error('คำตอบโมดูลไม่ถูกต้อง');
+          const clean = {};
+          for (const k of [...definitions(m).map((d) => d.key), '_statusRows', '_stepRows']) {
+            if (a[k] === undefined) continue;
+            if (typeof a[k] !== 'string' || a[k].length > 20000) throw Error('คำตอบยาวเกินกำหนด');
+            clean[k] = a[k];
+          }
+          next.answers[m.key] = clean;
+        }
+        return next;
+      }
+      function capture() {
+        for (const k of ['respondent', 'date', 'general']) state[k] = $(k).value;
+        const a = { ...state.answers[state.selected] };
+        rendered.forEach((k) => (a[k] = $(k).value));
+        state.answers[state.selected] = a;
+      }
+      function count() {
+        return modules.filter((m) =>
+          definitions(m).some((d) => state.answers[m.key]?.[d.key]?.trim()),
+        ).length;
+      }
+      function refresh() {
+        const m = modules.find((m) => m.key === state.selected);
+        $('module').value = m.key;
+        $('moduleHint').textContent =
+          m.hint ||
+          'ตอบว่าการทำงานส่วน ' +
+            m.title +
+            ' ต้องเก็บข้อมูลอะไร และใครทำอะไรได้บ้าง ส่วนที่ไม่แน่ใจเว้นไว้ได้';
+        $('fields').replaceChildren();
+        m.fields.forEach((f) => {
+          const tr = document.createElement('tr');
+          [
+            f.label,
+            f.key,
+            {
+              text: 'ข้อความสั้น',
+              textarea: 'ข้อความหลายบรรทัด',
+              number: 'ตัวเลข',
+              relation: 'เลือกจากข้อมูลส่วนอื่น',
+              date: 'วันที่',
+            }[f.type] || f.type,
+            f.required ? 'ใช่' : 'ไม่',
+            modules.find((item) => item.key === f.relation)?.title ||
+              (f.relation === 'warehouses' ? 'คลังสินค้า' : f.relation || '-'),
+          ].forEach((value) => {
+            const td = document.createElement('td');
+            td.textContent = value;
+            tr.append(td);
+          });
+          $('fields').append(tr);
+        });
+        $('fieldNote').textContent = m.fields.length
+          ? 'ตารางนี้บอกสิ่งที่ระบบมีอยู่วันนี้ คุณเสนอเพิ่มหรือไม่ใช้ช่องใดได้ ช่อง “ชื่อที่ผู้พัฒนาใช้” ไม่ต้องจำหรือกรอกตาม'
+          : 'ส่วนงานนี้มีรูปแบบเฉพาะ ให้ตอบจากขั้นตอนการทำงานจริง ไม่จำเป็นต้องรู้ชื่อที่ผู้พัฒนาใช้';
+        renderPoints(m);
+        $('progress').textContent = 'มีคำตอบแล้ว ' + count() + ' / ' + modules.length + ' โมดูล';
+      }
+      function persist() {
+        try {
+          localStorage.setItem(key, JSON.stringify(state));
+          savedAt = new Intl.DateTimeFormat('th-TH', {
+            timeStyle: 'short',
+            timeZone: 'Asia/Bangkok',
+          }).format(new Date());
+          message('บันทึกร่างในเครื่องแล้ว · ' + savedAt);
+        } catch {
+          message('เบราว์เซอร์นี้บันทึกร่างไม่ได้ กรุณาส่งออกไฟล์เพื่อเก็บคำตอบ');
+        }
+      }
+      try {
+        const draft = localStorage.getItem(key);
+        if (draft) state = validate(JSON.parse(draft));
+      } catch {
+        message('อ่านร่างเดิมไม่ได้ ยังเริ่มกรอกใหม่หรือนำเข้าไฟล์สำรองได้');
+      }
+      for (const k of ['respondent', 'date', 'general']) $(k).value = state[k];
+      refresh();
+      $('module').addEventListener('change', () => {
+        capture();
+        state.selected = $('module').value;
+        refresh();
+        persist();
+      });
+      $('editor').addEventListener('input', (e) => {
+        if (e.target.id === 'importFile' || e.target.id === 'module') return;
+        capture();
+        $('progress').textContent = 'มีคำตอบแล้ว ' + count() + ' / ' + modules.length + ' โมดูล';
+        persist();
+      });
+      $('save').addEventListener('click', () => {
+        capture();
+        persist();
+      });
+      function download() {
+        capture();
+        const blob = new Blob([JSON.stringify(state, null, 2)], {
+          type: 'application/json;charset=utf-8',
+        });
+        const url = URL.createObjectURL(blob),
+          link = document.createElement('a');
+        link.href = url;
+        link.download = 'ZUUGROUP-requirements-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        message('ส่งออกไฟล์คำตอบแล้ว โปรดเก็บไฟล์นี้ไว้สำรอง');
+      }
+      $('export').addEventListener('click', download);
+      $('importFile').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          if (file.size > 10000000) throw Error('ไฟล์ใหญ่เกิน 10 MB');
+          const next = validate(JSON.parse(await file.text()));
+          capture();
+          if (
+            (count() || state.general || state.respondent) &&
+            !confirm('นำเข้าจะแทนร่างปัจจุบัน ควรส่งออกเก็บไว้ก่อน ต้องการนำเข้าหรือไม่?')
+          )
+            return;
+          state = next;
+          for (const k of ['respondent', 'date', 'general']) $(k).value = state[k];
+          refresh();
+          persist();
+        } catch (error) {
+          message('นำเข้าไม่สำเร็จ: ' + error.message);
+        } finally {
+          e.target.value = '';
+        }
+      });
+      function preparePrint() {
+        capture();
+        const view = $('printView');
+        view.replaceChildren();
+        const intro = document.createElement('p');
+        intro.textContent =
+          'ผู้ให้ข้อมูล: ' + (state.respondent || '-') + ' · วันที่: ' + (state.date || '-');
+        view.append(intro);
+        if (state.general) {
+          const p = document.createElement('p');
+          p.textContent = 'ข้อมูลร่วม: ' + state.general;
+          view.append(p);
+        }
+        for (const m of modules) {
+          const a = state.answers[m.key] || {};
+          if (!definitions(m).some((d) => a[d.key]?.trim())) continue;
+          const section = document.createElement('section'),
+            h = document.createElement('h2');
+          h.textContent = m.title + ' / ' + m.key;
+          section.append(h);
+          for (const { key: k, label } of definitions(m)) {
+            if (!a[k]?.trim()) continue;
+            const heading = document.createElement('h3'),
+              p = document.createElement('p');
+            heading.textContent = label;
+            p.textContent = a[k];
+            section.append(heading, p);
+          }
+          view.append(section);
+        }
+      }
+      window.addEventListener('beforeprint', preparePrint);
+      $('print').addEventListener('click', () => {
+        preparePrint();
+        window.print();
+      });
+    </script>
+  </body>
+</html>

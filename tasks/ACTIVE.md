@@ -1,8 +1,45 @@
 # งานที่กำลังทำ
 
+## Checkpoint ชุดทดสอบและเอกสาร — 2026-10-03
+
+- IN_PROGRESS เจ้าของสั่ง commit ชุดก่อน แล้ววางแผนเขตขายก่อนลงมือ. ขอบเขตงานค้าง TASK-089–091 (tests/verify, คู่มือ/workbook/UAT, ฟอร์มพร้อมคำอธิบาย) รวมบันทึกข้อกำหนดที่รับไว้ซึ่งยังเป็นแผน. ลำดับตรวจ diff/รายชื่อไฟล์/ข้อมูลลับ → บันทึก checkpoint → stage เฉพาะไฟล์งาน → commit บน AI → ตรวจสถานะ. ใช้ผลตรวจเดิม tests 14/14 และ verify 10/10; ไม่มีการแก้ระบบใหม่ในรอบนี้. ผลลัพธ์ commit เดียวและ working tree สะอาด; ไม่ push/Deploy.
+
+- PLANNING เขตขาย: เจ้าของย้ำให้วางแผนก่อน ยังไม่ลงมือแก้ระบบ. ข้อกำหนดรอบแรกเป็นข้อมูลประกอบการสนทนา; จุด OPEN รอคำตอบ.
+
+## รายละเอียดธุรกิจรอบถัดไป — เขตขาย
+
+- IN_PROGRESS รับกติกาเขตรอบแรก: Admin สร้างเขต (เหนือ/ออก/ตก/ใต้), เขตละ Manager 1 คนและสมาชิกอีก 1 คนซึ่งรอยืนยันว่าเป็น Sales, ลูกค้าผูกเขตและแสดงชื่อแทน ID. ขอบเขตรอบนี้ ACTIVE/Specs/Plan เท่านั้น. ลำดับตรวจโมดูลเดิม → บันทึกข้อยืนยันและ OPEN → สรุปให้เจ้าของตอบจุดค้าง. ผลลัพธ์เอกสารตรงคำอธิบาย; ตรวจรับโดยเจ้าของยืนยันความหมายสมาชิก/การผูกเขต/วิธีกรอกลูกค้า. ยังไม่แก้โค้ด ฐานข้อมูล หรือสิทธิ์.
+
+- WAITING_FOR_REQUIREMENTS เจ้าของยืนยันฟอร์มโอเคแล้วและไม่ให้ปรับเพิ่มตอนนี้. กลุ่มงานที่เลือกคือ ลูกค้า/เขตขาย/ผู้ใช้งาน โดยเริ่มเจาะเขตขายก่อน อิงโมดูลที่มี. เจ้าของจะอธิบายรายละเอียดต่อ; คงสิทธิ์การใช้งานปัจจุบัน ยังไม่แยกสิทธิ์เพิ่มเติม. รอบนี้บันทึก ACTIVE/Specs/Plan เท่านั้น ก่อนแก้ข้อมูล/โครงสร้างต้องรับรายละเอียดและจัดแผนย่อยตามข้อยืนยัน.
+
+## TASK-091 ฟอร์มกรอกข้อกำหนด — 2026-10-03
+
+- READY_FOR_USER_TEST เพิ่มคำอธิบายไทย+ตัวอย่างทุกช่องและaria-describedbyแล้ว พร้อมชื่อส่วนงาน/Roleไทย. VMตรวจ2438control instancesใน22หัวข้อมีhelp/ร่างเดิมและสิทธิ์ที่ยังไม่สรุปคงอยู่ผ่าน. Browserเปิดข้อกำหนดอ่านuseเทียบrequiredได้จริง missinghelp0; มือถือ390pxไม่ล้น. JSsyntax/Prettier/diffผ่าน; ไม่เปลี่ยนJSONkeys/คำตอบ/กฎระบบ. รอownerตรวจชุดเดิมแล้วcommitรวม.
+
+- IN_PROGRESS ตามคำขอล่าสุด: เพิ่มคำอธิบายใต้ทุกช่อง/ตัวเลือก พร้อมตัวอย่างและคำไทยสำหรับคนไม่ใช่สายเทคนิค. ขอบเขต HTML/คู่มือ/Specs/Plan/Task/ACTIVE. ลำดับบันทึก → helpertext+aria-describedby/ป้ายไทย → ตรวจcoverage/ร่างไม่เปลี่ยน/browser → ส่งตรวจรวม. ไม่เปลี่ยนkeys/คำตอบหรือกฎธุรกิจ.
+- READY_FOR_USER_TEST ปรับแบบกรอกทีละจุดแล้ว: inputตัวอย่างแต่ละfield/6ตัวเลือกข้อกำหนด, สถานะ+workflowเพิ่มแถวได้, สิทธิ์รายคำสั่งและscope4Role, legacyรายละเอียดพับได้. Browserบนoriginทดสอบแยกตรวจเพิ่มแถว/switch/reloadค่าครบ; มือถือ390pxไม่ล้น. VMตรวจlegacy/save/JSONroundtrip/print/invalidimportผ่าน. ร่างของผู้ใช้ใน127.0.0.1ไม่ถูกแก้โดยการทดสอบ; ไม่commitแยก.
+
+- IN_PROGRESS ติดตามคำขอใหม่: เปลี่ยนช่องอธิบายยาวเป็น inputรายฟิลด์/selectรายจุด/สถานะและworkflowเพิ่มแถวได้/permissionเลือกต่อคำสั่ง; ข้อมูลเดิมเก็บในหมายเหตุพับได้. ขอบเขต HTML/คู่มือ/Specs/Plan/Task/ACTIVE/UAT. ลำดับแก้Specs/Plan → schemaflatต่อยอดเดิม/atomiccontrols → save/import/print → browserตรวจ. รักษาdraftเก่า/JSONv1 ไม่commitแยก.
+- READY_FOR_USER_TEST ส่ง standalone HTML กรอกได้ครบ22หัวข้อ/113field reference. Browserทดสอบเปลี่ยนโมดูล/reloadร่างผ่าน/มือถือ390pxไม่มีoverflow/ล้างคำตอบทดสอบแล้ว. VMตรวจsave/export-import JSON/printรวม2โมดูล/invalid importรักษาร่างผ่าน. UIส่งออกแสดงsuccessแต่automationจับdownload event timeout จึงตรวจpayload/roundtripด้วยVMแทน; ต้องลองdownloadจริงบนChrome/Edge. Google Formยังไม่สร้างต้องlogin. รอcommitรวม89–91หลังตรวจรับ.
+
+- IN_PROGRESS เจ้าของขอแบบฟอร์มกรอกได้ โดย Google Forms เป็นทางเลือก. ตรวจแล้ว Google Forms ต้อง login และไม่มี connector สร้างฟอร์มโดยตรง. ทำ standalone HTML ใน docs/forms/business-requirements.html พร้อมข้อมูล registry ฝังในไฟล์ เลือกโมดูล/คำถาม/สิทธิ์/บันทึกร่าง/export-import JSON/พิมพ์; คู่มือและลิงก์เอกสาร. ลำดับลง Specs/Plan → สร้างฟอร์ม → ตรวจ UI/บันทึก/ส่งออก/มือถือ → ส่งมอบ. ไม่ส่งข้อมูลออกเว็บ ไม่แก้แอป/DB และรอรวม commit หลังตรวจรับครั้งเดียว.
+
+## TASK-090 รวมงานเตรียมและตรวจรับครั้งเดียว — 2026-10-03
+
+- READY_FOR_USER_TEST ชุดเตรียมครบ: workbook 14 โมดูล/113 ฟิลด์ พร้อมโมดูลเฉพาะ, คู่มือไทย, UAT ชุดเดียว. ตรวจ field/type/required/relation ตรง registry ครบ 113, 4 Role ทุกโมดูล, ลิงก์เอกสาร 8 จุด/รูปแบบ/diff ผ่าน. รอบนี้เปลี่ยนเฉพาะเอกสาร; ผล tests เดิม 14/14 และ verify 10/10 เจ้าของรับแล้วไม่รันซ้ำ. รอตรวจรับ TASK-090 แล้ว commit TASK-089/090 รวมครั้งเดียว. ยังไม่เริ่ม Dashboard/Deploy/กฎ OPEN.
+
+- IN_PROGRESS เจ้าของสั่งทำงานเตรียมที่เหลือให้ครบ แล้วทดสอบครั้งเดียว/commit ครั้งเดียวหลังตรวจรับ. ขอบเขต docs/BUSINESS-REQUIREMENTS-WORKBOOK.md, docs/USER-MANUAL.md, docs/UAT-PREPARATION.md, README, Specs/Plan/Task/ACTIVE. ลำดับอ่านระบบ/OPEN → บันทึกแผน → แบบฟอร์มทุกโมดูล → คู่มือหน้าจอจริง → เช็กลิสต์รวม → ตรวจเอกสาร/verify → ส่งเจ้าของตรวจครั้งเดียว. ไม่เริ่ม Dashboard/Deploy/กฎธุรกิจที่พักไว้. TASK-089 เจ้าของยืนยันผ่านหมดแล้ว.
+
+## TASK-089 ทดสอบ flow ด้วยข้อมูลจำลอง — 2026-10-03
+
+- COMPLETE เจ้าของยืนยัน “ผ่านหมด” แล้ว. รวมงานนี้ไว้รอ commit ครั้งเดียวพร้อม TASK-090 หลังตรวจรับตามคำสั่งล่าสุด.
+- READY_FOR_USER_TEST เพิ่ม test:flows ผ่าน 14/14 และรวม verify ผ่าน 10/10 ใน 29.8 วินาที exit 0. ตรวจ diff ผ่าน. ทดสอบ handler/service/validators จริงด้วย DB/Auth ในหน่วยความจำ ไม่เชื่อม DB/HTTP จริง; UI/browser/locking ไม่ครอบคลุม. งานใหม่ยังไม่ commit; checkpoint ก่อนหน้า 6c7916a สำเร็จแล้ว.
+
+- IN_PROGRESS เจ้าของอนุมัติต่อชุดทดสอบหลัง checkpoint 6c7916a. ขอบเขต scripts/test-record-flows.mjs, package.json/verify runner/คู่มือ, Specs/Plan/Task/ACTIVE. ลำดับบันทึก → fixture และ DB/Auth adapter ในหน่วยความจำ → เรียก handler/service จริงเพื่อค้นหา/แบ่งหน้า/CRUD/สิทธิ์/conflict/audit rollback → รวม verify → รันตรวจ. ไม่เปลี่ยน production/กฎธุรกิจ/DB จริง. เป็น integration tests ฝั่ง server ไม่ใช่ browser UAT.
+
 ## TASK-088 checkpoint verify — 2026-10-03
 
-- IN_PROGRESS เจ้าของอนุมัติ checkpoint ก่อนต่อชุดทดสอบ. ขอบเขตเอกสาร checkpoint/Task/ACTIVE และ commit ไฟล์ค้าง TASK-086 (ร่างที่พัก)/087 ที่ตรวจรับแล้วบน AI. ลำดับบันทึก → ตรวจ diff/ไฟล์ sensitive → stage รายชื่อชัดเจน → commit → ตรวจสถานะ. ไม่ push/Deploy.
+- CHECKPOINTED commit 6c7916a บน AI สำเร็จ ตรวจ staged diff/credential patterns ผ่าน และ working tree สะอาดก่อน TASK-089. ไม่ push/Deploy.
 
 ## TASK-087 รวมชุดตรวจด้วย verify — 2026-10-03
 

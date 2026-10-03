@@ -72,6 +72,7 @@ const coreChecks = [
   { name: 'ตรวจหน้าของ routes', args: ['scripts/test-route-pages.mjs'] },
   { name: 'ตรวจ resource API ด้วยข้อมูลจำลอง', args: ['scripts/test-resource-api.mjs'] },
   { name: 'ตรวจชื่อฟิลด์ API', args: ['scripts/test-api-field-names.mjs'] },
+  { name: 'ตรวจ flow ข้อมูลด้วยฐานข้อมูลจำลอง', args: ['scripts/test-record-flows.mjs'] },
   { name: 'สร้าง production build', args: ['node_modules/next/dist/bin/next', 'build'] },
 ];
 
