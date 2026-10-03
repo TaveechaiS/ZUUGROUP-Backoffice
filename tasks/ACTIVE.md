@@ -1,5 +1,21 @@
 # งานที่กำลังทำ
 
+## TASK-088 checkpoint verify — 2026-10-03
+
+- IN_PROGRESS เจ้าของอนุมัติ checkpoint ก่อนต่อชุดทดสอบ. ขอบเขตเอกสาร checkpoint/Task/ACTIVE และ commit ไฟล์ค้าง TASK-086 (ร่างที่พัก)/087 ที่ตรวจรับแล้วบน AI. ลำดับบันทึก → ตรวจ diff/ไฟล์ sensitive → stage รายชื่อชัดเจน → commit → ตรวจสถานะ. ไม่ push/Deploy.
+
+## TASK-087 รวมชุดตรวจด้วย verify — 2026-10-03
+
+- COMPLETE เจ้าของยืนยัน “ok ครับ ผ่าน 9/9” เมื่อ 2026-10-03. บันทึกตรวจรับเฉพาะ tasks/ACTIVE.md และ TASK-087; ปิดงาน verify แล้ว. ยังไม่ได้ commit รอบนี้.
+
+- READY_FOR_USER_TEST เพิ่ม npm run verify ครบ 9 ขั้นตอนและ verify:seed แยกแล้ว พร้อมคู่มือ. รันจริงผ่าน 9/9 ใน 33.0 วินาที; ตรวจจำลอง exit 17 หยุดก่อนขั้นถัดไป, SIGINT หยุด child/คืน code 130/ล้าง handler, ไม่มี snapshot แจ้ง error ผ่าน. git diff --check ผ่าน. ไม่ commit/push/Deploy; รอเจ้าของลองคำสั่งตาม docs/VERIFY-GUIDE.md.
+
+- IN_PROGRESS เจ้าของอนุมัติ “ok” ให้ทำข้อ 1 รวมชุดตรวจที่มีอยู่เป็นคำสั่งเดียว. ขอบเขต `package.json`, `scripts/verify.mjs`, README/คู่มือ verify, Specs/Plan/Task/ACTIVE. ลำดับ: บันทึกแผน → runner ตามลำดับ/fail fast → npm verify → ตรวจผลสำเร็จ/หยุดเมื่อผิดพลาด. Core รวม lint/Next typegen/type-check/5 offline tests/build; seed test ที่ต้องใช้ snapshot เฉพาะเครื่องแยกคำสั่งเสริม. ไม่เปลี่ยน API/DB/ข้อมูล/Deploy.
+
+## TASK-086 วางแผน API อ่าน Dashboard — 2026-10-03
+
+- DEFERRED เจ้าของขอ “ค่อยทำ” แผน Dashboard เมื่อ 2026-10-03. เก็บร่าง Specs/Plan ไว้; ยังไม่เริ่ม implementation. เมื่อกลับมาทำต้องเลือกข้อมูลและสิทธิ์ก่อน. งานถัดไปเสนอจัดรายละเอียดข้อมูลจริงรายโมดูลตาม checkpoint; Deploy ยังพัก.
+
 ## TASK-085 ตรวจรับและ checkpoint — 2026-10-03
 
 - CHECKPOINTED เจ้าของยืนยัน “ok แล้ว” กับรายการตรวจ UI/เพิ่มแก้ลบกู้คืน/confirmation/SuccessAlert/search/pagination และ commit/checkpoint รอบล่าสุด. บันทึกตรวจรับ TASK-078–084 พร้อม `tasks/CHECKPOINT-2026-10-03.md` บน AI ต่อจาก c7a3c92. ตรวจ staged 93 ไฟล์/diff/credential ผ่าน ไม่มี env/snapshots/secret เข้า Git; hash ดู Git log. Deploy ยังพักและรายละเอียดธุรกิจรอข้อมูลจริง.

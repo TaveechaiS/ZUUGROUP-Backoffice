@@ -46,6 +46,10 @@
 
 ## เริ่มระบบในเครื่อง
 
+### ตรวจโครงการก่อนส่งงาน
+
+รัน `npm run verify` เพื่อตรวจ lint, types, ชุดทดสอบ API/routes และ production build ตามลำดับ 9 ขั้นตอน โดยหยุดทันทีเมื่อไม่ผ่าน ดู [คู่มือ verify](docs/VERIFY-GUIDE.md) สำหรับรายละเอียดและชุดตรวจ seed เพิ่มเติม
+
 1. ติดตั้ง Node.js `24.21.0` และ npm ที่มากับ Node.js รุ่นนี้
 2. คัดลอก `.env.example` เป็น `.env.local`
 3. เปิด Supabase Dashboard ของ `zuugroup-web` → **Connect** แล้วใส่ Publishable key และ connection strings ที่ได้ลงใน `.env.local` ด้วยตนเอง ห้ามส่ง password หรือ Secret key ในแชต
