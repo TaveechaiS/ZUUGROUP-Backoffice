@@ -110,7 +110,7 @@ export default function Page() {
       </nav>
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[#d9e3ee] pb-5">
         <div>
-          <h1 className="m-0 text-2xl font-semibold">{product.name}</h1>
+          <h1 className="m-0 text-2xl poppins-semibold">{product.name}</h1>
           <p className="mb-0 mt-1 text-sm text-[#718096]">
             รหัส {product.code} · รหัสนี้คงเดิมหลังสร้าง
           </p>
@@ -133,7 +133,7 @@ export default function Page() {
       />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)]">
         <section className="rounded-xl border border-[#e3e9f0] bg-white p-6">
-          <h2 className="mt-0 text-base font-semibold">ข้อมูลหลักสินค้า</h2>
+          <h2 className="mt-0 text-base poppins-semibold">ข้อมูลหลักสินค้า</h2>
           <div className="grid gap-4 border-b border-[#e3e9f0] pb-5 text-sm sm:grid-cols-2">
             <Datum
               label="หมวดหมู่ยา"
@@ -233,7 +233,7 @@ export default function Page() {
           )}
         </section>
         <aside className="rounded-xl border border-[#e3e9f0] bg-white p-5">
-          <h2 className="mt-0 text-base font-semibold">สถานะคลัง</h2>
+          <h2 className="mt-0 text-base poppins-semibold">สถานะคลัง</h2>
           <p className="m-0 text-sm leading-6 text-[#718096]">
             คลังที่เลือกเป็นข้อมูลอ้างอิง ยังไม่มีการรับเข้า โอน ตัดสต็อก หรือยอดคงเหลือในโมดูลนี้
           </p>
@@ -241,7 +241,7 @@ export default function Page() {
       </div>
       {isAdmin && (
         <section className="rounded-xl border border-[#efc8c8] bg-white p-5">
-          <h2 className="mt-0 text-base font-semibold text-[#a63333]">
+          <h2 className="mt-0 text-base poppins-semibold text-[#a63333]">
             {product.deletedAt ? 'กู้คืนสินค้า' : 'ลบสินค้า'}
           </h2>
           <p className="text-sm text-[#718096]">
@@ -263,7 +263,7 @@ export default function Page() {
             onClick={() =>
               product.deletedAt ? void patch({ action: 'restore', reason }) : setConfirmDelete(true)
             }
-            className="mt-3 rounded-md border border-[#c74b4b] px-4 py-2 text-sm font-medium text-[#a63333] disabled:opacity-50"
+            className="mt-3 rounded-md border border-[#c74b4b] px-4 py-2 text-sm poppins-medium text-[#a63333] disabled:opacity-50"
           >
             {product.deletedAt ? 'กู้คืนสินค้า' : 'ลบสินค้า'}
           </button>
@@ -274,7 +274,7 @@ export default function Page() {
 }
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="text-xs font-medium text-[#53647c]">
+    <label className="text-xs poppins-medium text-[#53647c]">
       {label}
       {children}
     </label>
@@ -284,7 +284,7 @@ function Datum({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <span className="text-xs text-[#718096]">{label}</span>
-      <div className="mt-1 font-medium">{value}</div>
+      <div className="mt-1 poppins-medium">{value}</div>
     </div>
   );
 }

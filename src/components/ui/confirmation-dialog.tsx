@@ -61,7 +61,7 @@ export default function ConfirmationDialog({
         )
           onCancel();
       }}
-      className="fixed inset-0 m-auto max-h-[calc(100dvh_-_2rem)] w-[calc(100%_-_2rem)] max-w-md overflow-y-auto rounded-xl border border-[var(--line)] bg-[var(--surface)] p-0 text-[var(--ink-950)] shadow-xl backdrop:bg-black/50 motion-safe:transition-[opacity,transform] motion-safe:duration-200 starting:scale-95 starting:opacity-0"
+      className="fixed inset-0 m-auto max-h-[calc(100dvh_-_2rem)] w-[calc(100%_-_2rem)] max-w-md overflow-y-auto rounded-xl border border-gray-200 bg-white p-0 text-gray-900 shadow-xl backdrop:bg-black/50 motion-safe:transition-[opacity,transform] motion-safe:duration-200 starting:scale-95 starting:opacity-0"
     >
       <div className="relative px-7 py-7">
         <button
@@ -69,19 +69,19 @@ export default function ConfirmationDialog({
           aria-label="ยกเลิก"
           disabled={busy}
           onClick={onCancel}
-          className="absolute right-4 top-4 rounded p-1 text-[var(--ink-500)] hover:text-[var(--ink-950)] focus-visible:outline-2 focus-visible:outline-[var(--blue-700)] disabled:opacity-40"
+          className="absolute right-4 top-4 rounded p-1 text-gray-500 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-blue-700 disabled:opacity-40"
         >
           <CloseIcon className="h-5 w-5" />
         </button>
         <p
-          className={`mb-3 text-xs font-semibold ${variant === 'danger' ? 'text-red-700' : 'text-[var(--blue-700)]'}`}
+          className={`mb-3 text-xs poppins-semibold ${variant === 'danger' ? 'text-red-700' : 'text-blue-700'}`}
         >
           {variant === 'danger' ? 'ยืนยันการลบ' : 'ยืนยันการแก้ไข'}
         </p>
-        <h2 id={titleId} className="m-0 pr-5 text-xl font-semibold">
+        <h2 id={titleId} className="m-0 pr-5 text-xl poppins-semibold">
           {title}
         </h2>
-        <p id={descriptionId} className="mt-3 text-sm leading-6 text-[var(--ink-700)]">
+        <p id={descriptionId} className="mt-3 text-sm leading-6 text-gray-600">
           {description}
         </p>
         <div className="mt-7 flex flex-wrap justify-end gap-3">
@@ -90,7 +90,7 @@ export default function ConfirmationDialog({
             type="button"
             disabled={busy}
             onClick={onCancel}
-            className="rounded-lg border border-[var(--line)] px-5 py-2.5 text-sm font-medium hover:bg-[var(--canvas)] focus-visible:outline-2 focus-visible:outline-[var(--blue-700)] disabled:opacity-50"
+            className="rounded-lg border border-gray-200 px-5 py-2.5 text-sm poppins-medium hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-700 disabled:opacity-50"
           >
             ยกเลิก
           </button>
@@ -98,7 +98,7 @@ export default function ConfirmationDialog({
             type="button"
             disabled={busy}
             onClick={onConfirm}
-            className={`rounded-lg px-5 py-2.5 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 ${variant === 'danger' ? 'bg-red-700 hover:bg-red-800 focus-visible:outline-red-700' : 'bg-[var(--blue-700)] hover:bg-[var(--blue-800)] focus-visible:outline-[var(--blue-700)]'}`}
+            className={`rounded-lg px-5 py-2.5 text-sm poppins-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 ${variant === 'danger' ? 'bg-red-700 hover:bg-red-800 focus-visible:outline-red-700' : 'bg-blue-700 hover:bg-blue-800 focus-visible:outline-blue-700'}`}
           >
             {busy ? busyLabel : confirmLabel}
           </button>

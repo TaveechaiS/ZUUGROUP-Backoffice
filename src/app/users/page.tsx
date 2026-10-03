@@ -9,6 +9,7 @@ import StatusBadge from '@/components/ui/status-badge';
 import type { UsersListResponse } from '@/types/api/users';
 import { Get } from '@/service/http';
 import ListRequestState from '@/components/ui/list-request-state';
+import LoadingComponent from '@/components/ui/loading-component';
 
 export default function Page() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function Page() {
 
   return (
     <section className="flex flex-1 flex-col gap-5 p-6 pb-7" aria-label="จัดการผู้ใช้งาน">
-      <ListRequestState loading={loading} error={error || exportError} retry={reload} />
+      <ListRequestState error={error || exportError} retry={reload} />
       <div
         className="flex flex-wrap items-center gap-x-4 border-b border-[#e4e9f0]"
         role="tablist"
@@ -72,7 +73,7 @@ export default function Page() {
               setView(id);
               setPage(1);
             }}
-            className={`-mb-px min-h-10 border-b-2 px-1 pb-4 text-sm transition ${view === id ? 'border-[#1a58a7] font-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
+            className={`-mb-px min-h-10 border-b-2 px-1 pb-4 text-sm transition ${view === id ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
           >
             {label}
           </button>
@@ -126,14 +127,15 @@ export default function Page() {
         </label>
         <Link
           href="/users/create"
-          className="flex h-10 items-center rounded-lg bg-[#1a58a7] px-4 text-sm font-semibold text-white!"
+          className="flex h-10 items-center rounded-lg bg-[#1a58a7] px-4 text-sm poppins-semibold text-white!"
         >
           + เพิ่มผู้ใช้งาน
         </Link>
       </div>
-      <div className="overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white">
+      <div className="relative min-h-44 overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white" aria-busy={loading}>
+        <LoadingComponent isVisible={loading && !error} variant="content" label="กำลังโหลดรายการ..." />
         <table className="w-full min-w-[900px] border-collapse text-left">
-          <thead className="bg-[#f7f8fa] text-xs font-semibold text-[#2f3a4d]">
+          <thead className="bg-[#f7f8fa] text-xs poppins-semibold text-[#2f3a4d]">
             <tr>
               {[
                 'ผู้ใช้งาน',
@@ -167,12 +169,12 @@ export default function Page() {
                   className="cursor-pointer border-t border-[#edf0f4] text-sm text-[#526176] hover:bg-[#fafbfc] focus-visible:bg-[#eff5fc] focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
                 >
                   <td className="px-4 py-4">
-                    <span className="block font-semibold text-[#1a58a7]">{user.name}</span>
+                    <span className="block poppins-semibold text-[#1a58a7]">{user.name}</span>
                     <span className="block break-all text-xs">{user.email}</span>
                     <span className="text-xs">{user.employeeCode}</span>
                   </td>
                   <td className="px-4 py-4">{user.userRole?.role.name ?? 'ยังไม่มีบทบาท'}</td>
-                  <td className="px-4 py-4">{user.team || '—'}</td>
+                  <td className="px-4 py-4">{user.team || '-'}</td>
                   <td className="px-4 py-4 text-xs">
                     {user.deletedAt ? (
                       <>
@@ -183,7 +185,7 @@ export default function Page() {
                             ? `${user.deletedByUser.name} (${user.deletedByUser.employeeCode})`
                             : 'ไม่ทราบผู้ลบ'}
                         </span>
-                        <span className="block">เหตุผล: {user.deleteReason ?? '—'}</span>
+                        <span className="block">เหตุผล: {user.deleteReason ?? '-'}</span>
                       </>
                     ) : (
                       formatDate(user.lastLoginAt)

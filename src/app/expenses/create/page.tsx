@@ -163,7 +163,7 @@ export default function Page() {
       <Link href={entity.page} className="text-sm text-[#1a58a7]">
         ← {entity.title}
       </Link>
-      <h1 className="m-0 text-xl font-semibold">{entity.action}</h1>
+      <h1 className="m-0 text-xl poppins-semibold">{entity.action}</h1>
       <form
         noValidate
         onSubmit={save}

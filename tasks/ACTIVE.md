@@ -1,5 +1,47 @@
 # งานที่กำลังทำ
 
+## TASK-085 ตรวจรับและ checkpoint — 2026-10-03
+
+- CHECKPOINTED เจ้าของยืนยัน “ok แล้ว” กับรายการตรวจ UI/เพิ่มแก้ลบกู้คืน/confirmation/SuccessAlert/search/pagination และ commit/checkpoint รอบล่าสุด. บันทึกตรวจรับ TASK-078–084 พร้อม `tasks/CHECKPOINT-2026-10-03.md` บน AI ต่อจาก c7a3c92. ตรวจ staged 93 ไฟล์/diff/credential ผ่าน ไม่มี env/snapshots/secret เข้า Git; hash ดู Git log. Deploy ยังพักและรายละเอียดธุรกิจรอข้อมูลจริง.
+
+## TASK-084 เครื่องหมายเมื่อไม่มีข้อมูล — 2026-10-03
+
+- COMPLETE เจ้าของตรวจรับรายการล่าสุดแล้ว 2026-10-03; เปลี่ยน fallback แสดงผล 37 ไฟล์: ฟิลด์รายละเอียด 62 จุดใช้ `?? '-'` พร้อมรองรับข้อความว่าง, ชื่อสัมพันธ์ 8 จุด และ Role ใน Header; placeholder ขีดยาวเดิมใน UI เป็น `-` ทั้งหมด. คงค่าว่างที่ใช้ฟอร์ม/search/ID/API. lint/type-check/diff-check ผ่าน; รอเจ้าของตรวจข้อมูล optional ว่างและค่า 0 ตาม `tasks/TASK-084-empty-display.md`.
+
+## TASK-083 มาตรฐานคลาสสีและ Poppins — 2026-10-03
+
+- COMPLETE เจ้าของตรวจรับรายการล่าสุดแล้ว 2026-10-03; แก้ตามคำยืนยันเจ้าของแล้ว: เปลี่ยนเฉพาะสีที่เดิมอ้าง var เป็นชื่อ Tailwind; คืนค่า #hex เดิมครบ 63 ไฟล์/1,987 จุด และสีหลัก #1a58a7 ผ่าน blue theme tokens เดิม 11 ระดับ. คงงานฟอนต์/Loading/Header/fallback ที่ทำแล้ว. แก้กติกา AGENTS/Specs/Plan ให้รักษา hex เดิม. ตรวจเทียบค่า hex/lint/type-check/build ผ่าน; รอเจ้าของตรวจสีหน้าจอ.
+
+- ผลรอบแรกที่แปลง hex เป็น palette ถูกแทนที่ด้วยข้อแก้ไขข้างต้นตามคำยืนยันเจ้าของ. รายละเอียดใน `tasks/TASK-083-tailwind-colors-poppins.md`.
+
+## TASK-082 ล็อกแถบสีและ Header — 2026-10-03
+
+- COMPLETE เจ้าของตรวจรับรายการล่าสุดแล้ว 2026-10-03; ถอนการล็อก Header ตอนเลื่อนแล้ว: wrapper ใช้ border สี 10px ตาม flow ปกติ ไม่มี sticky/top/z-index. Header และแถบสีเลื่อนตามหน้าทั้ง desktop/mobile. ESLint เฉพาะไฟล์/type-check/diff-check ผ่าน. ข้อความรอบทดลอง sticky ด้านล่างเป็นประวัติที่ถูกแทนที่ด้วยคำขอล่าสุด.
+
+- READY_FOR_USER_TEST คืน Header แบบ sticky ร่วมกับแถบสีตามคำขอล่าสุดแล้ว. Desktop top 0; mobile ใต้เมนูหลักตามสถานะย่อ/ขยาย. ESLint เฉพาะไฟล์และ type-check ผ่าน. การทดลองติดเฉพาะแถบสีด้านล่างเป็นประวัติที่ถูกแทนที่แล้ว.
+
+- READY_FOR_USER_TEST งานติดตามล่าสุด: แยกแถบสี 10px เป็น sticky element ก่อน Header แล้ว; Header ชื่อหน้า/วันที่/บัญชีเลื่อนพร้อมเนื้อหา. Desktop แถบสีติด top 0; mobile ใต้เมนูหลักตามสถานะย่อ/ขยาย. ESLint เฉพาะไฟล์/type-check/Prettier/diff-check ผ่าน. รอเจ้าของเลื่อนหน้าตรวจเฉพาะแถบสีตาม TASK-082.
+
+- ผลรอบแรกที่ล็อก Header ร่วมกับแถบสีถูกแทนที่ด้วยคำขอล่าสุดให้ติดเฉพาะแถบสี.
+
+## TASK-081 โลโก้ Loading — 2026-10-02
+
+- COMPLETE เจ้าของตรวจรับรายการล่าสุดแล้ว 2026-10-03; งานติดตาม 2026-10-03: ลดตัวโลโก้ให้ใกล้ขนาดไอคอนเดิม (~56px เต็มจอ/~32px ในตาราง) และคืนวงแหวนสองชั้นใน `src/components/ui/loading-component.tsx`; ใช้ภาพเดิม ไม่แก้ API/DB. lint, type-check แบบไม่เขียน incremental cache, build, Prettier, diff-check ผ่าน; รอเจ้าของตรวจ Loading ทั้งสองแบบและ reduced motion. รายละเอียดใน `tasks/TASK-081-loading-logo.md`.
+
+- READY_FOR_USER_TEST เจ้าของระบุไฟล์จริง `public/Logoloading.png` ให้ใช้แทนไอคอน Loading. ตรวจภาพแล้วเป็น RGBA พื้นหลังโปร่งใส 594×420; ใช้ไฟล์เดิมตรง ๆ ทั้งเต็มหน้าจอ/ตาราง โดยจัดขนาดใน component ตามขอบ alpha และไม่ทับ `public/logo.png`. lint/type-check/build/Prettier/diff-check ผ่านก่อนปรับช่องว่างกรอบตารางเล็กน้อย; รอ UAT desktop/mobile/reduced motion. รายละเอียดใน `tasks/TASK-081-loading-logo.md`.
+
+## TASK-080 Loading ในพื้นที่ตาราง — 2026-10-02
+
+- COMPLETE เจ้าของตรวจรับรายการล่าสุดแล้ว 2026-10-03; เจ้าของยืนยันหน้า `[id]` ใช้ได้แล้ว และขอให้ระหว่างพิมพ์ค้นหา/เปลี่ยนตัวกรอง Loading แสดงในกรอบตารางหรือส่วนข้อมูลแทน overlay ทั้งจอ. เพิ่ม content variant และย้ายจุดแสดงครบ 21 หน้ารายการ (โมดูล 18, สินค้า/ผู้ใช้/Audit 3); คง route/session loading เต็มจอและ detail loading เดิม. lint/type-check/build/route check/diff-check ผ่าน; รอเจ้าของ UAT desktop/mobile. ไม่แก้ API/DB; รายละเอียดใน `tasks/TASK-080-table-loading.md`.
+
+## TASK-079 ตรวจหน้า `[id]` 404 — 2026-10-02
+
+- COMPLETE เจ้าของยืนยัน 2026-10-02 ว่าหน้า `[id]` ใช้ได้แล้วหลังล้าง dev cache/เริ่ม dev ใหม่. รายละเอียดใน `tasks/TASK-079-id-route-404.md`; ไม่แก้ DB/API/ธุรกิจ.
+
+## TASK-078 Dashboard retry Loading — 2026-10-02
+
+- COMPLETE เจ้าของตรวจรับรายการล่าสุดแล้ว 2026-10-03; ติดตาม TASK-059 ที่อนุมัติแล้ว: `src/app/page.tsx` หลังโหลด Dashboard ผิดพลาด กด “ลองใหม่” จะล้าง error ก่อนส่งคำขอใหม่ ทำให้ Loading ปรากฏระหว่างรอ. ขอบเขต Specs/Plan TASK-059, `tasks/TASK-078-dashboard-retry-loading.md`, `tasks/ACTIVE.md` และ handler retry ใน Dashboard เท่านั้น. lint/type-check/diff-check ผ่าน; type-check ต้องสร้าง Next route types ใหม่และลบ validator ที่ Next dev สร้างค้าง. ไม่แก้ API/DB; รอเจ้าของ UAT.
+
 ## TASK-077 Commit และ checkpoint — 2026-10-02
 
 - CHECKPOINTED เจ้าของสั่งcommit/checkpoint รวมworkingtreeหลัง17c7423 TASK-063–076 บนAI บันทึกพร้อมtasks/CHECKPOINT-2026-10-02.md/TASK-077 ตรวจstaged282files/diff/credentialผ่าน ไม่มีenv/snapshotsเข้าGit ไม่เปลี่ยนพฤติกรรม/DB ไม่push/deploy hashดูGit logและผลส่งมอบ ดูcheckpointสำหรับUATค้างและงานต่อ

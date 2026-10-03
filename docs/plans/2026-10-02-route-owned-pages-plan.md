@@ -21,3 +21,6 @@
 ใช้ Next.js client page สำหรับ interaction และ server layout/data boundary ตามจำเป็น มี auth guard ที่ API ทุก mutation คงเดิม ไม่ใช้ hooks ใน Server Component ไม่ย้าย DB/secret เข้า browser อ่าน local Next guides ก่อนแก้โค้ด
 
 Alias /customers/list/create และ report create ที่เดิม redirect คง redirect ไม่สร้าง flow ใหม่ ไม่เปลี่ยน Sidebar/Topbar/StatusBadgeมาตรฐาน ไม่ commit/push โดยไม่ได้รับคำสั่ง
+# งานติดตาม TASK-079 — ตรวจหน้า `[id]` 404
+
+ลำดับ: อ่าน ACTIVE และ URL/link/page/API ที่เกี่ยวข้อง → เทียบ route source กับ `.next/types` และ `.next/dev/types` → ล้างเฉพาะ dev cache เก่าภายใน workspace และสร้าง route ใหม่ → ตรวจ route offline/HTTP ที่รันได้ → บันทึกผลและให้เจ้าของลอง URL จริง. ไฟล์ที่เปลี่ยน: Specs/Plan นี้, `tasks/ACTIVE.md`, `tasks/TASK-079-id-route-404.md`; generated `.next/dev` ไม่อยู่ใน Git. ไม่แก้ source/API/DB ถ้าสาเหตุเป็น cache. ตรวจรับ: generated route ไม่มี `[ref]` เก่า และหน้ารายละเอียดเปิดจากลิงก์เดิมหลัง restart dev.

@@ -140,14 +140,14 @@ export default function Page() {
         <Link href="/products" className="text-sm text-[#1a58a7] hover:underline">
           ← กลับไปรายการสินค้า
         </Link>
-        <h1 className="mb-0 mt-3 text-2xl font-semibold">เพิ่มสินค้า</h1>
+        <h1 className="mb-0 mt-3 text-2xl poppins-semibold">เพิ่มสินค้า</h1>
       </header>
       <form
         onSubmit={create}
         className="grid max-w-4xl gap-6 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm"
       >
         <section>
-          <h2 className="mt-0 text-base font-semibold">รหัสและข้อมูลอ้างอิง</h2>
+          <h2 className="mt-0 text-base poppins-semibold">รหัสและข้อมูลอ้างอิง</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="หมวดหมู่ยา">
               <select
@@ -230,7 +230,7 @@ export default function Page() {
           </div>
         </section>
         <section>
-          <h2 className="mt-0 text-base font-semibold">ข้อมูลสินค้า</h2>
+          <h2 className="mt-0 text-base poppins-semibold">ข้อมูลสินค้า</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="ชื่อสินค้า">
               <input className={inputClass} name="name" required maxLength={160} />
@@ -279,7 +279,7 @@ export default function Page() {
         </div>
       </form>
       <details className="max-w-4xl rounded-md border border-[#d9e3ee] bg-white p-4">
-        <summary className="cursor-pointer text-sm font-semibold text-[#1a58a7]">
+        <summary className="cursor-pointer text-sm poppins-semibold text-[#1a58a7]">
           + เพิ่มหมวด รูปแบบยา หรือตัวยาใหม่
         </summary>
         <form onSubmit={addMaster} className="mt-4">
@@ -322,7 +322,7 @@ export default function Page() {
           </div>
           <button
             disabled={busy || masterBusy || Boolean(successTitle)}
-            className="mt-3 rounded-md border border-[#1a58a7] bg-[#1a58a7] px-3 py-2 text-sm font-medium text-white hover:bg-[#174a8b] disabled:opacity-50"
+            className="mt-3 rounded-md border border-[#1a58a7] bg-[#1a58a7] px-3 py-2 text-sm poppins-medium text-white hover:bg-[#174a8b] disabled:opacity-50"
           >
             {masterBusy ? 'กำลังเพิ่ม...' : 'เพิ่มรายการแม่'}
           </button>
@@ -333,7 +333,7 @@ export default function Page() {
 }
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="text-xs font-medium text-[#53647c]">
+    <label className="text-xs poppins-medium text-[#53647c]">
       {label}
       {children}
     </label>

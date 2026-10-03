@@ -81,10 +81,10 @@ function toneFor(value: string): StatusTone {
 export default function StatusBadge({ value }: { value: string }) {
   return (
     <span
-      className={`inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ${tones[toneFor(value)]}`}
+      className={`inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1.5 text-sm poppins-semibold ${tones[toneFor(value)]}`}
     >
       <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-current" />
-      <span className="min-w-0 whitespace-normal [overflow-wrap:anywhere]">{value || '—'}</span>
+      <span className="min-w-0 whitespace-normal [overflow-wrap:anywhere]">{value || '-'}</span>
     </span>
   );
 }

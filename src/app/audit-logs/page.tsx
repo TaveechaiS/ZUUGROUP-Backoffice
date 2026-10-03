@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { AuditListResponse } from '@/types/api/audit';
 import { Get } from '@/service/http';
 import ListRequestState from '@/components/ui/list-request-state';
+import LoadingComponent from '@/components/ui/loading-component';
 import type { AuditRow, AuditFiltersResponse } from '@/types/api/audit';
 
 const actionNames: Record<string, string> = {
@@ -64,14 +65,13 @@ export default function Page() {
       aria-label="ประวัติการทำรายการ"
     >
       <ListRequestState
-        loading={loading}
         error={error}
         retry={() => {
           reload();
         }}
       />
       <header>
-        <h1 className="m-0 text-2xl font-semibold">ประวัติการทำรายการ</h1>
+        <h1 className="m-0 text-2xl poppins-semibold">ประวัติการทำรายการ</h1>
       </header>
       <form
         onSubmit={search}
@@ -104,13 +104,14 @@ export default function Page() {
             ))}
           </select>
         </label>
-        <button className="h-10 rounded-lg bg-[#1a58a7] px-4 text-sm font-semibold text-white">
+        <button className="h-10 rounded-lg bg-[#1a58a7] px-4 text-sm poppins-semibold text-white">
           ค้นหา
         </button>
       </form>
-      <div className="overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white">
+      <div className="relative min-h-44 overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white" aria-busy={loading}>
+        <LoadingComponent isVisible={loading && !error} variant="content" label="กำลังโหลดรายการ..." />
         <table className="w-full min-w-[850px] border-collapse text-left text-sm">
-          <thead className="bg-[#f7f8fa] text-xs font-semibold text-[#2f3a4d]">
+          <thead className="bg-[#f7f8fa] text-xs poppins-semibold text-[#2f3a4d]">
             <tr>
               {[
                 'วันเวลา',
@@ -130,25 +131,25 @@ export default function Page() {
               <tr key={event.id} className="border-t border-[#edf0f4] align-top text-[#526176]">
                 <td className="whitespace-nowrap px-4 py-4">{formatDate(event.occurredAt)}</td>
                 <td className="px-4 py-4">
-                  <span className="font-medium text-[#26364b]">{actionName(event.action)}</span>
+                  <span className="poppins-medium text-[#26364b]">{actionName(event.action)}</span>
                   <span className="mt-1 block text-xs text-[#8492a6]">{event.action}</span>
                 </td>
                 <td className="px-4 py-4">
                   {event.actor?.name ?? 'ระบบ'}
                   <span className="block text-xs text-[#8492a6]">
                     {event.actor?.employeeCode ? `${event.actor?.employeeCode} · ` : ''}
-                    {event.actorRole ?? '—'}
+                    {event.actorRole ?? '-'}
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  {event.target?.name ?? '—'}
+                  {event.target?.name ?? '-'}
                   {event.target?.employeeCode && (
                     <span className="block text-xs text-[#8492a6]">
                       {event.target?.employeeCode}
                     </span>
                   )}
                 </td>
-                <td className="break-all px-4 py-4 font-mono text-xs">{event.requestId}</td>
+                <td className="break-all px-4 py-4 poppins-regular text-xs">{event.requestId}</td>
               </tr>
             ))}
           </tbody>

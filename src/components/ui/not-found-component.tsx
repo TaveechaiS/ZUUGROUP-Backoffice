@@ -29,21 +29,21 @@ export default function NotFoundComponent({
         <EmptyStateIcon className="relative h-24 w-24 text-[#aab7c9]" />
       </div>
       <div className="space-y-2">
-        <h2 className="m-0 text-xl font-semibold text-[#26364b]">{title}</h2>
+        <h2 className="m-0 text-xl poppins-semibold text-[#26364b]">{title}</h2>
         <p className="m-0 max-w-md text-sm leading-6 text-[#718096]">{description}</p>
       </div>
       <div className="flex flex-wrap justify-center gap-3">
         <button
           type="button"
           onClick={onRefresh ?? (() => window.location.reload())}
-          className="rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
+          className="rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-semibold text-white transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
         >
           {refreshLabel}
         </button>
         <button
           type="button"
           onClick={onBack ?? (() => window.history.back())}
-          className="rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-sm font-semibold text-[#344256] transition hover:bg-[#f7f9fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
+          className="rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-sm poppins-semibold text-[#344256] transition hover:bg-[#f7f9fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
         >
           {backLabel}
         </button>

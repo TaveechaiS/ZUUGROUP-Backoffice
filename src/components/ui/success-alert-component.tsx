@@ -91,7 +91,7 @@ export default function SuccessAlertComponent({
           </button>
         )}
         <SuccessIcon className="mx-auto mb-5 h-20 w-20 motion-safe:animate-[pulse_800ms_ease-out_1]" />
-        <h2 id={titleId} className="m-0 text-xl font-semibold text-[#26364b]">
+        <h2 id={titleId} className="m-0 text-xl poppins-semibold text-[#26364b]">
           {title}
         </h2>
         {description && (
@@ -103,7 +103,7 @@ export default function SuccessAlertComponent({
           ref={actionRef}
           type="button"
           onClick={onClose}
-          className="mt-6 min-w-32 rounded-lg bg-[#1a58a7] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
+          className="mt-6 min-w-32 rounded-lg bg-[#1a58a7] px-6 py-2.5 text-sm poppins-semibold text-white transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
         >
           {textButton}
         </button>

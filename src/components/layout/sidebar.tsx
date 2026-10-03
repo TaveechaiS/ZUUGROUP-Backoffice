@@ -47,7 +47,7 @@ export function Sidebar({ collapsed, onToggle, roleId }: { collapsed: boolean; o
 
   return (
     <aside
-      className={`sticky inset-x-0 top-0 z-[5] block h-auto w-full overflow-visible bg-[var(--blue-700)] text-white md:fixed md:inset-y-0 md:right-auto md:flex md:h-full md:overflow-hidden ${collapsed ? 'md:w-[var(--collapsed-sidebar-width)]' : 'md:w-[var(--expanded-sidebar-width)]'}`}
+      className={`sticky inset-x-0 top-0 z-[5] block h-auto w-full overflow-visible bg-blue-700 text-white md:fixed md:inset-y-0 md:right-auto md:flex md:h-full md:overflow-hidden ${collapsed ? 'md:w-[var(--collapsed-sidebar-width)]' : 'md:w-[var(--expanded-sidebar-width)]'}`}
       aria-label="เมนูหลัก"
     >
       <div
@@ -112,7 +112,7 @@ export function Sidebar({ collapsed, onToggle, roleId }: { collapsed: boolean; o
                     return (
                       <li key={page.href}>
                         <Link
-                          className={`flex min-h-[35px] items-center gap-[7px] whitespace-nowrap rounded-md border border-white/[0.15] px-2.5 text-xs poppins-regular text-white md:min-h-[43px] md:gap-[13px] md:rounded-sm md:border-0 md:px-3 md:text-sm ${active ? 'border-white bg-white/[0.13] md:shadow-[inset_3px_0_#fff]' : ''}`}
+                          className={`flex min-h-[35px] items-center gap-[7px] whitespace-nowrap rounded-md border border-white/15 px-2.5 text-xs poppins-regular text-white md:min-h-[43px] md:gap-[13px] md:rounded-sm md:border-0 md:px-3 md:text-sm ${active ? 'border-white bg-white/13 md:shadow-[inset_3px_0_#fff]' : ''}`}
                           href={page.href}
                           aria-current={active ? 'page' : undefined}
                         >

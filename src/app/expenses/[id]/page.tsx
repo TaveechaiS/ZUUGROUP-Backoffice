@@ -181,7 +181,7 @@ export default function Page() {
       </Link>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="m-0 text-xl font-semibold">{row.name}</h1>
+          <h1 className="m-0 text-xl poppins-semibold">{row.name}</h1>
           <p className="text-sm text-[#718096]">
             {row.code} · แก้ไขล่าสุด {date.format(new Date(row.updatedAt))}
           </p>
@@ -203,11 +203,11 @@ export default function Page() {
       <dl className="grid max-w-4xl gap-4 rounded-xl border border-[#d9e3ee] bg-white p-5 sm:grid-cols-2">
         <div>
           <dt className="text-xs text-[#718096]">รหัส / เลขอ้างอิง</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{row.code || '—'}</dd>
+          <dd className="m-0 mt-1 break-words text-sm">{row.code || '-'}</dd>
         </div>
         <div>
           <dt className="text-xs text-[#718096]">ชื่อ / หัวข้อ</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{row.name || '—'}</dd>
+          <dd className="m-0 mt-1 break-words text-sm">{row.name || '-'}</dd>
         </div>
         <div>
           <dt className="text-xs text-[#718096]">สถานะ</dt>
@@ -217,28 +217,28 @@ export default function Page() {
         </div>
         <div>
           <dt className="text-xs text-[#718096]">หมวดค่าใช้จ่าย</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.category ?? '') || '—'}</dd>
+          <dd className="m-0 mt-1 break-words text-sm">{String(row.category ?? '-') || '-'}</dd>
         </div>
         <div>
           <dt className="text-xs text-[#718096]">รายละเอียด</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.description ?? '') || '—'}</dd>
+          <dd className="m-0 mt-1 break-words text-sm">{String(row.description ?? '-') || '-'}</dd>
         </div>
         <div>
           <dt className="text-xs text-[#718096]">ผู้ดูแล / ผู้บันทึก</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.owner ?? '') || '—'}</dd>
+          <dd className="m-0 mt-1 break-words text-sm">{String(row.owner ?? '-') || '-'}</dd>
         </div>
         <div>
           <dt className="text-xs text-[#718096]">จำนวนเงิน</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.amount ?? '') || '—'}</dd>
+          <dd className="m-0 mt-1 break-words text-sm">{String(row.amount ?? '-') || '-'}</dd>
         </div>
         <div>
           <dt className="text-xs text-[#718096]">หมายเหตุ</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.notes ?? '') || '—'}</dd>
+          <dd className="m-0 mt-1 break-words text-sm">{String(row.notes ?? '-') || '-'}</dd>
         </div>
       </dl>
       {config.canWrite && (
         <div className="max-w-4xl rounded-xl border border-red-200 p-5">
-          <h2 className="text-sm font-semibold text-red-700">ลบรายการ</h2>
+          <h2 className="text-sm poppins-semibold text-red-700">ลบรายการ</h2>
           <label className="block text-sm">
             เหตุผล
             <input
@@ -441,7 +441,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
       <Link href={entity.page} className="text-sm text-[#1a58a7]">
         ← {entity.title}
       </Link>
-      <h1 className="m-0 text-xl font-semibold">
+      <h1 className="m-0 text-xl poppins-semibold">
         {record ? 'แก้ไข' + entity.title : entity.action}
       </h1>
       <form

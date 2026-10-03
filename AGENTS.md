@@ -12,7 +12,7 @@
 10. ก่อนแก้ไฟล์ทุกครั้ง ให้อ่าน `tasks/ACTIVE.md` และบันทึก/ปรับ Task ให้ระบุขอบเขตเฉพาะของงานนั้น
 11. บันทึกข้อมูลและข้อกำหนดใหม่ที่เจ้าของโครงการให้ไว้ใน Specs; ปรับ Plan ให้สอดคล้องก่อนเริ่มลงมือ หากข้อมูลขัดกันหรือเปลี่ยนขอบเขต ให้หยุดส่วนที่ได้รับผลกระทบและแก้ Specs/Plan ก่อนเขียนโค้ด
 12. งานย่อยต้องมีแผนย่อยที่บอกลำดับ ผลลัพธ์ ไฟล์ที่จะเปลี่ยน และวิธีตรวจรับ แม้งานนั้นอยู่ใน Phase ที่อนุมัติแล้วก็ตาม
-13. สไตล์ของ Sidebar, Topbar, พื้นที่เนื้อหา และ placeholder ให้เขียนด้วย Tailwind utility ใน `className` ของ component เช่น `text-sm font-bold`, `md:px-5`, `bg-[var(--blue-700)]`; ใช้ `globals.css` เฉพาะ imports, design tokens และกฎพื้นฐานของทั้งแอป ตาม [ข้อกำหนดสั้น](docs/specs/2026-09-24-ui-inline-utilities.md)
+13. สไตล์ของ UI ให้เขียนใน `className` เช่น `text-sm poppins-bold`, `md:px-5`, `bg-blue-700`, `border-gray-100`. เปลี่ยนเฉพาะคลาสสีที่อ้าง `var(--สี)` เป็นชื่อ Tailwind; สีที่กำหนดเป็น `#hex` ให้คงค่าตามเจ้าของ ห้ามแทนด้วยสี palette อื่น. สีหลักเดิมรักษาผ่าน Tailwind theme tokens ใน globals.css. น้ำหนักฟอนต์ใช้ `poppins-thin/extralight/light/regular/medium/semibold/bold/extrabold/black` ที่อยู่ใน CSS แทน `font-*` ทุกน้ำหนัก. ใช้ `globals.css` สำหรับ imports, theme/tokens ขนาด, ฟอนต์ และกฎพื้นฐานของแอป ตาม [ข้อกำหนดล่าสุด](docs/specs/2026-10-03-tailwind-colors-poppins.md)
 
 14. ทุกหน้าที่แสดงป้ายสถานะ รวมถึงสถานะใหม่ในอนาคต ต้องใช้ `src/components/ui/status-badge.tsx` ตาม [มาตรฐานป้ายสถานะ](docs/STATUS-BADGE-GUIDE.md): พื้นหลังระดับ `50`, ตัวหนังสือระดับ `600`, มุมมนและจุดสีด้านหน้า. เพิ่มการจับคู่สีใน component กลาง ห้ามเขียน pill/style สถานะแยกในแต่ละหน้า; คงข้อความและค่าธุรกิจจริง. คอลัมน์ที่แสดงสถานะต้องมีหัวชื่อ `สถานะ` และใช้ `scope="col"`; ตรวจทั้ง desktop และ mobile.
 

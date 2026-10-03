@@ -182,7 +182,7 @@ export default function Page() {
           ← กลับไปรายชื่อผู้ใช้งาน
         </Link>
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <h2 className="text-xl font-semibold text-[#26364b]">{user.name}</h2>
+          <h2 className="text-xl poppins-semibold text-[#26364b]">{user.name}</h2>
           <StatusBadge
             value={
               user.deletedAt ? 'ลบแล้ว' : user.status === 'ACTIVE' ? 'ใช้งานอยู่' : 'ระงับการใช้งาน'
@@ -207,14 +207,14 @@ export default function Page() {
       {user.deletedAt ? (
         <div className="grid max-w-3xl gap-5">
           <div className="rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm">
-            <h3 className="text-base font-semibold text-[#26364b]">ข้อมูลการลบ</h3>
+            <h3 className="text-base poppins-semibold text-[#26364b]">ข้อมูลการลบ</h3>
             <dl className="mt-4 grid gap-3 text-sm text-[#526176]">
               <div>
-                <dt className="font-medium">ลบเมื่อ</dt>
+                <dt className="poppins-medium">ลบเมื่อ</dt>
                 <dd>{formatDate(user.deletedAt)}</dd>
               </div>
               <div>
-                <dt className="font-medium">ลบโดย</dt>
+                <dt className="poppins-medium">ลบโดย</dt>
                 <dd>
                   {user.deletedByUser
                     ? `${user.deletedByUser.name} (${user.deletedByUser.employeeCode})`
@@ -222,8 +222,8 @@ export default function Page() {
                 </dd>
               </div>
               <div>
-                <dt className="font-medium">เหตุผล</dt>
-                <dd className="whitespace-pre-wrap">{user.deleteReason ?? '—'}</dd>
+                <dt className="poppins-medium">เหตุผล</dt>
+                <dd className="whitespace-pre-wrap">{user.deleteReason ?? '-'}</dd>
               </div>
             </dl>
           </div>
@@ -232,7 +232,7 @@ export default function Page() {
             className="grid gap-4 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm"
           >
             <div>
-              <h3 className="text-base font-semibold text-[#26364b]">กู้คืนผู้ใช้งาน</h3>
+              <h3 className="text-base poppins-semibold text-[#26364b]">กู้คืนผู้ใช้งาน</h3>
               <p className="mt-1 text-sm text-[#718096]">กู้คืนแล้วบัญชีจะกลับไปใช้สถานะเดิม</p>
             </div>
             <Field label="เหตุผลการกู้คืน">
@@ -260,7 +260,7 @@ export default function Page() {
               className="grid gap-4 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm"
             >
               <div>
-                <h3 className="text-base font-semibold text-[#26364b]">ข้อมูลบัญชี</h3>
+                <h3 className="text-base poppins-semibold text-[#26364b]">ข้อมูลบัญชี</h3>
                 <p className="mt-1 text-xs text-[#718096]">
                   แก้รหัสพนักงานแล้ว URL ของหน้านี้จะเปลี่ยนตาม
                 </p>
@@ -308,7 +308,7 @@ export default function Page() {
                 onSubmit={changeRole}
                 className="grid gap-4 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm"
               >
-                <h3 className="text-base font-semibold text-[#26364b]">บทบาทและสิทธิ์</h3>
+                <h3 className="text-base poppins-semibold text-[#26364b]">บทบาทและสิทธิ์</h3>
                 <Field label="บทบาท">
                   <select
                     key={user.userRole?.roleId}
@@ -333,7 +333,7 @@ export default function Page() {
                 </button>
               </form>
               <div className="rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm">
-                <h3 className="text-base font-semibold text-[#26364b]">สถานะบัญชี</h3>
+                <h3 className="text-base poppins-semibold text-[#26364b]">สถานะบัญชี</h3>
                 <p className="mt-2 text-sm text-[#718096]">
                   {user.status === 'ACTIVE'
                     ? 'ผู้ใช้นี้เข้าสู่ระบบได้'
@@ -352,7 +352,7 @@ export default function Page() {
                 onSubmit={resetPassword}
                 className="grid gap-4 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm"
               >
-                <h3 className="text-base font-semibold text-[#26364b]">ตั้งรหัสผ่านใหม่</h3>
+                <h3 className="text-base poppins-semibold text-[#26364b]">ตั้งรหัสผ่านใหม่</h3>
                 <Field label="รหัสผ่านใหม่ (ขั้นต่ำ 8 ตัวอักษร)">
                   <input
                     name="password"
@@ -380,7 +380,7 @@ export default function Page() {
             className="grid max-w-5xl gap-4 rounded-xl border border-[#f2d5d1] bg-white p-6 shadow-sm"
           >
             <div>
-              <h3 className="text-base font-semibold text-[#a33c32]">ลบผู้ใช้งาน</h3>
+              <h3 className="text-base poppins-semibold text-[#a33c32]">ลบผู้ใช้งาน</h3>
               <p className="mt-1 text-sm text-[#718096]">
                 ซ่อนจากรายชื่อปกติและปิดการเข้าถึง บัญชียังกู้คืนได้โดย Admin
               </p>
@@ -397,7 +397,7 @@ export default function Page() {
             </Field>
             <button
               disabled={busy || Boolean(message) || isSelf}
-              className="justify-self-end rounded border border-[#d48b84] px-4 py-2 text-sm font-medium text-[#a33c32] disabled:opacity-50"
+              className="justify-self-end rounded border border-[#d48b84] px-4 py-2 text-sm poppins-medium text-[#a33c32] disabled:opacity-50"
             >
               ลบผู้ใช้งาน
             </button>
@@ -410,7 +410,7 @@ export default function Page() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="text-sm font-medium text-[#35465d]">
+    <label className="text-sm poppins-medium text-[#35465d]">
       {label}
       {children}
     </label>

@@ -35,7 +35,7 @@ export default function PaginationControls({
             type="button"
             aria-current={page === number ? 'page' : undefined}
             onClick={() => onChange(number)}
-            className={`h-9 min-w-9 rounded border px-1 text-sm ${page === number ? 'border-[#1a58a7] bg-[#1a58a7] font-semibold text-white' : 'border-[#e3e9f0] text-[#758195] hover:bg-[#f7f9fc]'}`}
+            className={`h-9 min-w-9 rounded border px-1 text-sm ${page === number ? 'border-[#1a58a7] bg-[#1a58a7] poppins-semibold text-white' : 'border-[#e3e9f0] text-[#758195] hover:bg-[#f7f9fc]'}`}
           >
             {number}
           </button>

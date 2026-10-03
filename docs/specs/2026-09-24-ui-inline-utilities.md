@@ -1,5 +1,7 @@
 # ข้อกำหนดสั้น — ย้ายสไตล์ UI ไปที่ className
 
+> รูปแบบล่าสุดตาม [TASK-083](2026-10-03-tailwind-colors-poppins.md): เปลี่ยนเฉพาะคลาสสีที่อ้าง var เป็นชื่อ Tailwind เช่น `bg-blue-700`, `border-gray-100`; คงสี #hex และสีหลักตามเจ้าของ. ใช้ `poppins-semibold`/น้ำหนัก Poppins อื่น ๆ ทุกหน้า.
+
 ## สถานะ Combobox — TASK-070
 
 เจ้าของขอ 2026-10-02 ให้ status ในฟอร์มรายโมดูลเป็น combobox เลือกได้ ใช้สถานะจริงผ่าน filters API รวมค่าเดิมและค่าเริ่มต้นเดิม ไม่ส่งคำค้นเป็นสถานะ ตาม tasks/TASK-070-status-combobox.md

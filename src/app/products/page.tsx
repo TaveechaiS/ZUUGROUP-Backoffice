@@ -10,6 +10,7 @@ import StatusBadge from '@/components/ui/status-badge';
 import type { ProductsListResponse } from '@/types/api/products';
 import { Get } from '@/service/http';
 import ListRequestState from '@/components/ui/list-request-state';
+import LoadingComponent from '@/components/ui/loading-component';
 import PaginationControls from '@/components/ui/pagination-controls';
 
 export default function Page() {
@@ -41,17 +42,16 @@ export default function Page() {
   return (
     <main className="flex flex-1 flex-col gap-5 p-6 pb-10 text-[#26364b]">
       <ListRequestState
-        loading={loading}
         error={error}
         retry={() => {
           reload();
         }}
       />
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="m-0 text-2xl font-semibold">สินค้า</h1>
+        <h1 className="m-0 text-2xl poppins-semibold">สินค้า</h1>
         {isAdmin && (
           <Link
-            className="rounded-md bg-[#1a58a7] px-4 py-2.5 text-sm font-semibold text-white! hover:bg-[#174a8b]"
+            className="rounded-md bg-[#1a58a7] px-4 py-2.5 text-sm poppins-semibold text-white! hover:bg-[#174a8b]"
             href="/products/create"
           >
             + เพิ่มสินค้า
@@ -79,7 +79,7 @@ export default function Page() {
                 setTab(key);
                 setPage(1);
               }}
-              className={`border-b-2 px-1 pb-3 text-sm ${tab === key ? 'border-[#1a58a7] font-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
+              className={`border-b-2 px-1 pb-3 text-sm ${tab === key ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
             >
               {label}
             </button>
@@ -133,7 +133,8 @@ export default function Page() {
         </label>
       </div>
       <p className="m-0 text-sm text-[#718096]">พบ {total} รายการ</p>
-      <div className="overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white">
+      <div className="relative min-h-44 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white" aria-busy={loading}>
+        <LoadingComponent isVisible={loading && !error} variant="content" label="กำลังโหลดรายการ..." />
         <table className="w-full min-w-[760px] border-collapse text-left text-sm">
           <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
             <tr>
@@ -145,7 +146,7 @@ export default function Page() {
                 'คลังที่เกี่ยวข้อง',
                 'สถานะ',
               ].map((label) => (
-                <th key={label} scope="col" className="px-4 py-3 font-semibold">
+                <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
                   {label}
                 </th>
               ))}
@@ -170,7 +171,7 @@ export default function Page() {
                   className="cursor-pointer border-t border-[#edf0f4] align-top hover:bg-[#fafbfc] focus-visible:bg-[#eff5fc] focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
                 >
                   <td className="px-4 py-4">
-                    <span className="font-semibold text-[#1a58a7]">{product.code}</span>
+                    <span className="poppins-semibold text-[#1a58a7]">{product.code}</span>
                     <div className="mt-1">{product.name}</div>
                   </td>
                   <td className="px-4 py-4">

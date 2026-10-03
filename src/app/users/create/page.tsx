@@ -50,7 +50,7 @@ export default function Page() {
         <Link href="/users" className="text-sm text-[#1a58a7] hover:underline">
           ← กลับไปรายชื่อผู้ใช้งาน
         </Link>
-        <h2 className="mt-3 text-xl font-semibold text-[#26364b]">เพิ่มผู้ใช้งาน</h2>
+        <h2 className="mt-3 text-xl poppins-semibold text-[#26364b]">เพิ่มผู้ใช้งาน</h2>
         <p className="mt-1 text-sm text-[#718096]">กำหนดบัญชี บทบาท และรหัสผ่านครั้งแรก</p>
       </div>
       <form
@@ -114,7 +114,7 @@ export default function Page() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="text-sm font-medium text-[#35465d]">
+    <label className="text-sm poppins-medium text-[#35465d]">
       {label}
       {children}
     </label>

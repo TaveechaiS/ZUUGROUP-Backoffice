@@ -200,7 +200,6 @@ export default function Page() {
 
   return (
     <section className="flex flex-1 flex-col gap-0 p-6 pb-7" aria-label={config.title}>
-      <LoadingComponent isVisible={loading && !error} />
       {error && (
         <div
           role="alert"
@@ -233,7 +232,7 @@ export default function Page() {
               setSelectedTab(tab);
               setCurrentPage(1);
             }}
-            className={`-mb-px min-h-10 border-b-2 px-1 pb-4 text-sm transition ${selectedTab === tab ? 'border-[#1a58a7] font-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
+            className={`-mb-px min-h-10 border-b-2 px-1 pb-4 text-sm transition ${selectedTab === tab ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
           >
             {tab}
           </button>
@@ -304,7 +303,7 @@ export default function Page() {
         {config.canWrite && (
           <Link
             href={`${config.page}/create`}
-            className="col-span-2 inline-flex h-10 items-center justify-center gap-1 whitespace-nowrap rounded-md bg-[#1a58a7] px-4 text-sm font-semibold text-white! transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7] sm:col-span-1"
+            className="col-span-2 inline-flex h-10 items-center justify-center gap-1 whitespace-nowrap rounded-md bg-[#1a58a7] px-4 text-sm poppins-semibold text-white! transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7] sm:col-span-1"
           >
             <span className="text-sm leading-none" aria-hidden="true">
               +
@@ -314,13 +313,14 @@ export default function Page() {
         )}
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white">
+      <div className="relative mt-6 min-h-44 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white" aria-busy={loading}>
+        <LoadingComponent isVisible={loading && !error} variant="content" label="กำลังโหลดรายการ..." />
         {selectedTab === 'ลบแล้ว' && (
           <div className="divide-y divide-[#e3e9f0]">
             {pagedRows.map((row) => (
               <div key={row.id} className="flex items-center justify-between gap-3 p-4">
                 <div>
-                  <p className="m-0 text-sm font-semibold">{row.name}</p>
+                  <p className="m-0 text-sm poppins-semibold">{row.name}</p>
                   <p className="m-0 text-xs text-[#718096]">{row.code}</p>
                   <div className="mt-2">
                     <StatusBadge value="ลบแล้ว" />
@@ -340,7 +340,7 @@ export default function Page() {
         )}
         <div className={selectedTab === 'ลบแล้ว' ? 'hidden' : 'hidden overflow-x-auto md:block'}>
           <table className="w-full min-w-[640px] table-fixed border-collapse text-left">
-            <thead className="bg-[#f7f8fa] text-xs font-semibold text-[#2f3a4d]">
+            <thead className="bg-[#f7f8fa] text-xs poppins-semibold text-[#2f3a4d]">
               <tr>
                 {tableHeaders.map((column) => (
                   <th
@@ -396,7 +396,7 @@ export default function Page() {
                 type="button"
                 aria-current={currentPage === number ? 'page' : undefined}
                 onClick={() => setCurrentPage(number)}
-                className={`h-9 min-w-9 rounded border px-1 text-sm ${currentPage === number ? 'border-[#1a58a7] bg-[#1a58a7] font-semibold text-white' : 'border-[#e3e9f0] text-[#758195] hover:bg-[#f7f9fc]'}`}
+                className={`h-9 min-w-9 rounded border px-1 text-sm ${currentPage === number ? 'border-[#1a58a7] bg-[#1a58a7] poppins-semibold text-white' : 'border-[#e3e9f0] text-[#758195] hover:bg-[#f7f9fc]'}`}
               >
                 {number}
               </button>
@@ -424,7 +424,7 @@ function RecordTableRow({ row, detailHref }: { row: RecordRow; detailHref: strin
     row.name,
     type,
     row.code,
-    detail || '—',
+    detail || '-',
     displayText(row, LOCAL_PAGE.display[2]),
     displayAmount(row),
     row.status,
@@ -453,7 +453,7 @@ function RecordTableRow({ row, detailHref }: { row: RecordRow; detailHref: strin
       {cells.map((cell, index) => (
         <td
           key={index}
-          className={`whitespace-normal px-[14px] py-4 [overflow-wrap:anywhere] ${index === 0 ? 'font-semibold' : ''}`}
+          className={`whitespace-normal px-[14px] py-4 [overflow-wrap:anywhere] ${index === 0 ? 'poppins-semibold' : ''}`}
           title={cell}
         >
           {index === cells.length - 1 ? <StatusBadge value={row.status} /> : cell}
@@ -488,7 +488,7 @@ function RecordMobileRow({ row, detailHref }: { row: RecordRow; detailHref: stri
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="m-0 text-sm font-semibold text-[#26364b] [overflow-wrap:anywhere]">
+          <p className="m-0 text-sm poppins-semibold text-[#26364b] [overflow-wrap:anywhere]">
             {row.name}
           </p>
           <p className="mb-0 mt-1 text-xs text-[#8492a6] [overflow-wrap:anywhere]">
@@ -507,7 +507,7 @@ function RecordMobileRow({ row, detailHref }: { row: RecordRow; detailHref: stri
         <span className="min-w-0 whitespace-normal text-[#718096] [overflow-wrap:anywhere]">
           {displayText(row, LOCAL_PAGE.display[2])}
         </span>
-        <span className="min-w-0 text-right font-medium text-[#35465d] [overflow-wrap:anywhere]">
+        <span className="min-w-0 text-right poppins-medium text-[#35465d] [overflow-wrap:anywhere]">
           {displayAmount(row)}
         </span>
       </div>
@@ -559,7 +559,7 @@ function displayAmount(row: RecordRow): string {
   const value = displayText(row, key);
   return key === 'amount'
     ? value === ''
-      ? '—'
+      ? '-'
       : new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(Number(value))
     : value;
 }
@@ -568,11 +568,11 @@ export function ActivityRow({ item }: { item: RecordRow }) {
   return (
     <article className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-4">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#eff5fc] text-xs font-semibold text-[#2465b4]">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#eff5fc] text-xs poppins-semibold text-[#2465b4]">
           {item.code.split('-')[0]}
         </span>
         <div className="min-w-0">
-          <p className="m-0 text-sm font-medium text-[#35465d]">{item.name}</p>
+          <p className="m-0 text-sm poppins-medium text-[#35465d]">{item.name}</p>
           <p className="mb-0 mt-0.5 truncate text-sm text-[#8492a6]">
             {[displayText(item, LOCAL_PAGE.display[0]), displayText(item, LOCAL_PAGE.display[1])]
               .filter(Boolean)
