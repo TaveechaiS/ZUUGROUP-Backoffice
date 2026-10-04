@@ -171,9 +171,11 @@ const recordsDb = {
     queries.push(query);
     return query.sql.includes('count(*)::int total')
       ? [{ total: 1 }]
-      : query.sql.startsWith('SELECT DISTINCT')
-        ? [{ value: 'ค่า' }]
-        : [row];
+      : query.sql.startsWith('SELECT DISTINCT name FROM sales_territories')
+        ? [{ name: 'เหนือ' }]
+        : query.sql.startsWith('SELECT DISTINCT')
+          ? [{ value: 'ค่า' }]
+          : [row];
   },
   $transaction: async (queries) => Promise.all(queries),
 };
@@ -204,24 +206,53 @@ assert.ok(queries[0].sql.includes('"province"=?'));
 const options = plain(await records.recordOptions(customer, new URLSearchParams())).data[0];
 assert.deepEqual(options, { id: row.id, code: row.code, name: row.name });
 const filters = plain(await records.recordFilters(customer)).data;
-assert.deepEqual(Object.keys(filters).sort(), ['category', 'owner', 'province', 'status']);
+assert.deepEqual(Object.keys(filters).sort(), [
+  'category',
+  'owner',
+  'province',
+  'status',
+  'territoryName',
+]);
+assert.deepEqual(filters.territoryName, ['เหนือ']);
 const settings = definitions.find((m) => m.key === 'settings');
 const setting = plain(await records.recordList(settings, new URLSearchParams())).data[0];
 assert.ok('value' in setting); // settings.value is a native field, not a display alias.
-const group = definitions.find(m => m.key === 'customer-groups');
+const group = definitions.find((m) => m.key === 'customer-groups');
 assert.equal(plain(await records.recordList(group, new URLSearchParams())).data[0].memberCount, 3);
 let inventoryQuery;
-const reportsDb = {...db, product: {...db.product, findMany: async query => {inventoryQuery = query; return [fixture];}}};
-const reports = load('src/server/records/reports.ts', {...modules, './service': records,
- '@/generated/prisma/client': {Prisma}, '@/server/db/prisma': {readWithConnectionRetry: fn => fn(reportsDb)}});
-const inventory = plain(await reports.reportData('inventory', new URLSearchParams('category.name=หมวด&dosageForm.name=เม็ด'))).data[0];
-assert.equal(inventory.code, fixture.code); assert.equal(inventory.name, fixture.name);
-assert.equal(inventory.category.name, 'หมวด'); assert.equal(inventory.dosageForm.name, 'เม็ด');
-assert.equal(inventory.unit, 'กล่อง'); assert.equal(inventory.status, 'ACTIVE');
+const reportsDb = {
+  ...db,
+  product: {
+    ...db.product,
+    findMany: async (query) => {
+      inventoryQuery = query;
+      return [fixture];
+    },
+  },
+};
+const reports = load('src/server/records/reports.ts', {
+  ...modules,
+  './service': records,
+  '@/generated/prisma/client': { Prisma },
+  '@/server/db/prisma': { readWithConnectionRetry: (fn) => fn(reportsDb) },
+});
+const inventory = plain(
+  await reports.reportData(
+    'inventory',
+    new URLSearchParams('category.name=หมวด&dosageForm.name=เม็ด'),
+  ),
+).data[0];
+assert.equal(inventory.code, fixture.code);
+assert.equal(inventory.name, fixture.name);
+assert.equal(inventory.category.name, 'หมวด');
+assert.equal(inventory.dosageForm.name, 'เม็ด');
+assert.equal(inventory.unit, 'กล่อง');
+assert.equal(inventory.status, 'ACTIVE');
 assert.equal(inventory.createdAt, instant.toISOString());
-assert.equal(inventoryQuery.where.category.name, 'หมวด'); assert.equal(inventoryQuery.where.dosageForm.name, 'เม็ด');
+assert.equal(inventoryQuery.where.category.name, 'หมวด');
+assert.equal(inventoryQuery.where.dosageForm.name, 'เม็ด');
 assert.equal(inventoryQuery.select.createdAt, true);
-for(const key of ['ref','title','subtitle','fields','value']) assert.ok(!(key in inventory));
+for (const key of ['ref', 'title', 'subtitle', 'fields', 'value']) assert.ok(!(key in inventory));
 console.log(
   'PASS: native field names, nested relations, ISO/null dates, public allowlist and native filter/query keys (offline)',
 );

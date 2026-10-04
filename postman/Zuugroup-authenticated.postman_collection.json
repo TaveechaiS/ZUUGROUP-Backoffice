@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Zuugroup — Authenticated",
-    "description": "Zuugroup API ปัจจุบัน TASK-074: list รวม filters/config ตามโมดูล; options สำหรับ Combobox แยก view=options; DELETE ลบเชิงตรรกะ PATCH action restore กู้คืน ไม่มีคำขอ Supabase Data API หรือเส้นประกอบเก่า\n\nTASK-075: ใช้ชื่อ field ต้นทางโดยตรง code/name; relations เป็น object เช่น category.name, defaultWarehouse.name; users lastLoginAt/userRole/deletedByUser; audit actor/target; วันที่ ISO. ดู docs/API-CONTRACTS.md",
+    "description": "Zuugroup API ปัจจุบัน TASK-074: list รวม filters/config ตามโมดูล; options สำหรับ Combobox แยก view=options; DELETE ลบเชิงตรรกะ PATCH action restore กู้คืน ไม่มีคำขอ Supabase Data API หรือเส้นประกอบเก่า\n\nTASK-075: ใช้ชื่อ field ต้นทางโดยตรง code/name; relations เป็น object เช่น category.name, defaultWarehouse.name; users lastLoginAt/userRole/deletedByUser; audit actor/target; วันที่ ISO. ดู docs/API-CONTRACTS.md\nTASK-092: Orders ใช้ line items และจอง FEFO; customer.category คือกลุ่มลูกค้า ไม่ใช้ groupId. ดู docs/LINKED-OPERATIONS-GUIDE.md",
     "schema": "https://schema.postman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

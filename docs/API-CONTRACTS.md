@@ -1,5 +1,11 @@
 # สัญญาข้อมูล API — ZUUGROUP
 
+**TASK-094:** [สัญญาอ่านหน้าสินค้าและคลัง](STOCK-SCREEN-API-GUIDE.md) — GET `/api/inventory?view=products` สรุปต่อสินค้า และ `view=lots` สรุปต่อLot ID พร้อมตัวกรอง/paginationและสูตรเตือนMAIN.
+
+## TASK-092 — เขต / รับเข้า / Orders
+
+อ่าน [คู่มือ API และ workflow ใหม่](LINKED-OPERATIONS-GUIDE.md). Orders ใช้ line items, จอง FEFO และคำสั่งตามบทบาทแทน CRUD หัวเอกสารเก่า; เพิ่ม `/api/inventory`. ลูกค้าใช้ `category` เป็นกลุ่มลูกค้าและต้องเลือกเขตเมื่อสร้างใหม่. ตาราง/ข้อมูลกลุ่มเก่ายังเก็บไว้ แต่หน้ากลุ่มแยกเลิกใช้.
+
 ## มาตรฐานชื่อ Field ตามเจ้าของ 2026-10-02
 
 ชื่อ field ใน types/client/form ต้องตรงกับ API response จริง เช่น product.name ให้ใช้อ้างอิงเป็น product.name ไม่ map เป็น field ชื่อใหม่เอง ชื่อ label ภาษาไทยบน UI แยกจาก key ข้อมูล การเปลี่ยน contract ต้องตกลงก่อนและปรับทุกผู้เรียกให้ตรงกัน TASK-075 ปรับ response/types/ผู้เรียกแล้วตาม docs/specs/2026-10-02-api-field-names.md ไม่เปลี่ยน DB

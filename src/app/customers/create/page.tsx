@@ -36,7 +36,7 @@ export default function Page() {
       },
       {
         key: 'category',
-        label: 'ประเภทลูกค้า',
+        label: 'กลุ่มลูกค้า',
         type: 'text',
         required: false,
       },
@@ -59,18 +59,11 @@ export default function Page() {
         required: false,
       },
       {
-        key: 'groupId',
-        label: 'กลุ่มลูกค้า',
-        type: 'relation',
-        relation: 'customer-groups',
-        required: false,
-      },
-      {
         key: 'territoryId',
         label: 'เขตขาย',
         type: 'relation',
         relation: 'sales-territories',
-        required: false,
+        required: true,
       },
       {
         key: 'notes',
@@ -82,7 +75,7 @@ export default function Page() {
     display: ['category', 'province', 'owner', 'paymentTerms'],
     title: 'ลูกค้า',
     action: 'เพิ่มลูกค้า',
-    columns: ['ชื่อลูกค้า', 'ประเภท / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
+    columns: ['ชื่อลูกค้า', 'กลุ่ม / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
     tabs: ['ทั้งหมด'],
     filters: ['ทุกหมวด'],
     eyebrow: '',
@@ -265,7 +258,7 @@ export default function Page() {
             )}
           </label>
           <label>
-            <span className="mb-2 block text-sm text-[#344256]">ประเภทลูกค้า</span>
+            <span className="mb-2 block text-sm text-[#344256]">กลุ่มลูกค้า</span>
             <input
               name="category"
               type="text"
@@ -354,31 +347,7 @@ export default function Page() {
               </p>
             )}
           </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">กลุ่มลูกค้า</span>
-            <RelationPicker
-              field={{
-                key: 'groupId',
-                label: 'กลุ่มลูกค้า',
-                type: 'relation',
-                relation: 'customer-groups',
-                required: false,
-              }}
-              value={values['groupId']}
-              invalid={Boolean(fieldErrors['groupId'])}
-              errorId={fieldErrors['groupId'] ? `${formId}-groupId-error` : undefined}
-              onChange={(value) => changeValue('groupId', value)}
-            />
-            {fieldErrors['groupId'] && (
-              <p
-                id={`${formId}-groupId-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['groupId']}
-              </p>
-            )}
-          </label>
+
           <label>
             <span className="mb-2 block text-sm text-[#344256]">เขตขาย</span>
             <RelationPicker
@@ -387,7 +356,7 @@ export default function Page() {
                 label: 'เขตขาย',
                 type: 'relation',
                 relation: 'sales-territories',
-                required: false,
+                required: true,
               }}
               value={values['territoryId']}
               invalid={Boolean(fieldErrors['territoryId'])}

@@ -12,7 +12,25 @@ export async function GET(request: NextRequest) {
   const { error } = await authorizeUserManagement(request);
   if (error) return error;
   try {
-    resourceQuery(request.nextUrl.searchParams, []);
+    const { view } = resourceQuery(request.nextUrl.searchParams, ['options']);
+    if (view === 'options') {
+      const params = new URLSearchParams(request.nextUrl.searchParams);
+      params.set('role', params.get('roleId') ?? '');
+      params.set('status', 'ACTIVE');
+      params.set('deleted', 'false');
+      const result = await paginatedUsers(params);
+      return NextResponse.json(
+        {
+          data: result.users.map((user) => ({
+            id: user.id,
+            code: user.employeeCode,
+            name: user.name,
+          })),
+          pagination: result.pagination,
+        },
+        { headers: { 'Cache-Control': 'private, no-store' } },
+      );
+    }
     return NextResponse.json(await paginatedUsers(request.nextUrl.searchParams), {
       headers: { 'Cache-Control': 'private, no-store' },
     });

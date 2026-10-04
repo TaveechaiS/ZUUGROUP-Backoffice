@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { APP_CONFIG } from '@/config/app';
 import { ADMIN_PAGES, getAdminPage, type AdminPage } from '@/config/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
+import ProductSecondarySidebar from '@/components/layout/product-secondary-sidebar';
 import { logout } from '@/app/login/actions';
 
 export function AdminShell({
@@ -35,7 +36,7 @@ export function AdminShell({
           <header className="relative flex min-h-20 items-center justify-between gap-3 border-b border-[#d7e3f0] bg-blue-50 px-4 py-2.5 md:min-h-23 md:gap-6 md:rounded-tl-[25px] md:px-7.5 md:py-0">
             <div className="min-w-0 flex-1">
               <h1 className="m-0 break-words text-lg leading-[1.35] poppins-bold text-[#111827] md:text-xl">
-                {page.label}
+                {currentPath.startsWith('/products') ? 'สินค้าและสต็อก' : page.label}
               </h1>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 text-xs text-[#59677e] md:gap-5">
@@ -101,7 +102,10 @@ export function AdminShell({
         <div
           className={`flex flex-col ${collapsed ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-182px)]'} bg-white md:min-h-[calc(100vh-92px)]`}
         >
-          <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+          <div className="flex min-w-0 flex-1 flex-col md:flex-row">
+            {currentPath.startsWith('/products') && <ProductSecondarySidebar />}
+            <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+          </div>
         </div>
       </section>
     </main>

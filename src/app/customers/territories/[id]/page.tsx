@@ -1,4 +1,5 @@
 'use client';
+import LinkedRecordPanel from '@/components/operations/linked-record-panel';
 import type { RecordOptionsResponse, RecordFiltersResponse } from '@/types/api/records';
 import type { RecordDetailResponse, RecordConfigResponse } from '@/types/api/records';
 
@@ -22,6 +23,20 @@ export default function Page() {
     table: 'sales_territories',
     page: '/customers/territories',
     fields: [
+      {
+        key: 'managerId',
+        label: 'ผู้จัดการ (Manager)',
+        type: 'relation',
+        relation: 'users',
+        required: false,
+      },
+      {
+        key: 'salesId',
+        label: 'ฝ่ายขาย (Sales)',
+        type: 'relation',
+        relation: 'users',
+        required: false,
+      },
       {
         key: 'code',
         label: 'รหัส / เลขอ้างอิง',
@@ -216,6 +231,7 @@ export default function Page() {
           <dd className="m-0 mt-1 break-words text-sm">{String(row.notes ?? '-') || '-'}</dd>
         </div>
       </dl>
+      <LinkedRecordPanel moduleKey="sales-territories" record={row} />
       {config.canWrite && (
         <div className="max-w-4xl rounded-xl border border-red-200 p-5">
           <h2 className="text-sm poppins-semibold text-red-700">ลบรายการ</h2>
@@ -247,6 +263,20 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
     table: 'sales_territories',
     page: '/customers/territories',
     fields: [
+      {
+        key: 'managerId',
+        label: 'ผู้จัดการ (Manager)',
+        type: 'relation',
+        relation: 'users',
+        required: false,
+      },
+      {
+        key: 'salesId',
+        label: 'ฝ่ายขาย (Sales)',
+        type: 'relation',
+        relation: 'users',
+        required: false,
+      },
       {
         key: 'code',
         label: 'รหัส / เลขอ้างอิง',
@@ -477,6 +507,52 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
             )}
           </label>
           <label>
+            <span className="mb-2 block text-sm text-[#344256]">ผู้จัดการ (Manager)</span>
+            <RelationPicker
+              field={{
+                key: 'managerId',
+                label: 'ผู้จัดการ (Manager)',
+                type: 'relation',
+                relation: 'users',
+                required: false,
+              }}
+              value={values['managerId'] ?? ''}
+              onChange={(value) => changeValue('managerId', value)}
+              invalid={Boolean(fieldErrors['managerId'])}
+              errorId={fieldErrors['managerId'] ? formId + '-managerId-error' : undefined}
+            />
+            {fieldErrors['managerId'] && (
+              <p
+                id={formId + '-managerId-error'}
+                role="alert"
+                className="mt-1 text-xs text-red-600"
+              >
+                {fieldErrors['managerId']}
+              </p>
+            )}
+          </label>
+          <label>
+            <span className="mb-2 block text-sm text-[#344256]">ฝ่ายขาย (Sales)</span>
+            <RelationPicker
+              field={{
+                key: 'salesId',
+                label: 'ฝ่ายขาย (Sales)',
+                type: 'relation',
+                relation: 'users',
+                required: false,
+              }}
+              value={values['salesId'] ?? ''}
+              onChange={(value) => changeValue('salesId', value)}
+              invalid={Boolean(fieldErrors['salesId'])}
+              errorId={fieldErrors['salesId'] ? formId + '-salesId-error' : undefined}
+            />
+            {fieldErrors['salesId'] && (
+              <p id={formId + '-salesId-error'} role="alert" className="mt-1 text-xs text-red-600">
+                {fieldErrors['salesId']}
+              </p>
+            )}
+          </label>
+          <label>
             <span className="mb-2 block text-sm text-[#344256]">
               สถานะ <span className="text-red-600"> *</span>
             </span>
@@ -628,6 +704,8 @@ function RelationPicker({
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       const params = new URLSearchParams({ search, offset: String(offset), limit: '10' });
+      if (field.relation === 'users')
+        params.set('roleId', field.key === 'managerId' ? 'MANAGER' : 'SALES');
       Get<RecordOptionsResponse>(
         '/api/' + field.relation + '?view=options&' + params,
         controller.signal,
@@ -650,7 +728,7 @@ function RelationPicker({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [field.relation, offset, search, statusModule]);
+  }, [field.relation, field.key, offset, search, statusModule]);
   return (
     <SearchCombobox
       field={field}

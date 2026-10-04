@@ -4,11 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/config/app';
-import {
-  ADMIN_PAGES,
-  NAVIGATION_SECTIONS,
-  type AdminPage,
-} from '@/config/navigation';
+import { ADMIN_PAGES, NAVIGATION_SECTIONS, type AdminPage } from '@/config/navigation';
 
 const iconAssets: Record<string, { width: number; height: number }> = {
   dashboard: { width: 20, height: 20 },
@@ -40,9 +36,19 @@ function NavigationIcon({ name }: { name: string }) {
   );
 }
 
-export function Sidebar({ collapsed, onToggle, roleId }: { collapsed: boolean; onToggle: () => void; roleId: string }) {
+export function Sidebar({
+  collapsed,
+  onToggle,
+  roleId,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+  roleId: string;
+}) {
   const currentPath = usePathname();
-  const allowedPages = ADMIN_PAGES.filter((page) => roleId === 'ADMIN' || !['/users', '/audit-logs', '/settings'].includes(page.href));
+  const allowedPages = ADMIN_PAGES.filter(
+    (page) => roleId === 'ADMIN' || !['/users', '/audit-logs', '/settings'].includes(page.href),
+  );
   const mainPages = allowedPages.filter((page) => !page.secondaryOnly && !page.hiddenFromSidebar);
 
   return (
@@ -108,7 +114,7 @@ export function Sidebar({ collapsed, onToggle, roleId }: { collapsed: boolean; o
                   {pages.map((page: AdminPage) => {
                     const active =
                       page.href === currentPath ||
-                      (page.href !== '/' && currentPath.startsWith(`${page.href}/`));
+                      (page.href !== '/' && currentPath.startsWith(page.href + '/'));
                     return (
                       <li key={page.href}>
                         <Link

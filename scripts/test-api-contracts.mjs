@@ -304,12 +304,30 @@ for (const file of walk('postman').filter((f) => f.endsWith('.postman_collection
           (d) => url === '/api/' + d.key || url.startsWith('/api/' + d.key + '/'),
         );
         if (definition && ['POST', 'PATCH'].includes(request.method) && body.action !== 'restore') {
-          const allowed = new Set([...definition.fields.map((f) => f.key), 'expectedUpdatedAt']);
-          for (const key of Object.keys(body))
-            assert.ok(allowed.has(key), item.name + ': unsupported body field ' + key);
-          if (request.method === 'POST')
-            for (const field of definition.fields.filter((f) => f.required))
-              assert.ok(field.key in body, item.name + ': missing required field ' + field.key);
+          if (definition.key === 'orders') {
+            const allowed = new Set([
+              'code',
+              'customerId',
+              'notes',
+              'lines',
+              'idempotencyKey',
+              'action',
+              'reason',
+              'expectedUpdatedAt',
+            ]);
+            for (const key of Object.keys(body))
+              assert.ok(allowed.has(key), item.name + ': unsupported order field ' + key);
+            assert.ok(body.idempotencyKey, item.name + ': missing retry key');
+            if (request.method === 'POST')
+              assert.ok(body.customerId && body.lines?.length && body.code);
+          } else {
+            const allowed = new Set([...definition.fields.map((f) => f.key), 'expectedUpdatedAt']);
+            for (const key of Object.keys(body))
+              assert.ok(allowed.has(key), item.name + ': unsupported body field ' + key);
+            if (request.method === 'POST')
+              for (const field of definition.fields.filter((f) => f.required))
+                assert.ok(field.key in body, item.name + ': missing required field ' + field.key);
+          }
         }
       }
       const admin =

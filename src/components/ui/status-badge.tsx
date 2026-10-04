@@ -9,6 +9,18 @@ const tones: Record<StatusTone, string> = {
 };
 
 const statusTones: Record<string, StatusTone> = {
+  อนุมัติ: 'success',
+  เสร็จสิ้น: 'success',
+  รับเข้า: 'success',
+  รอตรวจ: 'warning',
+  ส่งกลับแก้ไข: 'warning',
+  ยกเลิก: 'danger',
+  งดขาย: 'warning',
+  หมดอายุ: 'danger',
+  เสื่อมสภาพ: 'danger',
+  จอง: 'info',
+  จ่ายแล้ว: 'success',
+  คืนจอง: 'neutral',
   ACTIVE: 'success',
   NORMAL: 'success',
   APPROVED: 'success',
@@ -30,6 +42,8 @@ const statusTones: Record<string, StatusTone> = {
   PENDING: 'warning',
   WAITING: 'warning',
   ต่ำกว่าปกติ: 'warning',
+  สินค้าใกล้หมด: 'warning',
+  สินค้าหมด: 'danger',
   ใกล้หมดอายุ: 'warning',
   ติดตาม: 'warning',
   จัดส่งบางส่วน: 'warning',

@@ -39,7 +39,7 @@ const LOCAL_PAGE = {
     },
     {
       key: 'category',
-      label: 'ประเภทลูกค้า',
+      label: 'กลุ่มลูกค้า',
       type: 'text',
       required: false,
     },
@@ -62,18 +62,11 @@ const LOCAL_PAGE = {
       required: false,
     },
     {
-      key: 'groupId',
-      label: 'กลุ่มลูกค้า',
-      type: 'relation',
-      relation: 'customer-groups',
-      required: false,
-    },
-    {
       key: 'territoryId',
       label: 'เขตขาย',
       type: 'relation',
       relation: 'sales-territories',
-      required: false,
+      required: true,
     },
     {
       key: 'notes',
@@ -85,7 +78,7 @@ const LOCAL_PAGE = {
   display: ['category', 'province', 'owner', 'paymentTerms'],
   title: 'ลูกค้า',
   action: 'เพิ่มลูกค้า',
-  columns: ['ชื่อลูกค้า', 'ประเภท / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
+  columns: ['ชื่อลูกค้า', 'กลุ่ม / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
   tabs: ['ทั้งหมด'],
   filters: ['ทุกหมวด'],
   eyebrow: '',
@@ -107,6 +100,7 @@ export default function Page() {
   const [typeFilter, setTypeFilter] = useState('ทั้งหมด');
   const [detailFilter, setDetailFilter] = useState('ทั้งหมด');
   const [ownerFilter, setOwnerFilter] = useState('ทุกผู้รับผิดชอบ');
+  const [territoryFilter, setTerritoryFilter] = useState('ทุกเขต');
   const [statusFilter, setStatusFilter] = useState('ทุกสถานะ');
   const [currentPage, setCurrentPage] = useState(1);
   const [notice, setNotice] = useState('');
@@ -137,6 +131,7 @@ export default function Page() {
       if (ownerFilter !== 'ทุกผู้รับผิดชอบ' && LOCAL_PAGE.display[2])
         params.set(LOCAL_PAGE.display[2], ownerFilter);
       if (statusFilter !== 'ทุกสถานะ') params.set('status', statusFilter);
+      if (territoryFilter !== 'ทุกเขต') params.set('territoryName', territoryFilter);
       if (metadataRetry.current !== retry) params.set('include', 'filters,config');
       Get<RecordListResponse>(apiPath + '?' + params, controller.signal)
         .then((r) => {
@@ -176,6 +171,7 @@ export default function Page() {
     typeFilter,
     detailFilter,
     ownerFilter,
+    territoryFilter,
     statusFilter,
     retry,
   ]);
@@ -231,6 +227,14 @@ export default function Page() {
           </button>
         </div>
       )}
+      <div className="mb-3 flex justify-end">
+        <Link
+          href="/customers/territories"
+          className="rounded-lg border border-blue-100 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
+        >
+          เขตและทีมขาย
+        </Link>
+      </div>
       <SuccessAlertComponent
         title={notice}
         isOpen={Boolean(notice)}
@@ -333,8 +337,26 @@ export default function Page() {
         )}
       </div>
 
-      <div className="relative mt-6 min-h-44 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white" aria-busy={loading}>
-        <LoadingComponent isVisible={loading && !error} variant="content" label="กำลังโหลดรายการ..." />
+      <div className="mt-3 max-w-xs">
+        <RecordFilter
+          label="เขตขาย"
+          value={territoryFilter}
+          options={['ทุกเขต', ...(options.territoryName ?? [])]}
+          onChange={(value) => {
+            setTerritoryFilter(value);
+            setCurrentPage(1);
+          }}
+        />
+      </div>
+      <div
+        className="relative mt-6 min-h-44 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white"
+        aria-busy={loading}
+      >
+        <LoadingComponent
+          isVisible={loading && !error}
+          variant="content"
+          label="กำลังโหลดรายการ..."
+        />
         {selectedTab === 'ลบแล้ว' && (
           <div className="divide-y divide-[#e3e9f0]">
             {pagedRows.map((row) => (

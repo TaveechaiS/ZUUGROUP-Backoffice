@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Zuugroup",
-    "description": "Zuugroup API ปัจจุบัน TASK-074: list รวม filters/config ตามโมดูล; options สำหรับ Combobox แยก view=options; DELETE ลบเชิงตรรกะ PATCH action restore กู้คืน ไม่มีคำขอ Supabase Data API หรือเส้นประกอบเก่า\n\nTASK-075: ใช้ชื่อ field ต้นทางโดยตรง code/name; relations เป็น object เช่น category.name, defaultWarehouse.name; users lastLoginAt/userRole/deletedByUser; audit actor/target; วันที่ ISO. ดู docs/API-CONTRACTS.md",
+    "description": "Zuugroup API ปัจจุบัน TASK-074: list รวม filters/config ตามโมดูล; options สำหรับ Combobox แยก view=options; DELETE ลบเชิงตรรกะ PATCH action restore กู้คืน ไม่มีคำขอ Supabase Data API หรือเส้นประกอบเก่า\n\nTASK-075: ใช้ชื่อ field ต้นทางโดยตรง code/name; relations เป็น object เช่น category.name, defaultWarehouse.name; users lastLoginAt/userRole/deletedByUser; audit actor/target; วันที่ ISO. ดู docs/API-CONTRACTS.md\nTASK-092: Orders ใช้ line items และจอง FEFO; customer.category คือกลุ่มลูกค้า ไม่ใช้ groupId. ดู docs/LINKED-OPERATIONS-GUIDE.md",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "0b3c7e3b-7989-43ae-b40a-5dc7cf699903"
   },
@@ -1075,7 +1075,7 @@
             "url": "{{baseUrl}}/api/customers",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"{{newCode}}\",\n  \"name\": \"{{newName}}\",\n  \"status\": \"ใช้งานอยู่\",\n  \"category\": \"\",\n  \"province\": \"\",\n  \"owner\": \"\",\n  \"paymentTerms\": \"\",\n  \"groupId\": null,\n  \"territoryId\": null,\n  \"notes\": \"\"\n}",
+              "raw": "{\n  \"code\": \"{{newCode}}\",\n  \"name\": \"{{newName}}\",\n  \"status\": \"ใช้งานอยู่\",\n  \"category\": \"\",\n  \"province\": \"\",\n  \"owner\": \"\",\n  \"paymentTerms\": \"\",\n  \"territoryId\": null,\n  \"notes\": \"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3529,7 +3529,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/orders?offset=0&limit=10&include=filters,config",
+            "url": "{{baseUrl}}/api/orders",
             "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "event": [
@@ -3581,7 +3581,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/orders?offset=0&limit=10&view=options&include=filters,config",
+            "url": "{{baseUrl}}/api/orders",
             "description": "GET รายการพร้อม filters/config ผ่าน include; limit=10/offset=0 ปรับ pagination/search/filter ได้ หากต้องการเฉพาะรายการให้เอา include ออก ดู docs/API-CONTRACTS.md"
           },
           "response": []
@@ -3604,7 +3604,7 @@
                 "value": "Bearer {{adminToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/orders?deleted=true&offset=0&limit=10",
+            "url": "{{baseUrl}}/api/orders",
             "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
           "response": [
@@ -3644,7 +3644,7 @@
         },
         {
           "id": "b43a7ab1-88bc-417d-b255-42ffe4b03099",
-          "name": "create",
+          "name": "POST สร้าง Order และจองสินค้า",
           "request": {
             "method": "POST",
             "auth": {
@@ -3667,12 +3667,7 @@
             "url": "{{baseUrl}}/api/orders",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"{{newCode}}\",\n  \"name\": \"{{newName}}\",\n  \"status\": \"ใช้งานอยู่\",\n  \"customerId\": null,\n  \"description\": \"\",\n  \"owner\": \"\",\n  \"amount\": null,\n  \"notes\": \"\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"code\": \"{{orderCode}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"lines\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"idempotencyKey\": \"{{$guid}}\"\n}"
             },
             "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           },
@@ -3694,7 +3689,7 @@
         },
         {
           "id": "784ea8c2-a8f0-4268-bae3-48893b293c98",
-          "name": "update",
+          "name": "PATCH ส่งกลับแก้ไข (Manager/Admin)",
           "request": {
             "method": "PATCH",
             "auth": {
@@ -3717,19 +3712,14 @@
             "url": "{{baseUrl}}/api/orders/{{ordersId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"{{newName}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"action\": \"return\",\n  \"reason\": \"ตรวจข้อมูลอีกครั้ง\",\n  \"idempotencyKey\": \"{{$guid}}\"\n}"
             },
             "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "7d71bebe-f06f-46b7-9c09-274ff4aa8c03",
-          "name": "delete",
+          "name": "DELETE ยกเลิก Order และคืนจอง",
           "request": {
             "method": "DELETE",
             "auth": {
@@ -3752,19 +3742,14 @@
             "url": "{{baseUrl}}/api/orders/{{ordersId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"reason\": \"{{deleteReason}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"reason\": \"ยกเลิกก่อนเสร็จสิ้น\",\n  \"idempotencyKey\": \"{{$guid}}\"\n}"
             },
             "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }
         },
         {
           "id": "cd337ac9-b85f-437c-8c9a-cb4f703a85d3",
-          "name": "restore",
+          "name": "PATCH ส่งกลับแก้ไข (Manager/Admin)",
           "request": {
             "method": "PATCH",
             "auth": {
@@ -3787,12 +3772,7 @@
             "url": "{{baseUrl}}/api/orders/{{ordersId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"action\": \"restore\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"action\": \"return\",\n  \"reason\": \"ตรวจข้อมูลอีกครั้ง\",\n  \"idempotencyKey\": \"{{$guid}}\"\n}"
             },
             "description": "โมดูล orders; GET ปกติสาธารณะตามสิทธิ์ปัจจุบัน, GET deleted=true และคำสั่งเขียนต้อง Admin. ฟิลด์บังคับเมื่อสร้าง: code, name, status. PATCH ส่งเฉพาะฟิลด์ที่แก้ได้; expectedUpdatedAt เป็น ISO timestamp (ไม่ส่งหากยังไม่มีค่า). reason ใช้ DELETE/restore; response {data}, list/options เพิ่ม pagination {offset,limit,total,hasMore}; filters/config มี {data}.\nTASK-074: collection query view=filters/options/config; include ขอ metadata พร้อมรายการตามโมดูล; DELETE ลบเชิงตรรกะ; PATCH action restore กู้คืน."
           }

@@ -173,6 +173,13 @@ async function mutate(request: NextRequest, context: Context) {
         include: { userRole: true, authAccounts: { where: { provider: 'supabase' } } },
       });
       if (!target || !target.userRole) throw new Error('NOT_FOUND');
+      if (action === 'delete' || (action === 'role' && body.roleId !== target.userRole.roleId)) {
+        await tx.$queryRaw`SELECT id FROM users WHERE id=${id}::uuid FOR UPDATE`;
+        const linked = await tx.salesTerritory.count({
+          where: { OR: [{ managerId: id }, { salesId: id }] },
+        });
+        if (linked) throw new Error('TERRITORY_ASSIGNED');
+      }
       if (action === 'delete' || action === 'restore') {
         if (action === 'delete' && target.id === actor.id) throw new Error('SELF_ACCESS_CHANGE');
         if (action === 'delete' && target.deletedAt) throw new Error('ALREADY_DELETED');
@@ -263,6 +270,15 @@ async function mutate(request: NextRequest, context: Context) {
       });
     });
   } catch (caught) {
+    if (caught instanceof Error && caught.message === 'TERRITORY_ASSIGNED') {
+      return NextResponse.json(
+        {
+          error:
+            'ผู้ใช้งานยังรับผิดชอบเขตอยู่ กรุณาเปลี่ยนผู้รับผิดชอบในหน้าเขตก่อนลบหรือเปลี่ยนบทบาท',
+        },
+        { status: 409 },
+      );
+    }
     if (caught instanceof Error && caught.message === 'NOT_FOUND') {
       return NextResponse.json({ error: 'ไม่พบผู้ใช้' }, { status: 404 });
     }

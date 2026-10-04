@@ -25,7 +25,7 @@
       },
       {
         "key": "category",
-        "label": "ประเภทลูกค้า",
+        "label": "กลุ่มลูกค้า",
         "type": "text",
         "required": false
       },
@@ -48,18 +48,11 @@
         "required": false
       },
       {
-        "key": "groupId",
-        "label": "กลุ่มลูกค้า",
-        "type": "relation",
-        "relation": "customer-groups",
-        "required": false
-      },
-      {
         "key": "territoryId",
         "label": "เขตขาย",
         "type": "relation",
         "relation": "sales-territories",
-        "required": false
+        "required": true
       },
       {
         "key": "notes",
@@ -68,26 +61,12 @@
         "required": false
       }
     ],
-    "display": [
-      "category",
-      "province",
-      "owner",
-      "paymentTerms"
-    ],
+    "display": ["category", "province", "owner", "paymentTerms"],
     "title": "ลูกค้า",
     "action": "เพิ่มลูกค้า",
-    "columns": [
-      "ชื่อลูกค้า",
-      "ประเภท / จังหวัด",
-      "ผู้ดูแล",
-      "สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["ชื่อลูกค้า", "ประเภท / จังหวัด", "ผู้ดูแล", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -140,26 +119,12 @@
         "required": false
       }
     ],
-    "display": [
-      "category",
-      "description",
-      "owner",
-      null
-    ],
+    "display": ["category", "description", "owner", null],
     "title": "กลุ่มลูกค้า",
     "action": "เพิ่มกลุ่มลูกค้า",
-    "columns": [
-      "ชื่อกลุ่ม",
-      "คำอธิบาย",
-      "จำนวนลูกค้า",
-      "สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["ชื่อกลุ่ม", "คำอธิบาย", "จำนวนลูกค้า", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -169,6 +134,20 @@
     "table": "sales_territories",
     "page": "/customers/territories",
     "fields": [
+      {
+        "key": "managerId",
+        "label": "ผู้จัดการ (Manager)",
+        "type": "relation",
+        "relation": "users",
+        "required": false
+      },
+      {
+        "key": "salesId",
+        "label": "ฝ่ายขาย (Sales)",
+        "type": "relation",
+        "relation": "users",
+        "required": false
+      },
       {
         "key": "code",
         "label": "รหัส / เลขอ้างอิง",
@@ -206,26 +185,12 @@
         "required": false
       }
     ],
-    "display": [
-      "area",
-      null,
-      "owner",
-      null
-    ],
+    "display": ["area", null, "owner", null],
     "title": "เขตและผู้แทนขาย",
     "action": "เพิ่มเขต",
-    "columns": [
-      "เขต / ผู้แทน",
-      "พื้นที่ดูแล",
-      "ลูกค้า",
-      "สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["เขต / ผู้แทน", "พื้นที่ดูแล", "ลูกค้า", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -291,26 +256,12 @@
         "required": false
       }
     ],
-    "display": [
-      "documentType",
-      null,
-      "owner",
-      "dateText"
-    ],
+    "display": ["documentType", null, "owner", "dateText"],
     "title": "เอกสารลูกค้า",
     "action": "เพิ่มเอกสารลูกค้า",
-    "columns": [
-      "ลูกค้า / เอกสาร",
-      "ประเภท / วันที่",
-      "ผู้ดูแล",
-      "สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["ลูกค้า / เอกสาร", "ประเภท / วันที่", "ผู้ดูแล", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -376,26 +327,12 @@
         "required": false
       }
     ],
-    "display": [
-      "category",
-      "province",
-      "owner",
-      "followUpText"
-    ],
+    "display": ["category", "province", "owner", "followUpText"],
     "title": "ภาพรวมลูกค้า",
     "action": "เพิ่มรายการติดตาม",
-    "columns": [
-      "ลูกค้าติดตาม",
-      "ประเภท / จังหวัด",
-      "ผู้ดูแล",
-      "สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["ลูกค้าติดตาม", "ประเภท / จังหวัด", "ผู้ดูแล", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -454,26 +391,12 @@
         "required": false
       }
     ],
-    "display": [
-      "category",
-      "location",
-      "contact",
-      "paymentTerms"
-    ],
+    "display": ["category", "location", "contact", "paymentTerms"],
     "title": "ผู้ขาย",
     "action": "เพิ่มผู้ขาย",
-    "columns": [
-      "ผู้ขาย / รหัส",
-      "ประเภท / จังหวัด",
-      "ผู้ติดต่อ",
-      "สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["ผู้ขาย / รหัส", "ประเภท / จังหวัด", "ผู้ติดต่อ", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -532,26 +455,12 @@
         "required": false
       }
     ],
-    "display": [
-      "category",
-      "description",
-      "owner",
-      "amount"
-    ],
+    "display": ["category", "description", "owner", "amount"],
     "title": "ค่าใช้จ่าย",
     "action": "เพิ่มค่าใช้จ่าย",
-    "columns": [
-      "รายการ / หมวด",
-      "วันที่ / เอกสาร",
-      "ผู้บันทึก",
-      "ยอดเงิน / สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["รายการ / หมวด", "วันที่ / เอกสาร", "ผู้บันทึก", "ยอดเงิน / สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -611,26 +520,12 @@
         "required": false
       }
     ],
-    "display": [
-      null,
-      "description",
-      "owner",
-      "amount"
-    ],
+    "display": [null, "description", "owner", "amount"],
     "title": "จัดซื้อและรับเข้าสินค้า",
     "action": "สร้างใบสั่งซื้อ",
-    "columns": [
-      "เลขที่ / ผู้ขาย",
-      "วันที่ / กำหนดรับ",
-      "ผู้ทำรายการ",
-      "สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["เลขที่ / ผู้ขาย", "วันที่ / กำหนดรับ", "ผู้ทำรายการ", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -690,26 +585,12 @@
         "required": false
       }
     ],
-    "display": [
-      null,
-      "description",
-      "owner",
-      "amount"
-    ],
+    "display": [null, "description", "owner", "amount"],
     "title": "ใบเสนอราคา",
     "action": "สร้างใบเสนอราคา",
-    "columns": [
-      "เลขที่ / ลูกค้า",
-      "วันที่ / ผู้ดูแล",
-      "จำนวนรายการ",
-      "ยอด / สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["เลขที่ / ลูกค้า", "วันที่ / ผู้ดูแล", "จำนวนรายการ", "ยอด / สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -769,26 +650,12 @@
         "required": false
       }
     ],
-    "display": [
-      null,
-      "description",
-      "owner",
-      "amount"
-    ],
+    "display": [null, "description", "owner", "amount"],
     "title": "คำสั่งซื้อและจัดส่ง",
     "action": "สร้างคำสั่งซื้อ",
-    "columns": [
-      "เลขที่ / ลูกค้า",
-      "วันที่ / กำหนดส่ง",
-      "ผู้ดูแล",
-      "ยอด / สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["เลขที่ / ลูกค้า", "วันที่ / กำหนดส่ง", "ผู้ดูแล", "ยอด / สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -848,26 +715,12 @@
         "required": false
       }
     ],
-    "display": [
-      null,
-      "dueText",
-      "owner",
-      "amount"
-    ],
+    "display": [null, "dueText", "owner", "amount"],
     "title": "วางบิลและลูกหนี้",
     "action": "เพิ่มรายการวางบิล",
-    "columns": [
-      "เลขที่ / ลูกค้า",
-      "ครบกำหนด / อายุหนี้",
-      "ผู้ดูแล",
-      "ยอดคงค้าง"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["เลขที่ / ลูกค้า", "ครบกำหนด / อายุหนี้", "ผู้ดูแล", "ยอดคงค้าง"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -926,26 +779,12 @@
         "required": false
       }
     ],
-    "display": [
-      "category",
-      "description",
-      "owner",
-      "conditions"
-    ],
+    "display": ["category", "description", "owner", "conditions"],
     "title": "โปรโมชันและของแถม",
     "action": "สร้างโปรโมชัน",
-    "columns": [
-      "ชื่อโปรโมชัน",
-      "ช่วงเวลา / กลุ่มสินค้า",
-      "ผู้สร้าง",
-      "สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["ชื่อโปรโมชัน", "ช่วงเวลา / กลุ่มสินค้า", "ผู้สร้าง", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -1005,26 +844,12 @@
         "required": false
       }
     ],
-    "display": [
-      null,
-      "description",
-      "owner",
-      "resultText"
-    ],
+    "display": [null, "description", "owner", "resultText"],
     "title": "ตรวจนับสินค้า",
     "action": "เพิ่มใบบันทึกตรวจนับ",
-    "columns": [
-      "ใบนับ / คลัง",
-      "วันที่ / ผู้บันทึก",
-      "รายการ",
-      "สถานะ"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["ใบนับ / คลัง", "วันที่ / ผู้บันทึก", "รายการ", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   },
@@ -1083,26 +908,12 @@
         "required": false
       }
     ],
-    "display": [
-      "category",
-      "description",
-      "owner",
-      "value"
-    ],
+    "display": ["category", "description", "owner", "value"],
     "title": "ตั้งค่าระบบ",
     "action": "เพิ่มรายการตั้งค่า",
-    "columns": [
-      "การตั้งค่า",
-      "หมวด",
-      "ผู้แก้ไข",
-      "ค่าที่บันทึก"
-    ],
-    "tabs": [
-      "ทั้งหมด"
-    ],
-    "filters": [
-      "ทุกหมวด"
-    ],
+    "columns": ["การตั้งค่า", "หมวด", "ผู้แก้ไข", "ค่าที่บันทึก"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
     "eyebrow": "",
     "description": ""
   }

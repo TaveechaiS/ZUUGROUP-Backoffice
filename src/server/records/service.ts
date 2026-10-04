@@ -33,6 +33,19 @@ const select = (m: RecordModule) =>
           Prisma.sql`(SELECT count(*)::int FROM customers c WHERE ${Prisma.raw(m.key === 'customer-groups' ? 'c.group_id' : 'c.territory_id')}=${table(m)}.id AND c.deleted_at IS NULL) AS "memberCount"`,
         ]
       : []),
+    ...(m.key === 'sales-territories'
+      ? [
+          Prisma.sql`(SELECT name FROM users WHERE id=sales_territories.manager_id) AS "managerName"`,
+          Prisma.sql`(SELECT name FROM users WHERE id=sales_territories.sales_id) AS "salesName"`,
+        ]
+      : []),
+    ...(m.key === 'customers'
+      ? [
+          Prisma.sql`(SELECT name FROM sales_territories WHERE id=customers.territory_id) AS "territoryName"`,
+          Prisma.sql`(SELECT u.name FROM users u JOIN sales_territories t ON t.manager_id=u.id WHERE t.id=customers.territory_id) AS "managerName"`,
+          Prisma.sql`(SELECT u.name FROM users u JOIN sales_territories t ON t.sales_id=u.id WHERE t.id=customers.territory_id) AS "salesName"`,
+        ]
+      : []),
   ]);
 type DbRow = Record<string, unknown> & {
   id: string;
@@ -61,6 +74,10 @@ function output(m: RecordModule, row: DbRow): RecordRow {
     updatedAt: row.updatedAt.toISOString(),
     deletedAt: row.deletedAt?.toISOString() ?? null,
     ...(row.memberCount !== undefined ? { memberCount: Number(row.memberCount) } : {}),
+    ...['managerName', 'salesName', 'territoryName'].reduce(
+      (names, key) => (row[key] !== undefined ? { ...names, [key]: row[key] ?? null } : names),
+      {},
+    ),
   };
 }
 function predicate(m: RecordModule, params: URLSearchParams) {
@@ -94,6 +111,13 @@ function predicate(m: RecordModule, params: URLSearchParams) {
       if (!uuid(v)) throw new RecordError(400, `${f.label} ต้องเป็น UUID`);
       clauses.push(Prisma.sql`${column(f.key)}=${v}::uuid`);
     }
+  }
+  if (m.key === 'customers') {
+    const territoryName = text(params, 'territoryName');
+    if (territoryName)
+      clauses.push(
+        Prisma.sql`territory_id IN (SELECT id FROM sales_territories WHERE name=${territoryName} AND deleted_at IS NULL)`,
+      );
   }
   return Prisma.join(clauses, ' AND ');
 }
@@ -161,7 +185,16 @@ export async function recordFilters(m: RecordModule): Promise<RecordFiltersRespo
       return [key, rows.map((row) => row.value)] as const;
     }),
   );
-  return { data: Object.fromEntries(entries) };
+  const data = Object.fromEntries(entries);
+  if (m.key === 'customers') {
+    const rows = await readWithConnectionRetry((db) =>
+      db.$queryRaw<{ name: string }[]>(
+        Prisma.sql`SELECT DISTINCT name FROM sales_territories WHERE deleted_at IS NULL ORDER BY name`,
+      ),
+    );
+    data.territoryName = rows.map((row) => row.name);
+  }
+  return { data };
 }
 export async function recordOptions(
   m: RecordModule,
@@ -225,16 +258,39 @@ export async function recordWrite(
           const value = parsed.values[f.key];
           if (value) {
             const t =
-              f.relation === 'warehouses' ? { table: 'warehouses' } : recordModule(f.relation!);
+              f.relation === 'warehouses'
+                ? { table: 'warehouses' }
+                : f.relation === 'users'
+                  ? { table: 'users' }
+                  : recordModule(f.relation!);
             const active =
               f.relation === 'warehouses' ? Prisma.empty : Prisma.sql`AND deleted_at IS NULL`;
             const found = await tx.$queryRaw<{ id: string }[]>(
               Prisma.sql`SELECT id FROM ${Prisma.raw('"' + t.table + '"')} WHERE id=${value}::uuid ${active} FOR KEY SHARE`,
             );
             if (!found.length) throw new RecordError(400, `${f.label} ไม่มีหรือถูกลบแล้ว`);
+            if (f.relation === 'users') {
+              const role = f.key === 'managerId' ? 'MANAGER' : 'SALES';
+              const matches = await tx.$queryRaw<{ id: string }[]>(
+                Prisma.sql`SELECT u.id FROM users u JOIN user_roles r ON r.user_id=u.id WHERE u.id=${value}::uuid AND r.role_id=${role} AND u.status='ACTIVE' FOR UPDATE OF u`,
+              );
+              if (!matches.length)
+                throw new RecordError(400, `${f.label} ต้องเป็นบัญชีที่ใช้งานอยู่และมีบทบาทตรงกัน`);
+              const taken = await tx.$queryRaw<{ id: string }[]>(
+                Prisma.sql`SELECT id FROM sales_territories WHERE (manager_id=${value}::uuid OR sales_id=${value}::uuid) AND id<>COALESCE(${id}::uuid,'00000000-0000-0000-0000-000000000000'::uuid)`,
+              );
+              if (taken.length) throw new RecordError(409, 'ผู้ใช้งานคนนี้อยู่ในเขตอื่นแล้ว');
+            }
           }
         }
       let rows: DbRow[];
+      if (m.key === 'sales-territories' && action === 'delete') {
+        const assigned = await tx.$queryRaw<{ total: number }[]>(
+          Prisma.sql`SELECT count(*)::int AS total FROM customers WHERE territory_id=${id}::uuid AND deleted_at IS NULL`,
+        );
+        if (assigned[0].total || before?.managerId || before?.salesId)
+          throw new RecordError(409, 'เขตยังมีลูกค้าหรือผู้รับผิดชอบ กรุณาย้ายออกก่อนลบ');
+      }
       if (action === 'create') {
         const entries = Object.entries(parsed!.values);
         const vals = entries.map(([k, v]) =>

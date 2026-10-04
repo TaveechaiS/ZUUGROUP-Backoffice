@@ -154,6 +154,7 @@ const target = () => ({
 });
 const tx = {
   $queryRaw: async () => [],
+  salesTerritory: { count: async () => 0 },
   user: {
     findUnique: async ({ where }) =>
       where.id === actorId

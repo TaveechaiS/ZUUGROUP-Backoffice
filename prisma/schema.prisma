@@ -3,6 +3,124 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+model StockReceipt {
+ id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+ code String @unique
+ source String @default("")
+ notes String @default("")
+ actorUserId String @map("actor_user_id") @db.Uuid
+ actor User @relation(fields:[actorUserId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+ lots ProductLot[]
+ @@map("stock_receipts")
+}
+model ProductLot {
+ id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+ receiptId String @map("receipt_id") @db.Uuid
+ productId String @map("product_id") @db.Uuid
+ lotNumber String @map("lot_number")
+ receivedQuantity Int @map("received_quantity")
+ totalCost Decimal @map("total_cost") @db.Decimal(14,2)
+ manufacturedOn DateTime @map("manufactured_on") @db.Date
+ expiresOn DateTime @map("expires_on") @db.Date
+ condition String @default("ปกติ")
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+ receipt StockReceipt @relation(fields:[receiptId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ product Product @relation(fields:[productId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ balances StockBalance[]
+ movements StockMovement[]
+ revisions ReceiptRevision[]
+ reservations StockReservation[]
+ @@index([productId,expiresOn,id],map:"product_lots_product_expiry")
+ @@index([receiptId],map:"product_lots_receipt")
+ @@map("product_lots")
+}
+model StockBalance {
+ lotId String @map("lot_id") @db.Uuid
+ warehouseId String @map("warehouse_id") @db.Uuid
+ quantity Int @default(0)
+ reserved Int @default(0)
+ lot ProductLot @relation(fields:[lotId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ warehouse Warehouse @relation(fields:[warehouseId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ @@id([lotId,warehouseId])
+ @@index([warehouseId,lotId],map:"stock_balances_warehouse")
+ @@map("stock_balances")
+}
+model StockMovement {
+ id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+ lotId String @map("lot_id") @db.Uuid
+ warehouseId String @map("warehouse_id") @db.Uuid
+ quantity Int
+ kind String
+ sourceId String @map("source_id") @db.Uuid
+ reason String @default("")
+ actorUserId String @map("actor_user_id") @db.Uuid
+ occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+ lot ProductLot @relation(fields:[lotId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ warehouse Warehouse @relation(fields:[warehouseId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ actor User @relation(fields:[actorUserId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ @@index([lotId,occurredAt],map:"stock_movements_lot_date")
+ @@map("stock_movements")
+}
+model ReceiptRevision {
+ id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+ lotId String @map("lot_id") @db.Uuid
+ actorUserId String @map("actor_user_id") @db.Uuid
+ reason String
+ beforeData Json @map("before_data")
+ afterData Json @map("after_data")
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+ lot ProductLot @relation(fields:[lotId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ actor User @relation(fields:[actorUserId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ @@index([lotId,createdAt],map:"receipt_revisions_lot")
+ @@map("receipt_revisions")
+}
+model SalesOrderLine {
+ id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+ orderId String @map("order_id") @db.Uuid
+ productId String @map("product_id") @db.Uuid
+ quantity Int
+ unitPrice Decimal @map("unit_price") @db.Decimal(12,2)
+ productName String @map("product_name")
+ order SalesOrder @relation(fields:[orderId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ product Product @relation(fields:[productId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ reservations StockReservation[]
+ @@unique([orderId,productId])
+ @@index([productId],map:"sales_order_lines_product")
+ @@map("sales_order_lines")
+}
+model StockReservation {
+ id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+ orderLineId String @map("order_line_id") @db.Uuid
+ lotId String @map("lot_id") @db.Uuid
+ warehouseId String @map("warehouse_id") @db.Uuid
+ quantity Int
+ status String @default("จอง")
+ unitCost Decimal? @map("unit_cost") @db.Decimal(20,8)
+ line SalesOrderLine @relation(fields:[orderLineId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ lot ProductLot @relation(fields:[lotId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ warehouse Warehouse @relation(fields:[warehouseId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ @@unique([orderLineId,lotId,warehouseId])
+ @@index([lotId,status],map:"stock_reservations_lot")
+ @@map("stock_reservations")
+}
+model OperationCommand {
+ id String @id @db.Uuid
+ actorUserId String @map("actor_user_id") @db.Uuid
+ fingerprint String
+ result Json?
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+ actor User @relation(fields:[actorUserId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ @@map("operation_commands")
+}
+model InventoryPolicy {
+ id Int @id
+ saleMonths Int @map("sale_months")
+ donationMonths Int @map("donation_months")
+ warningDays Int @map("warning_days")
+ @@map("inventory_policy")
+}
+
 datasource db {
   provider = "postgresql"
 }
@@ -22,6 +140,15 @@ enum ProductStatus {
 }
 
 model User {
+  managedTerritories SalesTerritory[] @relation("TerritoryManager")
+  salesTerritories SalesTerritory[] @relation("TerritorySales")
+  stockReceipts StockReceipt[]
+  stockMovements StockMovement[]
+  receiptRevisions ReceiptRevision[]
+  operationCommands OperationCommand[]
+  createdOrders SalesOrder[] @relation("OrderCreator")
+  approvedOrders SalesOrder[] @relation("OrderApprover")
+  completedOrders SalesOrder[] @relation("OrderCompleter")
   id           String        @id @default(uuid()) @db.Uuid
   employeeCode String        @unique @map("employee_code")
   email        String        @unique
@@ -147,6 +274,9 @@ model Drug {
 }
 
 model Warehouse {
+  balances StockBalance[]
+  movements StockMovement[]
+  reservations StockReservation[]
   stockCountSessionRecords StockCountSession[]
   id        String    @id @default(uuid()) @db.Uuid
   code      String    @unique
@@ -158,6 +288,8 @@ model Warehouse {
 }
 
 model Product {
+  lots ProductLot[]
+  orderLines SalesOrderLine[]
   id                 String          @id @default(uuid()) @db.Uuid
   code               String          @unique
   sequence           Int
@@ -241,6 +373,11 @@ model CustomerGroup {
 }
 
 model SalesTerritory {
+  manager User? @relation("TerritoryManager",fields:[managerId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  sales User? @relation("TerritorySales",fields:[salesId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  orders SalesOrder[] @relation("OrderTerritory")
+  managerId String? @unique @map("manager_id") @db.Uuid
+  salesId String? @unique @map("sales_id") @db.Uuid
   customerRecords Customer[]
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
@@ -391,6 +528,17 @@ model Quotation {
 }
 
 model SalesOrder {
+  creator User? @relation("OrderCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  approver User? @relation("OrderApprover",fields:[approvedById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  completer User? @relation("OrderCompleter",fields:[completedById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  territory SalesTerritory? @relation("OrderTerritory",fields:[territoryId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  lines SalesOrderLine[]
+  workflowManaged Boolean @default(false) @map("workflow_managed")
+  createdById String? @map("created_by_id") @db.Uuid
+  approvedById String? @map("approved_by_id") @db.Uuid
+  completedById String? @map("completed_by_id") @db.Uuid
+  territoryId String? @map("territory_id") @db.Uuid
+  returnReason String @default("") @map("return_reason")
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")

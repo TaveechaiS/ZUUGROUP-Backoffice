@@ -1,4 +1,5 @@
 'use client';
+import LinkedRecordPanel from '@/components/operations/linked-record-panel';
 import type { RecordOptionsResponse, RecordFiltersResponse } from '@/types/api/records';
 import type { RecordDetailResponse, RecordConfigResponse } from '@/types/api/records';
 
@@ -42,7 +43,7 @@ export default function Page() {
       },
       {
         key: 'category',
-        label: 'ประเภทลูกค้า',
+        label: 'กลุ่มลูกค้า',
         type: 'text',
         required: false,
       },
@@ -65,18 +66,11 @@ export default function Page() {
         required: false,
       },
       {
-        key: 'groupId',
-        label: 'กลุ่มลูกค้า',
-        type: 'relation',
-        relation: 'customer-groups',
-        required: false,
-      },
-      {
         key: 'territoryId',
         label: 'เขตขาย',
         type: 'relation',
         relation: 'sales-territories',
-        required: false,
+        required: true,
       },
       {
         key: 'notes',
@@ -88,7 +82,7 @@ export default function Page() {
     display: ['category', 'province', 'owner', 'paymentTerms'],
     title: 'ลูกค้า',
     action: 'เพิ่มลูกค้า',
-    columns: ['ชื่อลูกค้า', 'ประเภท / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
+    columns: ['ชื่อลูกค้า', 'กลุ่ม / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
     tabs: ['ทั้งหมด'],
     filters: ['ทุกหมวด'],
     eyebrow: '',
@@ -230,7 +224,7 @@ export default function Page() {
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-[#718096]">ประเภทลูกค้า</dt>
+          <dt className="text-xs text-[#718096]">กลุ่มลูกค้า</dt>
           <dd className="m-0 mt-1 break-words text-sm">{String(row.category ?? '-') || '-'}</dd>
         </div>
         <div>
@@ -245,12 +239,7 @@ export default function Page() {
           <dt className="text-xs text-[#718096]">เงื่อนไขชำระเงิน</dt>
           <dd className="m-0 mt-1 break-words text-sm">{String(row.paymentTerms ?? '-') || '-'}</dd>
         </div>
-        <div>
-          <dt className="text-xs text-[#718096]">กลุ่มลูกค้า</dt>
-          <dd className="m-0 mt-1 break-words text-sm">
-            <RelationName moduleKey="customer-groups" id={String(row.groupId ?? '')} />
-          </dd>
-        </div>
+
         <div>
           <dt className="text-xs text-[#718096]">เขตขาย</dt>
           <dd className="m-0 mt-1 break-words text-sm">
@@ -262,6 +251,7 @@ export default function Page() {
           <dd className="m-0 mt-1 break-words text-sm">{String(row.notes ?? '-') || '-'}</dd>
         </div>
       </dl>
+      <LinkedRecordPanel moduleKey="customers" record={row} />
       {config.canWrite && (
         <div className="max-w-4xl rounded-xl border border-red-200 p-5">
           <h2 className="text-sm poppins-semibold text-red-700">ลบรายการ</h2>
@@ -329,7 +319,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
       },
       {
         key: 'category',
-        label: 'ประเภทลูกค้า',
+        label: 'กลุ่มลูกค้า',
         type: 'text',
         required: false,
       },
@@ -352,18 +342,11 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
         required: false,
       },
       {
-        key: 'groupId',
-        label: 'กลุ่มลูกค้า',
-        type: 'relation',
-        relation: 'customer-groups',
-        required: false,
-      },
-      {
         key: 'territoryId',
         label: 'เขตขาย',
         type: 'relation',
         relation: 'sales-territories',
-        required: false,
+        required: true,
       },
       {
         key: 'notes',
@@ -375,7 +358,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
     display: ['category', 'province', 'owner', 'paymentTerms'],
     title: 'ลูกค้า',
     action: 'เพิ่มลูกค้า',
-    columns: ['ชื่อลูกค้า', 'ประเภท / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
+    columns: ['ชื่อลูกค้า', 'กลุ่ม / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
     tabs: ['ทั้งหมด'],
     filters: ['ทุกหมวด'],
     eyebrow: '',
@@ -587,7 +570,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
             )}
           </label>
           <label>
-            <span className="mb-2 block text-sm text-[#344256]">ประเภทลูกค้า</span>
+            <span className="mb-2 block text-sm text-[#344256]">กลุ่มลูกค้า</span>
             <input
               name="category"
               type="text"
@@ -676,31 +659,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
               </p>
             )}
           </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">กลุ่มลูกค้า</span>
-            <RelationPicker
-              field={{
-                key: 'groupId',
-                label: 'กลุ่มลูกค้า',
-                type: 'relation',
-                relation: 'customer-groups',
-                required: false,
-              }}
-              value={values['groupId']}
-              invalid={Boolean(fieldErrors['groupId'])}
-              errorId={fieldErrors['groupId'] ? `${formId}-groupId-error` : undefined}
-              onChange={(value) => changeValue('groupId', value)}
-            />
-            {fieldErrors['groupId'] && (
-              <p
-                id={`${formId}-groupId-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['groupId']}
-              </p>
-            )}
-          </label>
+
           <label>
             <span className="mb-2 block text-sm text-[#344256]">เขตขาย</span>
             <RelationPicker
@@ -709,7 +668,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
                 label: 'เขตขาย',
                 type: 'relation',
                 relation: 'sales-territories',
-                required: false,
+                required: true,
               }}
               value={values['territoryId']}
               invalid={Boolean(fieldErrors['territoryId'])}

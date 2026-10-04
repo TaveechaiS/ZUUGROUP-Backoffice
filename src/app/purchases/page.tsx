@@ -218,6 +218,14 @@ export default function Page() {
           </button>
         </div>
       )}
+      <div className="mb-3 flex justify-end">
+        <Link
+          href="/purchases/receipts"
+          className="rounded-lg border border-blue-100 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
+        >
+          รับสินค้าเข้าและล็อต
+        </Link>
+      </div>
       <SuccessAlertComponent
         title={notice}
         isOpen={Boolean(notice)}
@@ -320,8 +328,15 @@ export default function Page() {
         )}
       </div>
 
-      <div className="relative mt-6 min-h-44 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white" aria-busy={loading}>
-        <LoadingComponent isVisible={loading && !error} variant="content" label="กำลังโหลดรายการ..." />
+      <div
+        className="relative mt-6 min-h-44 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white"
+        aria-busy={loading}
+      >
+        <LoadingComponent
+          isVisible={loading && !error}
+          variant="content"
+          label="กำลังโหลดรายการ..."
+        />
         {selectedTab === 'ลบแล้ว' && (
           <div className="divide-y divide-[#e3e9f0]">
             {pagedRows.map((row) => (

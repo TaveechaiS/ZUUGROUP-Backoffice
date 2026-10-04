@@ -1,5 +1,9 @@
 # คู่มือชื่อ API — Zuugroup / API Folder Guide
 
+**TASK-094:** [ชื่อและหน้าที่ API สินค้า/คลัง/ล็อต](STOCK-SCREEN-API-GUIDE.md) มี view `products` (สรุปสินค้า / Product stock summary) และ `lots` (รายการล็อต / Product lots) สำหรับ5หน้าสินค้าและสต็อก.
+
+**อัปเดต TASK-092:** ดู [ชื่อ API ไทย/อังกฤษและขั้นตอนใช้งานล่าสุด](LINKED-OPERATIONS-GUIDE.md#ชื่อ-api-ไทย--english) สำหรับเขต ทีมขาย ล็อตรับเข้า ยอดคลัง และ Orders. รายละเอียด collection ด้านล่างเป็นประวัติเดิม; หน้ากลุ่มลูกค้าแยกเลิกใช้แล้ว.
+
 คู่มือนี้อธิบาย **ชื่อโฟลเดอร์ใน Postman Collection `Zuugroup`** ตามลำดับที่เห็นในหน้าจอ ไม่ใช่รายชื่อตารางฐานข้อมูลหรือ URL ทั้งหมดของระบบ อ้างอิงไฟล์ [`Zuugroup.postman_collection.json`](../postman/Zuugroup.postman_collection.json) ณ วันที่ 1 ตุลาคม 2569: 23 โฟลเดอร์ รวม 133 คำขอ. `{{baseUrl}}` คือ URL ของเว็บ เช่น `http://localhost:5000`.
 
 ## ชื่อโฟลเดอร์: ไทย / English / หน้าที่

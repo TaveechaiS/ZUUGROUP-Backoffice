@@ -20,6 +20,20 @@ const LOCAL_PAGE = {
   page: '/customers/territories',
   fields: [
     {
+      key: 'managerId',
+      label: 'ผู้จัดการ (Manager)',
+      type: 'relation',
+      relation: 'users',
+      required: false,
+    },
+    {
+      key: 'salesId',
+      label: 'ฝ่ายขาย (Sales)',
+      type: 'relation',
+      relation: 'users',
+      required: false,
+    },
+    {
       key: 'code',
       label: 'รหัส / เลขอ้างอิง',
       type: 'text',
@@ -307,8 +321,15 @@ export default function Page() {
         )}
       </div>
 
-      <div className="relative mt-6 min-h-44 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white" aria-busy={loading}>
-        <LoadingComponent isVisible={loading && !error} variant="content" label="กำลังโหลดรายการ..." />
+      <div
+        className="relative mt-6 min-h-44 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white"
+        aria-busy={loading}
+      >
+        <LoadingComponent
+          isVisible={loading && !error}
+          variant="content"
+          label="กำลังโหลดรายการ..."
+        />
         {selectedTab === 'ลบแล้ว' && (
           <div className="divide-y divide-[#e3e9f0]">
             {pagedRows.map((row) => (
