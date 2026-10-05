@@ -3,15 +3,18 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ADMIN_PAGES } from '@/config/navigation';
+import SecondarySidebarFrame from '@/components/layout/secondary-sidebar-frame';
 
-export default function ProductSecondarySidebar() {
+export default function ProductSecondarySidebar({ roleId }: { roleId: string }) {
   const pathname = usePathname();
   const pages = [
     { href: '/products', label: 'สินค้าทั้งหมด' },
-    ...ADMIN_PAGES.filter((p) => p.parentHref === '/products'),
+    ...ADMIN_PAGES.filter(
+      (p) => p.parentHref === '/products' && (p.href !== '/products/create' || roleId === 'ADMIN'),
+    ),
   ];
   return (
-    <aside className="shrink-0 border-b border-[#edf0f4] bg-white md:w-52 md:border-r md:border-b-0 lg:w-60">
+    <SecondarySidebarFrame>
       <nav
         aria-label="เมนูสินค้าและสต็อก"
         className="flex gap-1 overflow-x-auto p-2 md:flex-col md:gap-2 md:px-0 md:py-5"
@@ -19,7 +22,10 @@ export default function ProductSecondarySidebar() {
         {pages.map((page) => {
           const active =
             page.href === '/products'
-              ? !pathname.startsWith('/products/stock')
+              ? pathname === '/products' ||
+                (pathname.startsWith('/products/') &&
+                  !pathname.startsWith('/products/stock') &&
+                  pathname !== '/products/create')
               : pathname === page.href;
           return (
             <Link
@@ -33,6 +39,6 @@ export default function ProductSecondarySidebar() {
           );
         })}
       </nav>
-    </aside>
+    </SecondarySidebarFrame>
   );
 }

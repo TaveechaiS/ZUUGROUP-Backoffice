@@ -1,5 +1,257 @@
 # งานที่กำลังทำ
 
+## TASK-138 Checkpoint ก่อนพัก — 2026-10-05
+
+- CHECKPOINT_READY: เอกสาร checkpoint/HANDOFF พร้อม; ESLint layout/products/navigation/reports, offline route checks 74 หน้า และ diff ผ่าน. เก็บด้วย local Git commit AI (ดู hash จาก Git log). ไม่ push/deploy; UAT/backend pending ตาม checkpoint.
+
+- IN_PROGRESS: เจ้าของขอ checkpoint ก่อนพัก. ขอบเขตเอกสาร checkpoint/HANDOFF/ACTIVE/Specs/Plan/Task และ local Git commit ของงานปัจจุบัน TASK097–137 บน AI. ลำดับตรวจรายการ → บันทึกสถานะ/งานค้าง → lint/diff → commit → ตรวจ Git. ไม่ push/deploy ไม่รวม local-backups.
+
+## TASK-137 ปุ่มบันทึก/ยกเลิกและ SuccessAlert — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ปุ่มขวาล่างพร้อมคำอธิบายและ Alert แยกบันทึก/ยกเลิกแล้ว ปิดกลับกรอกต่อ. ESLint/render initial state/diff ผ่าน ยังไม่คลิกจริงในเบราว์เซอร์. ไม่มีการบันทึก DB/ล้างข้อมูล/นำทาง/commit/deploy.
+
+- IN_PROGRESS: เพิ่มปุ่มขวาล่างและ SuccessAlertComponent พร้อมคำอธิบายทั้งสองปุ่มในหน้า preview. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task-137. ลำดับบันทึก → ปุ่ม/สถานะ Alert → lint/render/diff. ยังไม่บันทึก DB/ล้างข้อมูล/นำทาง และข้อความไม่อ้างสำเร็จจริง.
+
+## TASK-136 บริษัทผู้ผลิตข้างหน่วยสินค้า — 2026-10-05
+
+- COMPLETED: บริษัทผู้ผลิตอยู่ถัดจากหน่วยสินค้า ก่อนรายละเอียดสินค้าแล้ว ใช้ flex สองคอลัมน์เดิม. ตรวจลำดับ/ESLint/diff ผ่าน. ไม่เปลี่ยนพฤติกรรม/API/DB ไม่ commit/deploy.
+
+- IN_PROGRESS: ย้ายบริษัทผู้ผลิตถัดจากหน่วยสินค้าในข้อมูลทั่วไป เพื่ออยู่คู่กันบนจอกว้างและเรียงต่อกันบนมือถือ. ขอบเขต product-create-preview.tsx, ACTIVE/Specs/Plan และ tasks/TASK-136-manufacturer-beside-unit.md. ลำดับบันทึก → ย้ายลำดับ field → lint/diff. คงพฤติกรรม Combobox เดิม.
+
+## TASK-135 ชื่อไทยอังกฤษและรหัสเต็มใน placeholder — 2026-10-05
+
+- COMPLETED: ถอน3labelเหนือกล่องและใช้placeholder/aria-labelตรงชื่อแล้ว คงlegend/ดาว/readOnly. ESLint/diff whitespaceผ่าน ไม่มีAPI/DB/พฤติกรรมเปลี่ยน ไม่commit/deploy. ขอบเขตปิดงานACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่งถอนชื่อสินค้าเต็มไทย/อังกฤษและรหัสสินค้าเต็มจากlabelบนช่อง ย้ายไปplaceholder. ขอบเขต product-create-preview.tsx และACTIVE/Specs/Plan/Task. ลำดับบันทึก → ถอน3labelที่มองเห็น ตั้งplaceholder/aria-label → lint/diff. คงหัวข้อกลุ่ม/ดาว/ช่อง/readOnlyเดิม. แผน tasks/TASK-135-product-placeholder-labels.md.
+
+## TASK-134 ถอนคำอธิบายใต้หัวข้อหมวดสินค้า — 2026-10-05
+
+- COMPLETED: ถอนdescription5หมวดและrenderแล้ว คงชื่อหมวด/ช่อง/helperรายช่อง. ESLint/diff whitespaceผ่าน ไม่มีพฤติกรรม/API/DBเปลี่ยน ไม่commit/deploy. ขอบเขตปิดงานACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่งลบคำอธิบายใต้หัวข้อทั้ง5หมวด. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึก → ถอนsection.descriptionและข้อความrender → lint/diff. คงชื่อหมวด/ช่อง/helperรายช่อง/พฤติกรรมเดิม. แผน tasks/TASK-134-remove-product-section-descriptions.md.
+
+## TASK-133 แนบรูปและเอกสารหลายไฟล์ — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: แนบรูป/เอกสาร multiple เพิ่มสะสมได้ รายการthumbnail/ชื่อ/ขนาด/จำนวน/นำออกและดูไฟล์localครบ. ObjectURLคืนเมื่อถอด/unmountหรือpreviewสร้างล้มเหลว. ESLint2ไฟล์, image/PDF accept/reject และrender2multipleช่องว่าง/diffผ่าน. ยังไม่เลือกไฟล์จริงในbrowserหลังlogin; ตรวจรับTASK-133. ไม่มีupload/API/DB/จำนวนสูงสุด/commit/deploy. ขอบเขตปิดงานACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของขอแนบรูปสินค้า/เอกสารและโชว์ว่าแนบอะไร กี่รูปก็ได้. ขอบเขต product-attachment-field.tsx ใหม่, product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึก → file input multiple/เพิ่มสะสม → รูปthumbnail/เอกสารชื่อไฟล์/จำนวน/นำออก → จัดการobjectURLคืนเมื่อถอด/ออกหน้า → lint/render/diff. ไม่ตั้งจำนวนสูงสุดเอง ไม่upload/storage/DB; ไฟล์อยู่เฉพาะหน้า. แผน tasks/TASK-133-product-attachments.md.
+
+## TASK-132 ราคาขาย ภาษี และสถานะเริ่มต้น — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ราคาขาย/ภาษีเปลี่ยนชื่อแล้ว ภาษีnumberเริ่ม7แก้ได้พร้อม% สถานะselectเริ่มเปิดขายและเลือกพักขาย/เลิกจำหน่ายได้ ถอน2ช่องแจ้งเตือนหมวดเหลือการจัดเก็บ. ESLint/render defaults/removed labels/diff whitespace ผ่าน; ยังไม่ลองพิมพ์จริงหลังlogin ตรวจรับTASK-132. ไม่แก้API/DB/สูตร/เกณฑ์แจ้งกลาง ไม่commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของเปลี่ยนราคาขายมาตรฐาน→ราคาขาย ประเภทภาษี→ภาษีเริ่ม7แก้เลขได้ สถานะเริ่มเปิดขาย ลบแจ้งใกล้หมดและเกณฑ์ใกล้หมดอายุ. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึก → labels/required metadata → ภาษีnumber7พร้อม%และสถานะselectเปิดขาย → ถอน2ช่อง/เปลี่ยนหัวข้อการจัดเก็บ → lint/render/diff. เป็นค่าเริ่มต้นUI ไม่เปลี่ยนสูตร/API/DB/กฎแจ้งเตือนกลาง. แผน tasks/TASK-132-product-price-tax-status.md.
+
+## TASK-131 ถอนหมวดหน่วยและบรรจุภัณฑ์ — 2026-10-05
+
+- COMPLETED: ถอนหมวด/5ช่องอื่นและ metadata แล้ว หน่วยสินค้าอยู่ข้อมูลทั่วไปเป็นComboboxว่าง/ดาวเดิม. ESLint/diff whitespace ผ่าน. ไม่เปลี่ยน schema/API/ธุรกรรม/commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของไม่เอาหมวดหน่วยและบรรจุภัณฑ์ ย้ายหน่วยขายหลักเป็นหน่วยสินค้าในข้อมูลทั่วไป. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึก → ย้าย/เปลี่ยนชื่อหน่วยสินค้า คงCombobox/required → ถอนหมวดและ metadata ของหน่วยย่อย/ฐาน/ขนาดบรรจุ/แปลงหน่วย/บาร์โค้ด → lint/diff. ไม่เปลี่ยน schema/API/กฎธุรกรรม. แผน tasks/TASK-131-product-unit-general.md.
+
+## TASK-130 ถอนช่องบริษัทเจ้าของสิทธิ์ — 2026-10-05
+
+- COMPLETED: ถอนบริษัทเจ้าของสิทธิ์จาก fields/Combobox metadata แล้ว คงผู้ผลิต/ยี่ห้อเดิม. ESLint/diff whitespace ผ่าน. ไม่เปลี่ยน API/DB/commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของไม่เอาบริษัทเจ้าของสิทธิ์. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึก → ถอน field/Combobox metadata → lint/diff. คงบริษัทผู้ผลิต/ยี่ห้อและข้อมูลเบราว์เซอร์เดิม ไม่เปลี่ยน API/DB. แผน tasks/TASK-130-remove-rights-company.md.
+
+## TASK-129 ผู้ผลิตพิมพ์เพิ่มและจำ — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ผู้ผลิตเพิ่ม/ค้นหา/เลือกชื่อเดิมได้ด้วย component เดียวกับยี่ห้อแล้ว แยก storage key และคงยี่ห้อ key เดิม. ESLint 2 ไฟล์, persistence/dedupe/key compatibility/isolation/SSR labels และ diff whitespace ผ่าน. ยังไม่ลอง browser หลัง login; ตรวจรับ TASK-129. ไม่มีเจ้าของสิทธิ์/API/DB/บันทึกสินค้า/commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของขอบริษัทผู้ผลิตทำเหมือนยี่ห้อ. ขอบเขต product-brand-combobox.tsx เปลี่ยนเป็น product-name-combobox.tsx ที่รองรับชนิด, product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึก → ใช้ component เดียวเลือก brand/manufacturer แยก storage key → ผู้ผลิตพิมพ์เพิ่ม/เลือกชื่อเดิมพร้อม dedupe → lint/storage isolation/render/diff. คงข้อมูลยี่ห้อเดิม ไม่ทำเจ้าของสิทธิ์/DB/ข้อมูลกลาง. แผน tasks/TASK-129-remember-manufacturers.md.
+
+## TASK-128 ยี่ห้อพิมพ์เพิ่มและจำให้เลือก — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ยี่ห้อเป็น creatable/searchable Combobox จำรายการใน localStorage แล้ว ไม่มี seed. ตรวจ persistence/dedupe whitespace/case, invalid data ไม่ทับ, storage blocked และ empty SSR ผ่าน; ESLint 2 ไฟล์/diff whitespaceผ่าน. อ่านใหม่ตอนเปิดเพื่อเลือกชื่อเดิม ไม่บันทึกสินค้า/ไม่แชร์ข้ามเครื่อง/API/DB. ยังไม่ลองคลิก/คีย์บอร์ดจริงหลัง login; ตรวจรับ TASK-128. ไม่ commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของขอพิมพ์ยี่ห้อใหม่พร้อมจำเป็นตัวเลือกเดิม. ขอบเขต product-create-preview.tsx, product-brand-combobox.tsx ใหม่ และ ACTIVE/Specs/Plan/Task. ลำดับบันทึก → creatable/searchable brand Combobox ไม่มี seed → จำชื่อที่เลือกเพิ่มใน localStorage เบราว์เซอร์เดิมตามขอบเขตยังไม่DB → ป้องกันชื่อซ้ำ whitespace/case → lint/render/diff. ไม่บันทึกสินค้า/ไม่เชื่อมข้อมูลร่วมทุกเครื่อง. แผน tasks/TASK-128-remember-product-brands.md.
+
+## TASK-127 ชื่อสินค้าเต็มไทย/อังกฤษ — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: กลุ่มชื่อสินค้าเต็มแยก text ไทย/อังกฤษแล้ว flex คอมคู่/มือถือเต็มแถว. คงดาวกลุ่มและข้อความอย่างน้อยหนึ่งภาษา ไม่บังคับทั้งสองช่องแยก. ชื่อการค้าเดิมคงอยู่. ESLint/diff whitespace ผ่าน; ยังไม่ตรวจภาพหลัง login ตรวจรับ TASK-127. ไม่มี API/DB/validationบันทึก/commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่งเพิ่มชื่อสินค้าเต็มไทย/อังกฤษ และถามความต่างจากชื่อการค้า. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึก → แยกชื่อเต็มเป็น 2 ช่องในกลุ่มชื่อสินค้าเต็ม → คงบังคับอย่างน้อยหนึ่งภาษาตามร่างเดิม ไม่บังคับทั้งสองภาษา → lint/render/diff → อธิบายตัวอย่าง. ไม่เพิ่ม API/DB/validationบันทึก. แผน tasks/TASK-127-product-bilingual-name.md.
+
+## TASK-126 โครงช่องรหัสสินค้าแยกท่อน — 2026-10-05
+
+- UI_IMPLEMENTED / BACKEND_PENDING: โครงรหัสเต็มแถวมี Combobox กลุ่มรหัส/รูปแบบว่าง เลขลำดับแก้ได้เป็น numeric text สูงสุด5หลักและเติมศูนย์เมื่อ blur กับรหัสเต็ม readOnly แล้ว. ESLint/render/diff ผ่าน; render15Combobox/ไม่มีoptions/IDlinkageถูกต้อง. ยังไม่รันเลข/เช็กซ้ำจริงกับ DB ตามขอบเขต preview; กฎใหม่บันทึกแล้วสำหรับงาน master/server/constraint. ยังไม่ลองพิมพ์จริงหลัง login ไม่ commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของยืนยันกลุ่มรหัส/รูปแบบเป็น Combobox เลขลำดับรันและแก้เองได้ห้ามซ้ำ. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึกกฎใหม่ → โครงรหัส 2 Combobox ว่าง + เลขลำดับแก้ได้ + รหัสเต็มอ่านอย่างเดียว → lint/render/diff. คงไม่โหลดข้อมูล/ไม่บันทึกตาม preview ก่อนหน้า. รัน/unique ตามคู่กลุ่มรหัสและรูปแบบที่คุยไว้; server เดิมใช้ category จึงยังใช้กับกฎใหม่ไม่ได้ ต้องทำ master/API/constraint แยกเมื่อเชื่อมจริง. ไม่อ้างว่า UI ตรวจเลขซ้ำ DB ได้. แผน tasks/TASK-126-product-code-fields.md.
+
+## TASK-125 Flex ฟอร์มสินค้าเต็มกรอบ — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ฟอร์ม w-full ไม่มี max-width แล้ว; flex-wrap/basis จัดทั่วไป 2 คอลัมน์และ textarea/มือถือเต็มแถว. ESLint/diff whitespace ผ่าน. ยังไม่ตรวจภาพขยาย/ย่อ Side จริง; ตรวจรับ TASK-125. คง31ช่อง/13Combobox/9ดาวและพฤติกรรมเดิม ไม่แก้ DB/commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่งใช้ flex จัดและให้เต็มกรอบเมื่อขยาย. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึก → ลบ max-width/จัดกลาง → flex-wrap ช่องคอม 2 คอลัมน์ มือถือและ textarea เต็มแถว → lint/diff. ช่อง/required/Combobox/เมนู/DBเดิม. แผน tasks/TASK-125-product-flex-layout.md.
+
+## TASK-124 ดาวแดงช่องบังคับสินค้า — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ดาวแดง 9 ช่องบังคับทั่วไปและ aria-required ตรงกันแล้ว; ช่องอื่นไม่มีดาว รวม31ช่อง/13Comboboxคงเดิม. ESLint/render count/diff whitespace ผ่าน. ไม่มี validation/API/DB ใหม่; conditional fields ยังรอประเภท/กฎ. ตรวจรับ TASK-124 ยังไม่ตรวจภาพหลัง login. ไม่ commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่ง * สีแดงเฉพาะช่องบังคับ. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึกขอบเขต → ทำ metadata 9 ช่องบังคับทั่วไปตามร่างก่อนหน้า → label ดาวแดงและ aria-required ตรงกัน → lint/render/diff. เป็นเครื่องหมายใน preview ไม่เพิ่ม validation/API/DB. ช่องตามประเภทไม่ติดดาวขณะยังไม่มีประเภทที่เลือก. แผน tasks/TASK-124-product-required-markers.md.
+
+## TASK-123 ลบหัวข้อเกริ่นหน้าเพิ่มสินค้า — 2026-10-05
+
+- COMPLETED: ลบ header ภายในฟอร์มทั้งหัวข้อและข้อความเกริ่น/เส้นคั่นแล้ว เริ่มที่ข้อมูลทั่วไป. Scoped ESLint/diff whitespace ผ่าน. ช่องกรอก/Combobox/Topbar/Side เดิม ไม่ commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่งลบ “เพิ่มสินค้า” และข้อความเกริ่นชุดข้อมูลหลักเหนือฟอร์ม. ขอบเขต product-create-preview.tsx, ACTIVE/Specs/Plan/tasks/TASK-123-remove-product-intro.md. ลำดับบันทึกข้อยืนยัน → ลบ header ภายในฟอร์มทั้งชุด → lint/diff. คง Topbar/Side/ช่องกรอกและ Combobox เดิม ไม่มี API/DB.
+
+## TASK-122 Combobox ว่างในหน้าเพิ่มสินค้า — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: Combobox ว่าง 13 ช่องครบแล้ว แยกชื่อการค้า text จากยี่ห้อ รวม 31 ช่อง; ไม่มี options/ข้อมูลจำลองหรือคำค้นเป็นค่าที่เลือก. Focus/click/ArrowDown/Enter เปิด Escape/blur ปิดและล้างคำค้น. ESLint, render 13 Combobox/31 labels/10 textarea/ID linkage/ไม่มี options, route checks 74 และ diff whitespace ผ่าน. ยังไม่ลองคีย์บอร์ดจริงหลัง login; ตรวจรับ TASK-122. ไม่โหลด API/DB/submit ไม่ commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่งช่องที่เป็น Combobox ให้ใช้เลยแต่ไม่มีข้อมูลด้านใน. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task. ลำดับบันทึกข้อยืนยัน → ช่องข้อมูลอ้างอิง 13 ช่องเป็น searchable Combobox ว่าง → label/keyboard/empty state → lint/render/routes/diff. แยกชื่อการค้า (ข้อความ) จากยี่ห้อ (Combobox) จึงรวม 31 ช่อง. ไม่มี options จำลอง/โหลด API/DB/submit/required ใหม่; รายละเอียดรูป/เอกสารยังข้อความ. แผน tasks/TASK-122-empty-product-combobox.md.
+
+## TASK-121 ช่องกรอกแบบกล่องหน้าเพิ่มสินค้า — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: เปลี่ยน 30 รายการเป็น input text 20 ช่องและ textarea 10 ช่อง พร้อม label/help/focus และ responsive แล้ว. ข้อมูลอยู่เฉพาะช่องในหน้า ไม่มี submit/API/DB/Combobox/upload หรือ required ใหม่. Scoped ESLint และ route checks 74 ผ่าน; render ตรวจจำนวนและ label/help ผ่าน; diff whitespace ผ่าน. ยังไม่ตรวจพิมพ์จริงหลัง login; ตรวจรับตาม TASK-121. ไม่ commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่งทำช่องกรอกเป็น box ต่อจาก text preview. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task เท่านั้น. ลำดับบันทึกข้อยืนยัน → เปลี่ยน 30 รายการเป็น input text/textarea พร้อม label/help → จัดคอม 2 คอลัมน์/มือถือ 1 คอลัมน์ → lint/render/routes/diff. พิมพ์ได้ในหน้าแต่ยังไม่บันทึก ไม่มี Combobox/upload/API/DB หรือ required ธุรกิจ; หน้าอื่นคงเดิม. แผน tasks/TASK-121-product-input-boxes.md.
+
+## TASK-120 หน้าเพิ่มสินค้าแบบข้อความ — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: /products/create สำหรับ Admin แสดง preview ข้อความ 30 รายการใน 6 หมวดแล้ว ผ่าน AdminShell; หน้าอื่นคง navigation-only และฟอร์มธุรกรรมเดิมไม่ mount. ไม่มี input/Combobox/ปุ่มบันทึกหรือ upload. ยังไม่มีคำตอบคำถาม text-only/input จึงยึดข้อความอย่างเดียว. ESLint 2 ไฟล์, renderToStaticMarkup ตรวจ 30 ชื่อ/6 หมวด/ไม่มี controls, route checks 74 และ diff whitespace ผ่าน. ยังไม่ตรวจภาพหลัง login; ไม่แก้ API/DB/สิทธิ์ ไม่ commit/deploy. ขอบเขตปิดงาน ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่งทำหน้าเพิ่มสินค้าเป็น text ก่อน. ขอบเขต ACTIVE/Specs/Plan/Task, admin-shell.tsx และ product-create-preview.tsx ใหม่. ลำดับบันทึกแผน → จัดหัวข้อข้อมูลหลัก/ยา/หน่วย/ราคา/จัดเก็บ/เอกสาร → เปิด preview เฉพาะ /products/create → lint/routes/diff. รอคำตอบว่าเฉพาะข้อความหรือช่องกรอกข้อความ; ค่าเริ่มต้นยึด text-only. ไม่เปิดฟอร์มธุรกรรมเดิม/Combobox/บันทึก DB ไม่เดากฎบังคับ/แปลงหน่วย; หน้าอื่นยัง navigation-only.
+
+## TASK-119 แผนชุดรหัสและ Combobox สินค้า — 2026-10-05
+
+- DOCUMENTATION_ONLY: เจ้าของต้องการเพิ่มชุดรหัส/หมวดหมู่ภายหลังผ่านตั้งค่าระบบ และกรอกข้อมูลสินค้าแบบ Combobox. ขอบเขต ACTIVE/Specs/Plan/tasks/TASK-119-product-master-combobox-plan.md เท่านั้น. ลำดับตรวจ Combobox เดิม → บันทึกข้อยืนยัน → เสนอชุดข้อมูลและพฤติกรรมเลือก/ค้นหา/จัดการรายการ. ไม่แก้ UI/API/DB; ตัวอักษรรหัสจริง รายการตั้งต้น สิทธิ์เพิ่ม/แก้/ปิด และผลเปลี่ยนประเภทต่อรหัสเดิมยังต้องสรุปก่อน implementation.
+
+## TASK-118 สต็อกสินค้าเป็นเมนูหลัก — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: สต็อกสินค้าเป็น Side หลักต่อจากโปรโมชันก่อนเขตแล้ว Side รองรายงานสต็อกสินค้า/เพิ่มสต็อกสินค้า routes เดิม. Header/active แยกจากสินค้า; คลังหลัก/การตลาด/รอทำลายยังอยู่หมวดสินค้า. ESLint 3 ไฟล์, route checks 74 หน้า, registry order/parent checks และ diff whitespace ผ่าน. ยังไม่ตรวจภาพหลัง login; ตรวจรับตาม TASK-118. ไม่แก้ฟอร์ม/API/DB/สิทธิ์ ไม่ commit/deploy. ขอบเขตปิดงานบันทึกผล ACTIVE/Task.
+
+- IN_PROGRESS: เจ้าของสั่งย้ายล็อตสินค้าเป็น Side หลักชื่อสต็อกสินค้า ต่อจากโปรโมชัน & ของแถม (ก่อนเขต). Side รองรายงานสต็อกสินค้า/เพิ่มสต็อกสินค้า. ขอบเขต navigation.ts, admin-shell.tsx, stock-secondary-sidebar.tsx ใหม่ และ Specs/Plan/Task. ลำดับบันทึกข้อกำหนด → ย้าย /products/stock และเปลี่ยน parent /purchases/receipts ไปสต็อก → แยก Header/Side รองและ active → lint/routes/diff. ใช้ routes เดิม เก็บ Tab ล็อตเดิม; ไม่เพิ่มฟอร์ม/รายงาน/API/DB หรือกฎรับเข้า.
+
+## TASK-117 ล้างรายการ Postman ที่เลิกใช้ — 2026-10-05
+
+- COMPLETED / WAITING_FOR_UAT: ลบ 18 requests จาก Cloud/local แล้ว เหลือ 115/21 folders. อ่าน Cloud กลับตรวจ retained items คงเดิมทุกฟิลด์ ยกเว้น updatedAt โฟลเดอร์ orders ที่ Postman ปรับตามการลบ; variables/auth/events เดิมครบ. Local deep comparison ตรงกับ backup ที่ลบเป้าหมายเท่านั้น; authenticated 24 คำขอคงเดิม. Backup ignored TASK-117-cloud-before.json/TASK-117-local-before.json. ปรับคู่มือ/README แล้ว diff whitespace ผ่าน; ไม่ Send/เปลี่ยน backend/DB/commit/deploy. ขอบเขตปิดงานบันทึกผล ACTIVE/Task/Plan.
+
+- IN_PROGRESS: เจ้าของสั่งลบชื่อเส้น API ที่ไม่ใช้ใน Postman. ขอบเขต Collection Cloud Zuugroup 55942202-0b3c7e3b-7989-43ae-b40a-5dc7cf699903 และไฟล์ local เดิม, postman/README.md, docs/API-NAME-GUIDE.md, Specs/Plan/Task และ backup ignored. ตรวจข้อกำหนด/ผู้เรียก → สำรอง Cloud/local → ลบ customer-groups 8 และ billing 8; orders deleted/restore เดิม 2 → ตรวจอ่านกลับและเปรียบเทียบให้รายการอื่นคงเดิม. ไม่ลบ API implementation/DB หรือเรียก API ธุรกิจ. แผน tasks/TASK-117-postman-cleanup.md.
+
+## TASK-116 ล้างข้อมูล DB ยกเว้นผู้ใช้ — 2026-10-05
+
+- COMPLETED / WAITING_FOR_UAT: ล้าง 30 ตารางธุรกิจแล้ว ตรวจ readback ทุกตารางเหลือ 0; ผู้ใช้ 5 คนและ hash ทั้ง 7 ตารางที่เก็บตรงก่อนล้าง. สำรอง local-backups/TASK-116-2026-10-05T09-05-00-573Z-before-reset.json และผลตรวจไฟล์ชื่อเดียวกันลงท้าย result.json. node syntax/ESLint ผ่าน; ไม่ seed/เปลี่ยน schema/commit/deploy. ขอบเขตปิดงานเฉพาะบันทึกผลใน ACTIVE/Task/Plan.
+
+- IN_PROGRESS: เจ้าของสั่งลบข้อมูล DB ทุกอย่างยกเว้น user เพื่อเริ่มใหม่. ขอบเขต Specs/Plan/Task, scripts/reset-business-data.mjs, local-backups ที่ ignore และข้อมูลตาราง public ของ DB ปัจจุบัน. ลำดับตรวจตาราง/เป้าหมาย/FK → สำรองข้อมูลจริงและล็อก transaction → ล้างข้อมูลธุรกิจโดยไม่ CASCADE → ตรวจเหลือศูนย์และ hash ผู้ใช้/สิทธิ์เท่าเดิม → commit transaction. เก็บ users/auth_accounts/user_roles/roles/permissions/role_permissions และ migration metadata เพื่อให้ผู้ใช้ล็อกอินได้; ไม่แตะ schema auth/storage หรือโครงสร้างตาราง. แผน tasks/TASK-116-reset-business-data.md.
+
+## TASK-115 Topbar คอมรวม 82px — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: header คอมขั้นต่ำ 72px + แถบบน 10px รวม 82px แล้ว; fallback Side รอง/พื้นที่เนื้อหาปรับตรงกัน. มือถือคงเดิม. ESLint 2 ไฟล์และ diff whitespace ผ่าน; ยังไม่ตรวจภาพหลัง login ตรวจรับตาม TASK-115. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งลด Topbar เหลือ 82 หลังทราบรวมเดิม 102px. ขอบเขต Specs/Plan/Task, admin-shell.tsx, secondary-sidebar-frame.tsx; บันทึกข้อยืนยัน → header คอมขั้นต่ำ 72px รวมแถบบน 10px เป็น 82px → fallback/ระยะเนื้อหา 82px → ตรวจ lint/diff. มือถือคงรวม 90px; คง sticky/ข้อมูล/สีเดิม. แผน tasks/TASK-115-topbar-height.md.
+
+## TASK-114 พักเนื้อหาทุกหน้า เหลือเมนูและ Tab — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: AdminShell หลัง login ไม่ mount children เนื้อหาเดิมแล้ว แสดงเฉพาะ Tab จาก metadata/สินค้า/ล็อต/ผู้ใช้ ซ่อน Tab เดียว; รายละเอียด/สร้าง/รายงานเป็นหน้าว่าง. คง Side หลัก/รองและ Topbar ที่ล็อกล่าสุดระหว่างรอคำตอบ; login และ guard เดิมคงอยู่. ESLint 2 ไฟล์และ route checks 74 หน้าผ่าน; diff whitespace ผ่าน. TypeScript ติด Prisma เดิม managerId/salesId/productLot 3 จุด. ไม่มี API/ข้อมูล/โค้ดธุรกิจถูกลบ ไม่ commit/deploy; เจ้าของตรวจ TASK-114.
+
+- IN_PROGRESS: เจ้าของสั่งนำ filter และเนื้อหาทุกหน้าออกก่อน เหลือ Side หลัก/รอง/Tab. ขอบเขต Specs/Plan/Task, admin-shell.tsx และ navigation-only-tabs.tsx. ลำดับบันทึกข้อยืนยัน → แสดงเฉพาะ Tab เดิมจาก metadata/หมวดเฉพาะ โดยไม่ mount เนื้อหาเดิม → ตรวจ lint/types/routes/diff. หน้า login ยังใช้งาน; ไม่ลบข้อมูล/API/โค้ดธุรกิจ. Tab เดียวซ่อนตามกฎเดิม; ไม่มี Tab ใหม่ในหน้าสร้าง/รายละเอียด. รอคำตอบเรื่องคง Topbar ระหว่างทำส่วนอิสระ. แผน tasks/TASK-114-navigation-only-pages.md.
+
+## TASK-113 เขตเป็น Side หลัก — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: เขตเป็นเมนูหลักต่อจากโปรโมชัน; Side รองรายงานเขต/เพิ่มเขต (Admin) และ Header เขต. ผู้ใช้เหลือรายชื่อ/เพิ่ม; เลือกเมนูหลักตรงจาก registry ไม่เลือกลูกค้าซ้ำ. ESLint 5 ไฟล์, route checks 74 หน้า และ diff whitespace ผ่าน. TypeScript ติด Prisma เดิม managerId/salesId/productLot 3 จุด. ยังไม่ตรวจภาพหลัง login; รายงานเขตใช้รายการเดิม ไม่มีสูตร/ตัวเลขใหม่ ตรวจรับ TASK-113. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งเขตเป็น Side หลักต่อจากโปรโมชัน & ของแถม และ Side รองรายงานเขต/เพิ่มเขต. ขอบเขต Specs/Plan/Task, navigation.ts, admin-shell.tsx, sidebar.tsx, user-secondary-sidebar.tsx, territory-secondary-sidebar.tsx. ลำดับบันทึกข้อยืนยัน → ย้ายรายการหลัก/parent → แยกหมวด/Header/active → ตรวจ lint/types/routes/diff. ใช้รายการเขตเดิมเป็นรายงานเขต ไม่สร้างยอดรายงานใหม่; คง URL/ข้อมูล/filter/ตาราง/ฟอร์ม/guardเดิม. แผน tasks/TASK-113-territory-main-navigation.md.
+
+## TASK-112 Side รองใบเสนอราคาและคำสั่งซื้อ — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: Side รองแต่ละหมวดมีรายการ/สร้างล่างสุดตามสิทธิ์เดิม พร้อม Header และ active หน้าเดิม. ESLint 3 ไฟล์, route checks 74 หน้า และ diff whitespace ผ่าน. TypeScript ติดปัญหา Prisma เดิม managerId/salesId/productLot 3 จุด. คง filter/ตาราง/ฟอร์ม/รายละเอียด/ธุรกรรม; Tabsและการชำระยังไม่ implement. ยังไม่ตรวจภาพหลัง login ตรวจรับ TASK-112. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของอนุมัติปรับสองหมวดตามโครงรายการ/สร้างล่างสุด. ขอบเขต Specs/Plan/Task, navigation.ts, admin-shell.tsx, sales-document-secondary-sidebar.tsx. ลำดับบันทึกแผน → เชื่อมหน้ารายการ/สร้างเดิมตาม guard → Header/สถานะรายละเอียด → ตรวจ lint/types/routes/diff. คง filter/ตาราง/ฟอร์ม/รายละเอียด/API/DB/จอง/อนุมัติเดิม; Tabsรายละเอียดเก็บเป็นแผน และการชำระยังพัก. แผน tasks/TASK-112-sales-document-sidebar.md.
+
+## TASK-111 ชื่อเมนูคำสั่งซื้อ — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: label /orders เป็นคำสั่งซื้อแล้ว; ESLint navigation.ts และ diff whitespace ผ่าน. คง route/ข้อมูล/พฤติกรรมเดิม ตรวจเมนู/Headerตาม TASK-111. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งเปลี่ยนคำสั่งซื้อ & จัดส่ง เป็นคำสั่งซื้อ. ขอบเขต navigation.ts และ Specs/Plan/Task; บันทึกข้อยืนยัน → เปลี่ยน label /orders → ตรวจ lint/diff. คง route/ข้อมูล/พฤติกรรมเดิม. แผน tasks/TASK-111-order-menu-label.md.
+
+## TASK-110 โลโก้คอม 60px — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: โลโก้คอม 60 × 60px แล้ว มือถือคง 42px. ESLint sidebar.tsx และ diff whitespace ผ่าน; เจ้าของตรวจภาพตาม TASK-110. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งโลโก้คอม 60 × 60px. ขอบเขต sidebar.tsx และ Specs/Plan/Task; บันทึกข้อยืนยัน → md:h/w-15 และ Image width/height 60 → ตรวจ lint/diff. คงมือถือ 42px สี/ชื่อ/ความกว้างเมนู. แผน tasks/TASK-110-sidebar-logo-size.md.
+
+## TASK-109 ชื่อ ZUUGROUP ขนาด 2xl — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ชื่อบริษัทใช้ md:text-2xl แล้ว; ESLint sidebar.tsx และ diff whitespace ผ่าน. คงมือถือ text-lg/สี/น้ำหนัก/โลโก้เดิม รอเจ้าของตรวจตาม TASK-109. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งชื่อ ZUUGROUP เป็น 2xl บนคอม. ขอบเขต sidebar.tsx และ Specs/Plan/Task; บันทึกข้อกำหนด → md:text-3xl เป็น md:text-2xl → ตรวจ lint/diff. คงมือถือ text-lg/น้ำหนัก/สี/โลโก้/ความกว้างเดิม. แผน tasks/TASK-109-sidebar-brand-size.md.
+
+## TASK-108 ความกว้าง Side หลักขยาย 275px — 2026-10-05
+
+- FOLLOWUP IMPLEMENTED / WAITING_FOR_UAT: เจ้าของเปลี่ยนค่าจาก 250px เป็น 275px; อัปเดต globals.css/Specs/Plan/Task แล้ว ตรวจ token 275px/104px และ diff whitespace ผ่าน. รายการด้านล่างเป็นประวัติรอบ 250px. รอเจ้าของตรวจขอบเมนู/เนื้อหา ไม่ commit/deploy.
+
+- IMPLEMENTED / WAITING_FOR_UAT: token expanded เป็น 250px แล้ว collapsed คง 104px; ตรวจ Sidebar/AdminShell ใช้ token เดียวกัน และ diff whitespace ผ่าน. ยังไม่ตรวจภาพหลัง login; เจ้าของตรวจขอบเนื้อหา/ชื่อเมนู/โลโก้ตาม TASK-108. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งลดตอนขยายเป็น 250px. ขอบเขต globals.css และ Specs/Plan/Task; บันทึกข้อยืนยัน → เปลี่ยน --expanded-sidebar-width 300px เป็น 250px → ตรวจ token และ diff. คงตอนย่อ 104px และมือถือเต็มจอ; AppShell ใช้ token เดียวกันจึงปรับระยะเนื้อหาตามอัตโนมัติ. แผน tasks/TASK-108-sidebar-width.md.
+
+## TASK-107 เขตใน Side รองผู้ใช้งาน — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: Side รองผู้ใช้งานมีรายชื่อ/เขต/เพิ่มเขต/เพิ่มผู้ใช้งาน พร้อม Header/Side หลักผู้ใช้งานในหน้าเขต URL เดิม; สถานะรายละเอียดและสร้างแยกถูกต้อง. ESLint 3 ไฟล์, route checks 74 หน้า และ diff whitespace ผ่าน. TypeScript ติดปัญหา Prisma เดิม 3 จุด managerId/salesId/productLot. คงข้อมูล/ฟอร์ม/filter/ตาราง/สิทธิ์เดิม; ยังไม่ตรวจภาพหลัง login ตรวจรับตาม TASK-107. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งเพิ่มเขต/เพิ่มเขตใน Side รองผู้ใช้งาน. ขอบเขต Specs/Plan/Task, navigation.ts, admin-shell.tsx, user-secondary-sidebar.tsx. ลำดับบันทึกข้อยืนยัน → ผูกเขต/สร้างเขตเดิมกับผู้ใช้ → สถานะเมนู/Header → ตรวจ lint/types/routes/diff. ลำดับรายชื่อผู้ใช้งาน/เขต/เพิ่มเขต/เพิ่มผู้ใช้งานล่างสุด คง filter/ตาราง/ฟอร์ม/API/DB/สิทธิ์เดิม. แผน tasks/TASK-107-user-territory-navigation.md.
+
+## TASK-106 ล็อก Topbar — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: Topbar/แถบสี sticky ทุกหน้า Side รอง offset ใต้ Topbar และ Side หลักมือถือด้วยความสูงจริงจาก ResizeObserver; คอมพื้นที่เมนูหักความสูง Topbar. ESLint 2 ไฟล์, route checks 74 หน้า และ diff whitespace ผ่าน. TypeScript ติดปัญหาเดิม managerId/salesId/productLot 3 จุดจาก generated Prisma Client. ยังไม่ตรวจเลื่อนหลัง login; เจ้าของตรวจตาม TASK-106. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งล็อก Topbar แทนกฎไม่ล็อกเดิม. ขอบเขต Specs/Plan/Task, admin-shell.tsx และ secondary-sidebar-frame.tsx. ลำดับบันทึกข้อยืนยัน → sticky Topbar พร้อมวัดความสูงจริง → offset Side รองใต้ Topbar และ Side หลักมือถือ → ตรวจ lint/types/routes/diff. คงขนาด/สี/เนื้อหา/ข้อมูลเดิม. แผน tasks/TASK-106-sticky-topbar.md.
+
+## TASK-105 ตรึง Side รองเวลาเลื่อน — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: Side รองทุกหมวดใช้กรอบ sticky กลาง คอมเลื่อนเมนูภายในได้ มือถือวัดความสูง Side หลักด้วย ResizeObserver เพื่อไม่ซ้อนกัน. ESLint layout, route checks 74 หน้า และ diff whitespace ผ่าน. TypeScript ติดปัญหาเดิม managerId/salesId/productLot 3 จุดจาก generated Prisma Client. ยังไม่ได้ตรวจการเลื่อนหลัง login; เจ้าของตรวจตาม TASK-105. ไม่เปลี่ยน Header/เนื้อหา/ข้อมูล ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่ง Side รองไม่ไหลตามเนื้อหาเหมือน Side หลัก. ขอบเขต Specs/Plan/Task, admin-shell.tsx, secondary-sidebar-frame.tsx และ Side รองลูกค้า/สินค้า/ผู้ใช้/โปรโมชัน/รายงาน. ลำดับบันทึกแผน → กรอบ sticky กลางพร้อมเลื่อนเมนูภายในบนคอม → มือถือค้างใต้ Side หลักตามความสูงจริง → ตรวจ lint/types/routes/diff. ไม่เปลี่ยน Header/เนื้อหา/filter/ตาราง/ข้อมูล/สิทธิ์. แผน tasks/TASK-105-sticky-secondary-sidebar.md.
+
+## TASK-104 Side รองรายงานยอดขายและคลัง — 2026-10-05
+
+- NAVIGATION_IMPLEMENTED / REPORT_DATA_PENDING / WAITING_FOR_UAT: Side รอง 5 รายการต่อหมวดและหน้ารองรอข้อกำหนด/ข้อมูลครบ; หน้าแรก redirect สรุป มีลิงก์เปิดหน้าเดิมที่ legacy. ไม่แสดงตัวเลขสมมติ/API ใหม่. ESLint ไฟล์ที่เกี่ยวข้อง, route checks 74 หน้า และ diff whitespace ผ่าน. TypeScript ยังติดข้อผิดพลาดเดิม managerId/salesId/productLot 3 จุดจาก generated Prisma Client. ยังไม่ตรวจภาพหลัง login; เจ้าของตรวจตาม TASK-104. กฎรายงานจริง/สิทธิ์และวันอ้างอิงรอแผนถัดไป ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของอนุมัติปรับ Side รองรายงานทั้งสองตามข้อเสนอ 5 รายการต่อหมวด. ขอบเขต Specs/Plan/Task, navigation.ts, admin-shell.tsx, report-secondary-sidebar.tsx และ src/app/reports/{sales,inventory}/**/page.tsx. ลำดับบันทึกข้อยืนยัน → เก็บหน้ารายงานเดิมที่ legacy → หน้าแรก/หน้ารองตามหมวด → ตรวจ lint/types/routes/diff. ยังไม่คำนวณยอดหรือสร้าง API/DB; รายงานใหม่เป็นหน้ารอข้อมูล/กฎ ไม่แสดงค่าจำลอง. คงรายงานเดิมรวม filter/ตารางที่ legacy. แผน tasks/TASK-104-report-secondary-sidebar.md.
+
+## TASK-103 ถอดเมนูวางบิลและแผนชำระในเอกสารขาย — 2026-10-05
+
+- MENU_IMPLEMENTED / PAYMENT_DEFERRED_BY_OWNER: ซ่อนวางบิล & ลูกหนี้จาก Side หลักแล้ว; ESLint navigation.ts และ diff whitespace ผ่าน. เจ้าของตอบ “เก็บไว้ก่อนเดียวค่อยทำอีกที”: เก็บข้อกำหนดทั้งหมด/ผ่อน/จำนวนเดือน/ยอดต่อเดือนไว้และพักฟอร์มชำระ ไม่ถามหรือ implement ต่อจนเจ้าของกลับมาสั่ง. คงข้อมูล/route/API/DB เดิม; ตรวจเมนูตาม TASK-103. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งนำวางบิล & ลูกหนี้ออกจากเมนู และกำหนดการชำระในขั้นสร้างใบเสนอราคาหรือคำสั่งซื้อ: ทั้งหมด/ผ่อน โดยผ่อนระบุจำนวนเดือนและยอดต่อเดือน. ขอบเขต navigation.ts และ Specs/Plan/Task เท่านั้น; บันทึกข้อยืนยัน/OPEN → ซ่อนเมนู billing → ตรวจ lint/diff. ไม่ลบข้อมูล/route/API หรือ implement คำนวณ/รับชำระ/DB ก่อนสรุปกฎ. แผน tasks/TASK-103-payment-navigation-plan.md.
+
+## TASK-102 Side รองโปรโมชันและของแถม — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: Side รองรายการโปรโมชัน/เพิ่มโปรโมชัน (Admin) ล่างสุด พร้อม Header ชื่อหมวดและสถานะหน้าเดิม. ESLint 3 ไฟล์, route checks 62 หน้า และ diff whitespace ผ่าน. TypeScript ติดปัญหาเดิม 3 จุด managerId/salesId/productLot จาก generated Prisma Client ไม่ตรง schema. คง filter/ตาราง/ฟอร์ม/รายละเอียด/API/DB; Tabsรายละเอียดและ OPEN ยังไม่เปลี่ยน. ยังไม่ได้ตรวจภาพหลัง login; เจ้าของตรวจตาม TASK-102. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของอนุมัติ “ปรับ” เมนูรายการโปรโมชัน/เพิ่มโปรโมชันล่างสุด. ขอบเขต Specs/Plan/Task, navigation.ts, admin-shell.tsx, promotion-secondary-sidebar.tsx. ลำดับบันทึกแผน → เชื่อมหน้าเดิม → ตรวจ lint/types/routes/diff. คง filter/ตาราง/ฟอร์ม/รายละเอียด/API/DB และ guard Admin เดิมสำหรับสร้าง. ข้อเสนอ Tab ข้อมูลและเงื่อนไข/ของแถมบันทึกสำหรับแผนรายละเอียดหลังยืนยัน OPEN ไม่เพิ่ม Side ของแถมแยก. แผน tasks/TASK-102-promotion-secondary-sidebar.md.
+
+## TASK-101 ย้ายหมวดโปรโมชันและของแถม — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: เปลี่ยน section ของ /promotions เป็นจัดการข้อมูลแล้ว; ESLint navigation.ts และ diff whitespace ผ่าน. คงหน้า/URL/กฎธุรกิจเดิม รอเจ้าของตรวจเมนูตาม TASK-101. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของสั่งย้ายโปรโมชัน & ของแถมไปจัดการข้อมูล. ขอบเขต navigation.ts และ Specs/Plan/Task เท่านั้น; บันทึกข้อยืนยัน → เปลี่ยน section ของ /promotions → ตรวจ ESLint/diff. คง URL/ชื่อ/ไอคอน/หน้าจอ/กฎธุรกิจเดิม. แผน tasks/TASK-101-promotions-navigation.md.
+
+## TASK-100 Side รองผู้ใช้งาน — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: เพิ่ม Side รองรายชื่อผู้ใช้งาน/เพิ่มผู้ใช้งานสุดท้าย เฉพาะ Admin พร้อม Header ชื่อหมวดผู้ใช้งานและสถานะหน้ารายชื่อ/สร้าง/รายละเอียด. ESLint 3 ไฟล์, route checks 62 หน้า และ diff whitespace ผ่าน. TypeScript ติดข้อผิดพลาดเดิม 3 จุด managerId/salesId/productLot จาก generated Prisma Client ไม่ตรง schema. คง filter/ตาราง/ฟอร์ม/รายละเอียด/API/DB/สิทธิ์เดิม ไม่เพิ่มประวัติ. ยังไม่ตรวจภาพหลัง login; ตรวจรับตาม TASK-100. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของอนุมัติปรับเมนูผู้ใช้งาน → รายชื่อผู้ใช้งาน/เพิ่มผู้ใช้งาน (ล่างสุด). ขอบเขต Specs/Plan/Task, navigation.ts, admin-shell.tsx, user-secondary-sidebar.tsx. ลำดับบันทึกข้อยืนยัน/แผน → เชื่อมหน้ารายชื่อและเพิ่มเดิม → ตรวจ ESLint/types/routes/diff. คง filter/ตาราง/รายละเอียด/ฟอร์ม/API/DB/สิทธิ์ Admin เดิม ไม่เพิ่ม Tab ประวัติหรือเปลี่ยนการกด ID. แผน tasks/TASK-100-user-secondary-sidebar.md.
+
+## TASK-099 เมนูผู้ใช้งานแทนจัดซื้อ — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ย้ายผู้ใช้งานไปตำแหน่งเมนูจัดซื้อเดิมและซ่อนจัดซื้อจาก Sidebar หลักแล้ว. ESLint navigation.ts, route checks 62 หน้า และ diff whitespace ผ่าน. รอเจ้าของตรวจหน้าจอ/ย่อเมนู/มือถือ/Role ตาม TASK-099.
+
+- IN_PROGRESS: เจ้าของสั่งลบเมนูจัดซื้อ & รับเข้าสต็อกและแทนด้วยผู้ใช้งาน. ขอบเขต navigation.ts และ Specs/Plan/Task; บันทึกข้อกำหนด → ซ่อนเมนูจัดซื้อหลักและย้ายผู้ใช้งานเข้าตำแหน่งเดิม → ตรวจ ESLint/routes/diff. ผู้ใช้งานแสดงเพียงครั้งเดียวและเฉพาะ Admin ตามสิทธิ์เดิม; หน้ารับสินค้าเข้าใน Side รองสินค้าใช้ได้ตามเดิม. แผน tasks/TASK-099-users-navigation.md.
+
+## TASK-098 Side รองสินค้าและสต็อก — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: Side รองครบ 7 รายการสำหรับ Admin โดยรับสินค้าเข้าเชื่อมหน้าเดิมและเพิ่มสินค้าอยู่ท้ายสุด; Header/Side หลักของรับเข้ายังเป็นสินค้าและสต็อก. ESLint 4 ไฟล์, route checks 62 หน้า และ diff whitespace ผ่าน. TypeScript ยังติดข้อผิดพลาดเดิม managerId/salesId/productLot 3 จุดจาก generated Prisma Client; ไม่แก้ในรอบเมนู. คง filter/ตาราง/ฟอร์ม/API/DB/สิทธิ์เดิม. ยังไม่ได้ตรวจหน้าจอหลัง login; วิธีตรวจรับ TASK-098. ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของอนุมัติ “ปรับ” ตามโครง 7 รายการ: สินค้าทั้งหมด/คลังหลัก/คลังการตลาด/คลังรอทำลาย/ล็อตสินค้า/รับสินค้าเข้า/เพิ่มสินค้า (ล่างสุด). ขอบเขต Specs/Plan/Task, navigation.ts, product-secondary-sidebar.tsx, admin-shell.tsx, sidebar.tsx. ลำดับบันทึกข้อยืนยันและแผน → เชื่อมหน้ารับเข้า/เพิ่มสินค้าเดิม → ปรับสถานะเมนูหลักและรอง → ตรวจ lint/types/routes/diff. คง filter/ตาราง/ฟอร์ม/API/DB/สิทธิ์เดิม ไม่แตะ OPEN Design ที่เหลือ. แผน tasks/TASK-098-product-secondary-sidebar.md.
+
+## TASK-097 Side รองลูกค้า — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: เพิ่ม Side รองใต้ Header ชื่อลูกค้า: รายชื่อลูกค้า/เพิ่มลูกค้า (Admin) รายการสุดท้าย พร้อมสถานะที่เลือกและรูปแบบมือถือเดิม. ESLint ไฟล์ที่แก้, route checks 62 หน้า และ diff whitespace ผ่าน. TypeScript ยังไม่ผ่านข้อผิดพลาดเดิม 3 จุด: managerId/salesId ใน users API และ productLot ใน prisma.ts จาก generated client ไม่ตรง schema; ไม่แก้ในขอบเขตนี้. ยังไม่ได้ตรวจภาพหลัง login; เจ้าของตรวจตาม TASK-097. filter/ตาราง/ฟอร์ม/รายละเอียด/API/DB ไม่เปลี่ยน; ไม่ commit/deploy.
+
+- IN_PROGRESS: เจ้าของอนุมัติให้ลองปรับเฉพาะเมนู โดยยังไม่แก้ filter และตาราง. Side หลักลูกค้า → Side รองรายชื่อลูกค้า/เพิ่มลูกค้า (ล่างสุด); ไม่แสดงเขตและผู้แทนขายหรือเอกสารเป็นเมนูแยก. ขอบเขต Specs/Plan/Task, navigation.ts, admin-shell.tsx และ customer-secondary-sidebar.tsx. ลำดับบันทึกข้อยืนยันและแผน → เพิ่ม Side รองใต้ Header ตามรูปแบบเดิม → ตรวจ lint/types/routes/diff. คงหน้ารายการ/ฟอร์ม/รายละเอียด/API/DB/สิทธิ์เดิม; เรื่องเอกสารภายในรายละเอียดและการกด ID บันทึกไว้สำหรับรอบถัดไป ไม่แก้ตารางรอบนี้. แผนย่อย tasks/TASK-097-customer-secondary-sidebar.md.
+
 ## TASK-096 Checkpoint และ Commit — 2026-10-04
 
 - CHECKPOINT_READY: บันทึกcheckpoint TASK092–095พร้อมงานค้างDesign; ตรวจTypeScript/route62และdiff whitespaceผ่านรอบนี้. เจ้าของอนุมัติcommitแล้ว; เก็บโค้ด/เอกสาร/migration/tests/ภาพDesignในAI โดยไม่รวมenv/backups/generated outputs. ไม่เปลี่ยนสถานะรับรองDesignหรือOPENและไม่push/deploy.

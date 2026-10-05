@@ -1,0 +1,46 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { ADMIN_PAGES } from '@/config/navigation';
+import SecondarySidebarFrame from '@/components/layout/secondary-sidebar-frame';
+
+export default function SalesDocumentSecondarySidebar({
+  parentHref,
+  roleId,
+}: {
+  parentHref: '/quotes' | '/orders';
+  roleId: string;
+}) {
+  const pathname = usePathname();
+  const quote = parentHref === '/quotes';
+  const creating = pathname === `${parentHref}/create`;
+  const canCreate = quote ? roleId === 'ADMIN' : ['ADMIN', 'SALES'].includes(roleId);
+  const pages = [
+    { href: parentHref, label: quote ? 'รายการใบเสนอราคา' : 'รายการคำสั่งซื้อ' },
+    ...ADMIN_PAGES.filter((page) => page.parentHref === parentHref && canCreate),
+  ];
+
+  return (
+    <SecondarySidebarFrame>
+      <nav
+        aria-label={quote ? 'เมนูใบเสนอราคา' : 'เมนูคำสั่งซื้อ'}
+        className="flex gap-1 overflow-x-auto p-2 md:flex-col md:gap-2 md:px-0 md:py-5"
+      >
+        {pages.map((page) => {
+          const active = page.href === parentHref ? !creating : pathname === page.href;
+          return (
+            <Link
+              key={page.href}
+              href={page.href}
+              aria-current={active ? 'page' : undefined}
+              className={`shrink-0 whitespace-nowrap rounded-md px-4 py-3 text-sm transition-colors md:rounded-none md:px-6 ${active ? 'bg-blue-50 poppins-semibold text-[#1a58a7]' : 'text-[#65758b] hover:bg-blue-50 poppins-regular'}`}
+            >
+              {page.label}
+            </Link>
+          );
+        })}
+      </nav>
+    </SecondarySidebarFrame>
+  );
+}

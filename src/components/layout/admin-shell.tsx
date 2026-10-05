@@ -1,12 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { APP_CONFIG } from '@/config/app';
 import { ADMIN_PAGES, getAdminPage, type AdminPage } from '@/config/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import ProductSecondarySidebar from '@/components/layout/product-secondary-sidebar';
+import CustomerSecondarySidebar from '@/components/layout/customer-secondary-sidebar';
+import UserSecondarySidebar from '@/components/layout/user-secondary-sidebar';
+import PromotionSecondarySidebar from '@/components/layout/promotion-secondary-sidebar';
+import ReportSecondarySidebar from '@/components/layout/report-secondary-sidebar';
+import SalesDocumentSecondarySidebar from '@/components/layout/sales-document-secondary-sidebar';
+import TerritorySecondarySidebar from '@/components/layout/territory-secondary-sidebar';
+import StockSecondarySidebar from '@/components/layout/stock-secondary-sidebar';
+import NavigationOnlyTabs from '@/components/layout/navigation-only-tabs';
+import ProductCreatePreview from '@/components/products/product-create-preview';
 import { logout } from '@/app/login/actions';
 
 export function AdminShell({
@@ -17,13 +26,60 @@ export function AdminShell({
   account: { name: string; role: string; roleId: string } | null;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const shellRef = useRef<HTMLElement>(null);
+  const topbarRef = useRef<HTMLDivElement>(null);
   const currentPath = usePathname();
   const page: AdminPage = getAdminPage(currentPath) ?? ADMIN_PAGES[0];
+  const stockSection = page.href === '/products/stock' || page.parentHref === '/products/stock';
+  const productSection =
+    !stockSection &&
+    (currentPath === '/products' ||
+      currentPath.startsWith('/products/') ||
+      page.parentHref === '/products');
+  const userSection =
+    currentPath === '/users' || currentPath.startsWith('/users/') || page.parentHref === '/users';
+  const territorySection =
+    currentPath === '/customers/territories' || currentPath.startsWith('/customers/territories/');
+  const customerSection =
+    !userSection &&
+    !territorySection &&
+    (currentPath === '/customers' || currentPath.startsWith('/customers/'));
+  const promotionSection = currentPath === '/promotions' || currentPath.startsWith('/promotions/');
+  const quoteSection = currentPath === '/quotes' || currentPath.startsWith('/quotes/');
+  const orderSection = currentPath === '/orders' || currentPath.startsWith('/orders/');
+  const salesReportSection =
+    currentPath === '/reports/sales' || currentPath.startsWith('/reports/sales/');
+  const inventoryReportSection =
+    currentPath === '/reports/inventory' || currentPath.startsWith('/reports/inventory/');
+
+  useEffect(() => {
+    const shell = shellRef.current;
+    const mainSidebar = shell?.firstElementChild;
+    const topbar = topbarRef.current;
+    if (!shell || !(mainSidebar instanceof HTMLElement) || !topbar) return;
+
+    const updateHeight = () => {
+      shell.style.setProperty(
+        '--main-sidebar-height',
+        `${mainSidebar.getBoundingClientRect().height}px`,
+      );
+      shell.style.setProperty('--topbar-height', `${topbar.getBoundingClientRect().height}px`);
+    };
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(mainSidebar);
+    observer.observe(topbar);
+    return () => {
+      observer.disconnect();
+      shell.style.removeProperty('--main-sidebar-height');
+      shell.style.removeProperty('--topbar-height');
+    };
+  }, [currentPath]);
 
   if (currentPath === '/login') return <>{children}</>;
 
   return (
-    <main className="min-h-screen">
+    <main ref={shellRef} className="min-h-screen">
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed((value) => !value)}
@@ -32,11 +88,34 @@ export function AdminShell({
       <section
         className={`${collapsed ? 'min-h-[calc(100vh-64px)]' : 'min-h-[calc(100vh-102px)]'} bg-blue-700 md:min-h-screen ${collapsed ? 'md:ml-[var(--collapsed-sidebar-width)]' : 'md:ml-[var(--expanded-sidebar-width)]'}`}
       >
-        <div className="border-t-[10px] border-blue-700 bg-blue-700">
-          <header className="relative flex min-h-20 items-center justify-between gap-3 border-b border-[#d7e3f0] bg-blue-50 px-4 py-2.5 md:min-h-23 md:gap-6 md:rounded-tl-[25px] md:px-7.5 md:py-0">
+        <div
+          ref={topbarRef}
+          className="sticky top-[var(--main-sidebar-height,0px)] z-[5] border-t-[10px] border-blue-700 bg-blue-700 md:top-0"
+        >
+          <header className="relative flex min-h-20 items-center justify-between gap-3 border-b border-[#d7e3f0] bg-blue-50 px-4 py-2.5 md:min-h-18 md:gap-6 md:rounded-tl-[25px] md:px-7.5 md:py-0">
             <div className="min-w-0 flex-1">
               <h1 className="m-0 break-words text-lg leading-[1.35] poppins-bold text-[#111827] md:text-xl">
-                {currentPath.startsWith('/products') ? 'สินค้าและสต็อก' : page.label}
+                {stockSection
+                  ? 'สต็อกสินค้า'
+                  : productSection
+                    ? 'สินค้าและสต็อก'
+                    : customerSection
+                      ? 'ลูกค้า'
+                      : userSection
+                        ? 'ผู้ใช้งาน'
+                        : territorySection
+                          ? 'เขต'
+                          : promotionSection
+                            ? 'โปรโมชัน & ของแถม'
+                            : salesReportSection
+                              ? 'รายงานยอดขาย'
+                              : inventoryReportSection
+                                ? 'รายงานคลังสินค้า'
+                                : quoteSection
+                                  ? 'ใบเสนอราคา'
+                                  : orderSection
+                                    ? 'คำสั่งซื้อ'
+                                    : page.label}
               </h1>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 text-xs text-[#59677e] md:gap-5">
@@ -100,11 +179,34 @@ export function AdminShell({
           </header>
         </div>
         <div
-          className={`flex flex-col ${collapsed ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-182px)]'} bg-white md:min-h-[calc(100vh-92px)]`}
+          className={`flex flex-col ${collapsed ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-182px)]'} bg-white md:min-h-[calc(100vh-82px)]`}
         >
           <div className="flex min-w-0 flex-1 flex-col md:flex-row">
-            {currentPath.startsWith('/products') && <ProductSecondarySidebar />}
-            <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+            {productSection && <ProductSecondarySidebar roleId={account?.roleId ?? ''} />}
+            {stockSection && <StockSecondarySidebar />}
+            {customerSection && <CustomerSecondarySidebar roleId={account?.roleId ?? ''} />}
+            {userSection && account?.roleId === 'ADMIN' && <UserSecondarySidebar />}
+            {territorySection && <TerritorySecondarySidebar roleId={account?.roleId ?? ''} />}
+            {promotionSection && <PromotionSecondarySidebar roleId={account?.roleId ?? ''} />}
+            {quoteSection && (
+              <SalesDocumentSecondarySidebar parentHref="/quotes" roleId={account?.roleId ?? ''} />
+            )}
+            {orderSection && (
+              <SalesDocumentSecondarySidebar parentHref="/orders" roleId={account?.roleId ?? ''} />
+            )}
+            {salesReportSection && <ReportSecondarySidebar parentHref="/reports/sales" />}
+            {inventoryReportSection && <ReportSecondarySidebar parentHref="/reports/inventory" />}
+            <div className="flex min-w-0 flex-1 flex-col">
+              {currentPath === '/products/create' && account?.roleId === 'ADMIN' ? (
+                <ProductCreatePreview />
+              ) : (
+                <NavigationOnlyTabs
+                  key={`${currentPath}:${account?.roleId ?? ''}`}
+                  pathname={currentPath}
+                  roleId={account?.roleId ?? ''}
+                />
+              )}
+            </div>
           </div>
         </div>
       </section>

@@ -1,5 +1,11 @@
 # Postman — Zuugroup
 
+## ปัจจุบัน TASK-117 — 5 ตุลาคม 2569
+
+Collection [Zuugroup](Zuugroup.postman_collection.json) เหลือ **115 คำขอ / 21 โฟลเดอร์** ทั้งไฟล์ local และ Cloud ID เดิม. ลบ customer-groups แยกเดิม 8, billing 8 และ orders deleted/restore เดิม 2. กลุ่มลูกค้าใช้ช่อง customer.category; การชำระในเอกสารขายยังพักตามเจ้าของ; workflow คำสั่งซื้อใช้ยกเลิก/ส่งกลับแก้ไขแทนกู้คืนแบบเดิม. Backend/DB ไม่ถูกแก้ในงานนี้. เอกสารลูกค้ายังเก็บสำหรับรายละเอียดด้านใน และชุด authenticated 24 คำขอคงเดิม.
+
+สำรองก่อนแก้ไว้ local-backups/TASK-117-cloud-before.json และ TASK-117-local-before.json ที่ไม่เข้า Git. Refresh Postman ควรไม่เห็น customer-groups/billing และ orders deleted/restore เดิม. หัวข้อถัดไปบันทึกการปรับรอบก่อน; จำนวน 133/23 เป็นค่าเก่า.
+
 ## Collection ปัจจุบัน
 
 - [Zuugroup](Zuugroup.postman_collection.json): 133คำขอ ใน23กลุ่ม ข้อมูลสาธารณะ/โมดูล/รายงาน/CRUD และ Login4Role

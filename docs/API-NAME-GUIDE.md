@@ -1,5 +1,7 @@
 # คู่มือชื่อ API — Zuugroup / API Folder Guide
 
+**ปัจจุบัน TASK-117 (5 ตุลาคม 2569):** Zuugroup เหลือ 115 คำขอใน 21 โฟลเดอร์ ทั้ง local/Cloud. ลบโฟลเดอร์ customer-groups (ใช้ customer.category แทน) และ billing (พักตามแผนการชำระในเอกสารขาย) รวม 16 คำขอ; ถอด orders deleted/restore เดิมอีก 2. ตารางด้านล่างเป็นประวัติเดิม รายการที่ถอดไม่อยู่ใน Collection ปัจจุบัน. customer-documents ยังใช้สำหรับรายละเอียดในลูกค้า. ชุด authenticated 24 คำขอคงเดิม. [รายการล่าสุด](../postman/README.md).
+
 **TASK-094:** [ชื่อและหน้าที่ API สินค้า/คลัง/ล็อต](STOCK-SCREEN-API-GUIDE.md) มี view `products` (สรุปสินค้า / Product stock summary) และ `lots` (รายการล็อต / Product lots) สำหรับ5หน้าสินค้าและสต็อก.
 
 **อัปเดต TASK-092:** ดู [ชื่อ API ไทย/อังกฤษและขั้นตอนใช้งานล่าสุด](LINKED-OPERATIONS-GUIDE.md#ชื่อ-api-ไทย--english) สำหรับเขต ทีมขาย ล็อตรับเข้า ยอดคลัง และ Orders. รายละเอียด collection ด้านล่างเป็นประวัติเดิม; หน้ากลุ่มลูกค้าแยกเลิกใช้แล้ว.

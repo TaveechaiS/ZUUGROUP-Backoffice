@@ -4,7 +4,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/config/app';
-import { ADMIN_PAGES, NAVIGATION_SECTIONS, type AdminPage } from '@/config/navigation';
+import {
+  ADMIN_PAGES,
+  NAVIGATION_SECTIONS,
+  getAdminPage,
+  type AdminPage,
+} from '@/config/navigation';
 
 const iconAssets: Record<string, { width: number; height: number }> = {
   dashboard: { width: 20, height: 20 },
@@ -46,6 +51,8 @@ export function Sidebar({
   roleId: string;
 }) {
   const currentPath = usePathname();
+  const currentPage = getAdminPage(currentPath);
+  const activePath = currentPage?.parentHref ?? currentPage?.href ?? currentPath;
   const allowedPages = ADMIN_PAGES.filter(
     (page) => roleId === 'ADMIN' || !['/users', '/audit-logs', '/settings'].includes(page.href),
   );
@@ -74,15 +81,15 @@ export function Sidebar({
             >
               <Image
                 aria-hidden="true"
-                className="block h-10.5 w-10.5 shrink-0 object-contain md:h-17.5 md:w-17.5"
+                className="block h-10.5 w-10.5 shrink-0 object-contain md:h-15 md:w-15"
                 src="/logo.png"
                 alt=""
-                width={70}
-                height={70}
+                width={60}
+                height={60}
               />
             </button>
             <span className={`grid gap-1 ${collapsed ? 'md:hidden' : ''}`}>
-              <strong className="text-lg leading-[1.1] poppins-bold text-white md:text-3xl">
+              <strong className="text-lg leading-[1.1] poppins-bold text-white md:text-2xl">
                 {APP_CONFIG.name}
               </strong>
               <small className="block text-xs leading-[1.3] poppins-regular text-white md:text-sm">
@@ -112,9 +119,7 @@ export function Sidebar({
                 </h2>
                 <ul className="m-0 flex list-none gap-1 p-0 md:grid md:gap-[3px]">
                   {pages.map((page: AdminPage) => {
-                    const active =
-                      page.href === currentPath ||
-                      (page.href !== '/' && currentPath.startsWith(page.href + '/'));
+                    const active = page.href === activePath;
                     return (
                       <li key={page.href}>
                         <Link
@@ -138,9 +143,7 @@ export function Sidebar({
           aria-label="หมวดเมนู"
         >
           {mainPages.map((page) => {
-            const active =
-              page.href === currentPath ||
-              (page.href !== '/' && currentPath.startsWith(`${page.href}/`));
+            const active = page.href === activePath;
             return (
               <Link
                 className={`grid min-h-12 w-16.5 shrink-0 place-items-center rounded-[5px] text-white hover:bg-white/[0.14] ${active ? 'bg-white/[0.14]' : ''}`}
