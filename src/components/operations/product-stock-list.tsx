@@ -25,7 +25,6 @@ export default function ProductStockList({
   const [tab, setTab] = useState('');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
-  const [status, setStatus] = useState('');
   const [expiry, setExpiry] = useState('');
   const [page, setPage] = useState(1);
   const [result, setResult] = useState<Result | null>(null);
@@ -41,7 +40,6 @@ export default function ProductStockList({
         view: 'products',
         search,
         categoryId: category,
-        status,
         expiry,
         warehouseCode: warehouseCode ?? '',
         stock: tab === 'deleted' ? '' : tab,
@@ -68,7 +66,7 @@ export default function ProductStockList({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [warehouseCode, search, category, status, expiry, tab, page, retry]);
+  }, [warehouseCode, search, category, expiry, tab, page, retry]);
   const rows = result?.data ?? [];
   const total = result?.pagination.total ?? 0;
   const tabs = warehouseCode
@@ -110,7 +108,7 @@ export default function ProductStockList({
       </div>
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
       <div
-        className={`grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 ${warehouseCode ? 'lg:grid-cols-4' : 'md:grid-cols-3'}`}
+        className={`grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 ${warehouseCode ? 'lg:grid-cols-3' : 'md:grid-cols-2'}`}
       >
         <label className="text-xs text-[#53647c]">
           ค้นหา
@@ -142,21 +140,6 @@ export default function ProductStockList({
             ))}
           </select>
         </label>
-        <label className="text-xs text-[#53647c]">
-          สถานะ
-          <select
-            className={control}
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">ทั้งหมด</option>
-            <option value="ACTIVE">ใช้งาน</option>
-            <option value="INACTIVE">ไม่ใช้งาน</option>
-          </select>
-        </label>
         {warehouseCode && (
           <label className="text-xs text-[#53647c]">
             อายุสินค้า
@@ -180,7 +163,7 @@ export default function ProductStockList({
         aria-busy={loading}
       >
         <LoadingComponent isVisible={loading && !error} variant="content" />
-        <table className="w-full min-w-[950px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[760px] border-collapse text-left text-sm">
           <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
             <tr>
               {[
@@ -189,11 +172,8 @@ export default function ProductStockList({
                 'หมวดหมู่',
                 'หน่วย',
                 'ราคาขาย',
-                'คงเหลือ',
-                'จอง',
-                'พร้อมใช้',
+                warehouseCode ? 'คงเหลือ' : 'คงเหลือรวม',
                 'สถานะ',
-                ...(!warehouseCode || warehouseCode === 'MAIN' ? ['พร้อมขายคลังหลัก'] : []),
               ].map((label) => (
                 <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
                   {label}
@@ -220,36 +200,23 @@ export default function ProductStockList({
                   className="cursor-pointer border-t border-[#edf0f4] hover:bg-[#fafbfc] focus-visible:bg-blue-50 focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
                 >
                   <td className="px-4 py-3 text-[#1a58a7]">{product.code}</td>
-                  <td className="px-4 py-3">{product.name}</td>
+                  <td className="w-[28%] break-words px-4 py-3">{product.name}</td>
                   <td className="px-4 py-3">{product.categoryName}</td>
                   <td className="px-4 py-3">{product.unit}</td>
                   <td className="px-4 py-3">{money(product.salePrice)}</td>
                   <td className="px-4 py-3 tabular-nums">{product.quantity}</td>
-                  <td className="px-4 py-3 tabular-nums">{product.reserved}</td>
-                  <td className="px-4 py-3 tabular-nums">{product.available}</td>
                   <td className="px-4 py-3">
-                    <StatusBadge
-                      value={
-                        product.deletedAt
-                          ? 'ลบแล้ว'
-                          : product.status === 'ACTIVE'
-                            ? 'ใช้งาน'
-                            : 'ไม่ใช้งาน'
-                      }
-                    />
+                    {product.deletedAt ? (
+                      <StatusBadge value="ลบแล้ว" />
+                    ) : (!warehouseCode || warehouseCode === 'MAIN') &&
+                      product.mainAvailable < 50 ? (
+                      <StatusBadge
+                        value={product.mainAvailable === 0 ? 'สินค้าหมด' : 'สินค้าใกล้หมด'}
+                      />
+                    ) : (
+                      <span className="text-[#65758b]">—</span>
+                    )}
                   </td>
-                  {(!warehouseCode || warehouseCode === 'MAIN') && (
-                    <td className="px-4 py-3">
-                      <span className="tabular-nums">{product.mainAvailable}</span>
-                      {!product.deletedAt && product.mainAvailable < 50 && (
-                        <div className="mt-1">
-                          <StatusBadge
-                            value={product.mainAvailable === 0 ? 'สินค้าหมด' : 'สินค้าใกล้หมด'}
-                          />
-                        </div>
-                      )}
-                    </td>
-                  )}
                 </tr>
               );
             })}

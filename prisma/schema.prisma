@@ -3,6 +3,20 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+model ProductOption {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind String
+  name String
+  code String?
+  active Boolean @default(true)
+  legacy Boolean @default(false)
+  version Int @default(1)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  @@index([kind,active,name,id],map:"product_options_kind_active")
+  @@map("product_options")
+}
+
 model StockReceipt {
  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
  code String @unique

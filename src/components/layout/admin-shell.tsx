@@ -16,6 +16,8 @@ import TerritorySecondarySidebar from '@/components/layout/territory-secondary-s
 import StockSecondarySidebar from '@/components/layout/stock-secondary-sidebar';
 import NavigationOnlyTabs from '@/components/layout/navigation-only-tabs';
 import ProductCreatePreview from '@/components/products/product-create-preview';
+import SettingsHome from '@/components/settings/settings-home';
+import SettingsSecondarySidebar from '@/components/layout/settings-secondary-sidebar';
 import { logout } from '@/app/login/actions';
 
 export function AdminShell({
@@ -29,6 +31,12 @@ export function AdminShell({
   const shellRef = useRef<HTMLElement>(null);
   const topbarRef = useRef<HTMLDivElement>(null);
   const currentPath = usePathname();
+  const showProductTable = [
+    '/products',
+    '/products/stock/main',
+    '/products/stock/marketing',
+    '/products/stock/disposal',
+  ].includes(currentPath);
   const page: AdminPage = getAdminPage(currentPath) ?? ADMIN_PAGES[0];
   const stockSection = page.href === '/products/stock' || page.parentHref === '/products/stock';
   const productSection =
@@ -196,9 +204,17 @@ export function AdminShell({
             )}
             {salesReportSection && <ReportSecondarySidebar parentHref="/reports/sales" />}
             {inventoryReportSection && <ReportSecondarySidebar parentHref="/reports/inventory" />}
+            {currentPath.startsWith('/settings') && account?.roleId === 'ADMIN' && (
+              <SettingsSecondarySidebar />
+            )}
             <div className="flex min-w-0 flex-1 flex-col">
               {currentPath === '/products/create' && account?.roleId === 'ADMIN' ? (
                 <ProductCreatePreview />
+              ) : currentPath === '/settings' && account?.roleId === 'ADMIN' ? (
+                <SettingsHome />
+              ) : showProductTable ||
+                (currentPath === '/settings/product-options' && account?.roleId === 'ADMIN') ? (
+                children
               ) : (
                 <NavigationOnlyTabs
                   key={`${currentPath}:${account?.roleId ?? ''}`}

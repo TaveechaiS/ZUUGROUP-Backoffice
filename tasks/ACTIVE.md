@@ -1,5 +1,105 @@
 # งานที่กำลังทำ
 
+## TASK-153 Checkpoint งานสินค้าและรายการกลาง — 2026-10-05
+
+- CHECKPOINT_READY: บันทึก checkpointรอบ2/HANDOFF/Specs/Plan/แผนย่อยครบ. TypeScriptและESLintทุกไฟล์โค้ดที่เปลี่ยน/ใหม่ผ่าน; diff whitespaceผ่าน. เก็บ local commit บน AI และยืนยัน hash/status ด้วย Git หลัง commit. ไม่มี DB mutation/push/deploy. TASK152ยังรอคำตอบตามเดิม.
+
+- IN_PROGRESS: เจ้าของขอ checkpoint. ขอบเขต ACTIVE/Specs/Plan/HANDOFF/Checkpointรอบ2/Task153 และเก็บไฟล์งานปัจจุบันด้วย local commit บน AI. ลำดับตรวจ diff/ไฟล์ → บันทึกผล TASK139–152 และข้อค้าง → TypeScript/ESLint/diff → stageตรวจรายการไม่รวม secrets/backups → commit → ตรวจ hash/status. ไม่เปลี่ยน DB ไม่ push/deploy.
+
+## TASK-152 เชื่อมการสร้างสินค้าจริง — 2026-10-05
+
+- DISCOVERY / WAITING_FOR_SCOPE: เจ้าของขอ API เพื่อทดลองตั้งค่าข้อมูลพื้นฐานและสร้างสินค้า. API รายการกลาง GET/POST/PATCH พร้อมอยู่แล้วตาม TASK151. ตรวจพบ POST สินค้าเดิมยังใช้ชื่อเดียว/รหัส4หลัก/category+dosageForm ส่วนฟอร์มใหม่มีชื่อสองภาษา/รหัส5หลัก/codeGroup+codeFormatแยกกันและข้อมูลเพิ่มเติม. รอบสำรวจแก้เฉพาะ ACTIVE/Specs/Plan/Task152 และตรวจ API รายการกลาง; ยังไม่เปลี่ยน schema/API write/ฟอร์มจนสรุปขอบเขตไฟล์แนบ. ถามเจ้าของว่าจะเริ่มบันทึกครบทุกช่องโดยไม่แนบไฟล์ หรือรวมรูปและเอกสารด้วย. แผนย่อยอยู่ tasks/TASK-152-product-create-api.md.
+
+## TASK-151 ตั้งค่ารายการกลางสินค้า — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ตั้งค่าระบบ→ข้อมูลพื้นฐานสินค้า10ชุด/40รายการในDBจริง; Adminเพิ่ม/แก้ชื่อ/ปิด-เปิดผ่านAPIพร้อมaudit/versionได้. PreviewมีpickerDB10ช่องเลือกอย่างเดียว ไม่มีlocalStorage/เพิ่มชื่อในdropdown ลิงก์ตั้งค่าแท็บใหม่และrefreshเมื่อกลับ. Shellแสดงhub/new pageจริง; settingsทั่วไปเดิมไม่เปิด. dry-run/seed/readback/seedซ้ำhashคงเดิม/APIintegration10หัวข้อ rollback/HTTP401/render shell+preview/ESLint/TypeScript/Prisma generate/diffผ่าน. RLS/revokeตรวจแล้ว advisoryใหม่INFO no-policyตรงserver-only design. สินค้า12/ยอด950คงเดิม. ยังไม่คลิก/ตรวจภาพจริงในbrowser. ขอบเขตปิดงานACTIVE/Task151/Specs.
+
+- ขอบเขตงานย่อยUI: เพิ่ม settings-home.tsxและsettings/layout.tsxให้Adminเข้าhub/new page; ไม่แทนหน้าsettings/page.tsxทั่วไปเดิมที่ยังพัก. Shellแสดงhubเฉพาะ/settingsและchildrenหน้าproduct-options. ส่วนpickerโหลดAPIตามkind/queryแบบแบ่งหน้าและrefreshเมื่อกลับแท็บ ไม่ใช้localStorage. ทำตามแผนTASK151ข้อ4–5.
+
+- IN_PROGRESS: เจ้าของอนุมัติย้ายเพิ่มรายการComboboxไปตั้งค่าระบบและเติมข้อมูล. ขอบเขต docs/specs/2026-10-05-product-options.md, ACTIVE/Specs/Plan/Task151, DB product_options/schema/migration+seed, API/server/type/configรายการกลาง, หน้าตั้งค่า/เมนูรอง/AdminShell, comboboxกลางและpreview. ลำดับสัญญา/เอกสาร → ตาราง/seedแบบไม่เขียนทับ+RLS → APIอ่าน/เพิ่ม/แก้ชื่อ/ปิด-เปิดเฉพาะAdmin → ตั้งค่า10ชุด+เชื่อมpickerเลือกอย่างเดียว → ทดสอบDB/API/สิทธิ์/ซ้ำ/concurrency/รายการปิดไม่ลบข้อมูลเดิม+lint/type-check → UAT. ไม่ทำบันทึกสินค้า/เลขรันจริง/ไฟล์อัปโหลด.
+
+## TASK-150 ถอนสถานะใช้งานสินค้า — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนป้ายและตัวกรองใช้งาน/ไม่ใช้งานจากตารางทั้งสี่พร้อมstate/query แล้ว ถอนช่องสถานะสินค้า/metadata/selectในpreview. คงหัวสถานะ7คอลัมน์ ป้ายเตือนสต็อก/ลบแล้วและขีดเมื่อไม่มีป้าย. ESLint/Prettier/diff และrenderข้อมูลจำลองสี่รูปแบบ+previewผ่าน ไม่มีDB/API mutation. ยังไม่ตรวจภาพจริงในbrowser. ขอบเขตปิดงานACTIVE/Task150.
+
+- IN_PROGRESS: เจ้าของให้เอาสถานะใช้งานออกและถอนการกรอกในเพิ่มสินค้า. ขอบเขต product-stock-list.tsx/product-create-preview.tsx และ ACTIVE/Specs/Plan/Design/API doc/Task150. ลำดับเอกสาร → ถอนตัวกรองและป้ายใช้งาน/ไม่ใช้งานจากสี่ตาราง คงคอลัมน์สถานะสำหรับคำเตือนสต็อก/ลบแล้ว → ถอนช่องสถานะสินค้าในpreview → ESLint/render/diff → UAT. ไม่เปลี่ยนDB/APIหรือสถานะจริงที่ธุรกรรมเดิมใช้.
+
+## TASK-149 ข้อมูลสินค้า DB และ API — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: seedจริง12สินค้า/28ล็อต/950หน่วย และpolicyเดิมที่หายแล้ว ไม่แก้ฟอร์มเพิ่มสินค้า. ALL12รายการ950หน่วย MAIN9รายการ835หน่วย MARKETING11รายการ99หน่วย DISPOSAL8รายการ16หน่วย. dry-run rollback/readback/handlerจริงกับDB(เฉพาะidentity stub)/pagination/search/status/warehouse/ledger/ไม่ส่งcost/400-401-403/HTTP401/seedซ้ำ/ESLint/Prettier/diffผ่าน. ใช้APIเดิมที่ตารางต่ออยู่ ไม่เพิ่มendpointซ้ำ. ยังไม่ตรวจ browser แบบloginจริง. ขอบเขตปิดงานACTIVE/Task149/API doc.
+
+- IN_PROGRESS: เจ้าของเลือกข้อ1 เติมข้อมูลตัวอย่างและต่อ API ตาราง ไม่ทำฟังก์ชันเพิ่มสินค้าจนช่องครบ. ขอบเขต scripts/seed-product-stock-demo.mjs, scripts/verify-product-stock-demo.mjs, docs/API-PRODUCT-STOCK.md และ ACTIVE/Specs/Plan/Task-149. ลำดับเอกสาร/สัญญา → seed12สินค้า+รายการกลาง+ล็อต/ยอด/ประวัติสามคลังใน transaction และเติม policy เดิม6/12/90เฉพาะที่ว่าง → readback/ทดสอบ handler จริงกับDB+identity stub/401 HTTP/seedซ้ำ → lint/diff/UAT. ไม่แก้ schema/บัญชี/ฟอร์ม/API write และไม่ seed โมดูลอื่น.
+
+- DISCOVERY / WAITING_FOR_SCOPE: เจ้าของขอทำข้อมูลสินค้าใน DB พร้อม API และเชื่อมหน้าเว็บ. ตรวจ DB ที่ .env.local ใช้พบ products/categories/dosage_forms/drugs/warehouses/receipts/lots/balances ว่าง ผู้ใช้มี5บัญชี. API /api/products และ /api/inventory?view=products มีแล้ว ตอบ401เมื่อไม่เข้าสู่ระบบ ตารางสี่หน้าเชื่อม inventory อยู่แล้ว. ขอบเขตเอกสาร ACTIVE/Specs/Plan/Task-149 ก่อน ยังไม่เขียน DB หรือเปลี่ยนโค้ด. รอแยกขอบเขตข้อมูลตัวอย่างสำหรับตารางกับการบันทึกทุกช่องในฟอร์มใหม่ซึ่งต้องขยาย schema/สรุปกฎ OPEN. ห้ามใช้ seed ทุกโมดูลนอกขอบเขตสินค้า.
+
+## TASK-148 ตารางสินค้า 7 คอลัมน์ทั้งสี่หน้า — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT รอบแก้ไม่แสดง: AdminShell render children เฉพาะสี่หน้าที่อนุมัติแล้ว. ตรวจ render ผ่าน AdminShell รวม ProductStockList ด้วย mock ข้อมูล/hook พบตาราง7คอลัมน์ทั้งสี่ และหน้าลูกค้ายังพักตามเดิม. ESLint/Prettier/diff ผ่าน. ไม่มี browser ที่เครื่องมือเชื่อมอยู่จึงยังไม่ตรวจข้อมูลสด/ภาพจริง. ขอบเขตปิดงาน ACTIVE/Task-148.
+
+- IN_PROGRESS รอบแก้ไม่แสดง: พบ AdminShell พัก children และแสดง NavigationOnlyTabs จึงไม่เห็นตารางที่แก้. ขอบเขตเพิ่ม src/components/layout/admin-shell.tsx และ ACTIVE/Specs/Plan/Task-148. ลำดับบันทึกข้อยกเว้นการพักเนื้อหาสี่หน้าที่อนุมัติ → render children เฉพาะ /products และ /products/stock/main,marketing,disposal → lint/render ผ่าน shell/diff → UAT. คงหน้าอื่นตามโหมดเดิม.
+
+- IMPLEMENTED / WAITING_FOR_UAT: ตารางกลางทั้งสี่หน้ามี 7 คอลัมน์ ไม่มีรูป/จัดการ หัวคงเหลือรวมหน้ารวมและคงเหลือหน้าคลัง. คงคำเตือน MAIN ใต้สถานะ ขยายพื้นที่ชื่อเป็น 28% และลดความกว้างขั้นต่ำตารางเป็น760pxตามจำนวนคอลัมน์ที่ลด. ESLint/Prettier/diff ผ่าน render ข้อมูลจำลองทั้งสี่รูปแบบผ่านหัวและเซลล์7ช่อง. ยังไม่ตรวจภาพจริงหรือข้อมูลสดใน browser. ขอบเขตปิดงาน ACTIVE/Task-148/Specs.
+
+- IN_PROGRESS: เจ้าของให้ทำชุดคอลัมน์ที่เสนอหลังตัดรูป/จัดการในสินค้าทั้งหมด MAIN/MARKETING/DISPOSAL. ขอบเขต product-stock-list.tsx และ ACTIVE/Specs/Plan/Design/Task-148. ลำดับเอกสาร → ตารางกลาง 7 คอลัมน์ ถอนจอง/พร้อมใช้/พร้อมขายคลังหลัก ย้ายคำเตือนเดิมไปสถานะ → lint/ตรวจ render สี่รูปแบบ/diff → ส่ง UAT. คงยอด quantity ที่ API กรองคลังแล้ว ไม่แก้ API/DB/product-ui.ts.
+
+## TASK-147 ชื่อสินค้าไม่มีรูปและไม่มีจัดการ — 2026-10-05
+
+- DOCUMENTED / WAITING_FOR_UAT: บันทึก Specs/Plan/Design แล้ว ตารางจริงตรงอยู่แล้วชื่อเป็นข้อความ ไม่มีรูปและคอลัมน์จัดการ. ตรวจโครงสร้างและ git diff --check ผ่าน ไม่แก้โค้ด ยังไม่ตรวจภาพจริง. ขอบเขตปิดงาน ACTIVE/Task-147/Design.
+
+- IN_PROGRESS: เจ้าของยืนยันแก้ข้อเสนอตารางสินค้า ไม่แสดงรูปเล็กข้างชื่อ และไม่มีคอลัมน์จัดการ. ตรวจ product-stock-list.tsx แล้วตรงอยู่แล้ว ขอบเขตเอกสาร ACTIVE/Specs/Plan/stock-screen-design/Task-147 เท่านั้น. ลำดับบันทึกข้อยืนยัน → ปรับเอกสารออกแบบที่ขัดกัน → ตรวจ diff/คอลัมน์จริง → ส่งตรวจรับ. ไม่เปลี่ยนคอลัมน์อื่นหรือโค้ด.
+
+## TASK-146 ถอนคำอธิบายและปรับชื่อสินค้า — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนข้อความท้ายหน้าและ helper ใต้ช่อง/ปุ่มพร้อม ARIA ที่อ้างแล้ว ชื่อสินค้าเต็มใช้ gap/ความกว้างเท่าช่องทั่วไปและไม่มี mt-3 ส่วนเกิน. ESLint สองไฟล์และ git diff --check ผ่าน ตรวจโครงสร้างแล้ว ยังไม่ตรวจภาพจริงในเบราว์เซอร์. ขอบเขตปิดงาน ACTIVE/Task-146.
+
+- IN_PROGRESS: อนุมัติจากคำขอเจ้าของ ขอบเขต product-create-preview.tsx, product-name-combobox.tsx และ ACTIVE/Specs/Plan/Task-146. ลำดับบันทึกเอกสาร → ถอนข้อความท้ายหน้าและคำอธิบายใต้ช่อง/ปุ่มพร้อม ARIA ที่อ้าง → ปรับระยะและความกว้างชื่อสินค้าเต็มเท่าช่องอื่น → ESLint/diff → ตรวจรับคอม/มือถือ. ไม่แก้ product-ui.ts/API/DB.
+
+## TASK-145 ลดความเข้มไอคอน Combobox — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT รอบปรับเพิ่ม: ลูกศรทั้งสอง component ใช้ opacity-30 แล้ว. ESLint สองไฟล์และ diff whitespace ผ่าน ยังไม่ตรวจภาพจริง. ขอบเขตปิดงาน ACTIVE/Task-145.
+
+- IN_PROGRESS รอบปรับเพิ่ม: เจ้าของขอให้อ่อนลงอีกหลัง opacity-50. ขอบเขตสอง component เดิมและ ACTIVE/Specs/Plan/Task-145; ลำดับบันทึกข้อปรับ → เปลี่ยนเฉพาะลูกศรเป็น opacity-30 → ESLint/diff → ตรวจรับภาพ.
+
+- IMPLEMENTED / WAITING_FOR_UAT: เพิ่ม opacity-50 เฉพาะลูกศร Combobox ทั้งสอง component แล้ว. ESLint สองไฟล์และ diff whitespace ผ่าน ยังไม่ตรวจภาพจริง. ขอบเขตปิดงาน ACTIVE/Task-145.
+
+- IN_PROGRESS: เจ้าของขอไอคอนอ่อนลงเพราะดูลอย. ขอบเขต product-create-preview.tsx, product-name-combobox.tsx และ ACTIVE/Specs/Plan/Task-145. ลำดับบันทึก → เพิ่ม opacity-50 ที่ wrapper ไอคอนทั้งสอง → ESLint/diff → ตรวจรับภาพ. คง SVG/stroke #101828/ตำแหน่งและพฤติกรรม ไม่แก้ product-ui.ts/API/DB.
+
+## TASK-144 SVG Combobox กลางขวา — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: Combobox ว่างและยี่ห้อ/ผู้ผลิตใช้ SVG 14×8 สี #101828 ตามเจ้าของแล้ว wrapper right-3/top-0/h-11/items-center ตรงกลางช่อง. ESLint สองไฟล์และ diff whitespace ผ่าน ยังไม่ตรวจภาพจริง. ขอบเขตปิดงาน ACTIVE/Task-144.
+
+- IN_PROGRESS: เปลี่ยนลูกศร Combobox ในหน้าเพิ่มสินค้าเป็น SVG 14×8 ตามเจ้าของ และวางกลางแนวตั้งด้านขวาของช่อง h-11. ขอบเขต product-create-preview.tsx, product-name-combobox.tsx และ ACTIVE/Specs/Plan/Task-144. ลำดับบันทึก → เปลี่ยน SVG/คลาสตำแหน่งทั้ง Combobox ว่างและยี่ห้อ/ผู้ผลิต → ESLint/diff → ตรวจรับคอม/มือถือ. คงสี #101828/พฤติกรรมเดิม ไม่แก้ product-ui.ts/API/DB.
+
+## TASK-143 ย่อขยายหมวดสินค้าเริ่มปิด — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ทั้งสี่หมวดใช้ details/summary เริ่มปิด SVG เจ้าของหมุนชี้ข้าง/ลงตามสถานะ รองรับ reduced motion/focus และคงช่อง mounted. ESLint เฉพาะไฟล์และ diff whitespace ผ่าน ตรวจโค้ดไม่ใส่ open/ไม่ unmount ช่องแล้ว ยังไม่คลิกหรือดูภาพจริงใน browser. ขอบเขตปิดงาน ACTIVE/Task-143.
+
+- IN_PROGRESS: เจ้าของขอย่อ/ขยายทั้งสี่หมวด เริ่มปิด ใช้ SVG ลูกศรที่ให้และหมุนตามสถานะ. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task-143. ลำดับบันทึก → details/summary เริ่มปิด ลูกศรชี้ข้างตอนปิด/ชี้ลงตอนเปิด → ESLint/diff → ตรวจรับคลิก/คีย์บอร์ด/ข้อมูลคงอยู่. คงช่อง mounted เพื่อไม่ล้างค่าหรือไฟล์แนบ ไม่แก้ product-ui.ts/API/DB.
+
+## TASK-142 ถอนชื่อเหนือช่องรหัสสามท่อน — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: label สามช่องใช้ sr-only แล้ว คงชื่อที่เข้าถึงได้/ช่อง/พฤติกรรมเดิม. ESLint เฉพาะไฟล์และ diff whitespace ผ่าน ยังไม่ตรวจภาพจริง. ขอบเขตปิดงาน ACTIVE/Task-142.
+
+- IN_PROGRESS: ซ่อน label กลุ่มรหัส/รูปแบบ/เลขลำดับเหนือช่องตามคำขอ โดยใช้ sr-only เพื่อคงชื่อสำหรับโปรแกรมอ่านหน้าจอ. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task-142. ลำดับบันทึก → เปลี่ยนคลาส label สามช่อง → lint/diff. คงช่อง/placeholder/helper/legend/พฤติกรรมเดิม ไม่แก้ product-ui.ts/API/DB.
+
+## TASK-141 ปุ่มเหนือเส้นข้อความสต็อก — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: ย้ายกลุ่มปุ่มเหนือข้อความ border-t แล้ว คงข้อความ/คำอธิบาย/Alert เดิม. ESLint เฉพาะไฟล์และ diff whitespace ผ่าน ตรวจลำดับ JSX แล้ว ยังไม่ตรวจภาพหรือคลิกจริง. ขอบเขตปิดงาน ACTIVE/Task-141.
+
+- IN_PROGRESS: ย้ายกลุ่มยกเลิก/บันทึกพร้อมคำอธิบายขึ้นเหนือเส้นและข้อความเรื่องข้อมูลรับเข้าสต็อกตามคำขอ. ขอบเขต product-create-preview.tsx และ ACTIVE/Specs/Plan/Task-141. ลำดับบันทึก → ย้ายข้อความ border-t ลงหลังกลุ่มปุ่ม → lint/diff → ตรวจรับคอม/มือถือ. คง Alert และข้อความเดิม ไม่เพิ่มหน้า/ช่องสต็อก/API/DB ไม่แก้ product-ui.ts.
+
+## TASK-140 กรอบหมวดสินค้าและถอนการจัดเก็บ — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: สี่หมวดมี border สีเดิม/rounded-lg/padding responsive แล้ว ถอนหมวดและ metadata เงื่อนไขจัดเก็บครบ. ESLint เฉพาะไฟล์และ diff whitespace ผ่าน ตรวจโค้ดชื่อสี่หมวด/ราคาต้นทุนยังอยู่. ยังไม่ตรวจภาพหรือคลิกจริงในเบราว์เซอร์. ขอบเขตปิดงาน ACTIVE/Task-140.
+
+- IN_PROGRESS: เจ้าของขอกล่อง border/rounded ครอบข้อมูลทั่วไป ข้อมูลยาและทะเบียน ราคาและการจำหน่าย รูปสินค้าและเอกสาร และถอนการจัดเก็บ/เงื่อนไขจัดเก็บ. ขอบเขต src/components/products/product-create-preview.tsx, ACTIVE/Specs/Plan และ tasks/TASK-140-product-section-boxes.md. ลำดับบันทึก → กรอบสี่หมวด/ถอนหมวดและ metadata → ESLint/diff → ตรวจรับคอม/มือถือ. คงช่องอื่นรวมราคาต้นทุนและ preview เดิม ไม่แก้ product-ui.ts/API/DB.
+
+## TASK-139 ราคาต้นทุนในราคาและการจำหน่าย — 2026-10-05
+
+- IMPLEMENTED / WAITING_FOR_UAT: เพิ่มราคาต้นทุนก่อนราคาขายแล้ว รองรับทศนิยมเริ่มว่าง ไม่มีดาวบังคับ. ESLint เฉพาะไฟล์และ diff whitespace ผ่าน; ตรวจโค้ดลำดับ/ชนิดช่องแล้ว ยังไม่ทดสอบกรอกจริงในเบราว์เซอร์. คง preview ไม่เชื่อม API/DB. ขอบเขตปิดงาน ACTIVE/Task-139.
+
+- IN_PROGRESS: เจ้าของขอเพิ่มราคาต้นทุนในหน้าเพิ่มสินค้า. ขอบเขต src/components/products/product-create-preview.tsx, ACTIVE, Specs, Plan และ tasks/TASK-139-product-cost-price.md. ลำดับบันทึกข้อกำหนด/แผน → เพิ่มช่องราคาต้นทุนก่อนราคาขาย → lint/diff → ตรวจรับคอม/มือถือ. ช่องตัวเลขทศนิยมเริ่มว่าง ไม่เพิ่มดาวบังคับหรือสูตรต้นทุน/API/DB. คง preview เดิม. ไม่แก้ src/app/products/product-ui.ts ที่เจ้าของมีงานค้าง.
+
 ## TASK-138 Checkpoint ก่อนพัก — 2026-10-05
 
 - CHECKPOINT_READY: เอกสาร checkpoint/HANDOFF พร้อม; ESLint layout/products/navigation/reports, offline route checks 74 หน้า และ diff ผ่าน. เก็บด้วย local Git commit AI (ดู hash จาก Git log). ไม่ push/deploy; UAT/backend pending ตาม checkpoint.

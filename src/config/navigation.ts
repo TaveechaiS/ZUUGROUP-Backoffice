@@ -374,6 +374,15 @@ export const ADMIN_PAGES: AdminPage[] = [
     icon: 'settings',
     description: 'จัดการค่าพื้นฐานของระบบ',
   },
+  {
+    href: '/settings/product-options',
+    label: 'ข้อมูลพื้นฐานสินค้า',
+    section: 'จัดการระบบ',
+    icon: 'settings',
+    description: 'จัดการรายการกลางสำหรับสินค้า',
+    secondaryOnly: true,
+    parentHref: '/settings',
+  },
 ];
 
 export const NAVIGATION_SECTIONS = [
