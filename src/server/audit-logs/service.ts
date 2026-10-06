@@ -1,11 +1,28 @@
 import type { AuditListResponse } from '@/types/api/audit';
 import 'server-only';
+import { tableSort } from '@/server/validation/table-sort';
 import type { Prisma } from '@/generated/prisma/client';
 import { readWithConnectionRetry } from '@/server/db/prisma';
 import { paginationResult } from '@/server/pagination';
 import { auditQuery } from '@/server/validation/audit';
 export async function paginatedAuditEvents(params: URLSearchParams): Promise<AuditListResponse> {
   const { offset, limit, q, action } = auditQuery(params);
+  const sort = tableSort(params, [
+    'occurredAt',
+    'action',
+    'actor',
+    'actorRole',
+    'target',
+    'requestId',
+  ]);
+  const orderBy: Prisma.AuditEventOrderByWithRelationInput[] = sort.key
+    ? [
+        sort.key === 'actor' || sort.key === 'target'
+          ? { [sort.key]: { name: sort.direction } }
+          : { [sort.key]: sort.direction },
+        { id: 'asc' },
+      ]
+    : [{ occurredAt: 'desc' }, { id: 'desc' }];
   const where: Prisma.AuditEventWhereInput = {
     ...(action ? { action } : {}),
     ...(q
@@ -25,7 +42,7 @@ export async function paginatedAuditEvents(params: URLSearchParams): Promise<Aud
         db.auditEvent.count({ where }),
         db.auditEvent.findMany({
           where,
-          orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
+          orderBy,
           skip: offset,
           take: limit,
           select: {

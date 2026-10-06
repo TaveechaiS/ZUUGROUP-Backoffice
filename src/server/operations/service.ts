@@ -1,4 +1,5 @@
 import 'server-only';
+import { sqlTableOrder } from '@/server/validation/table-sort';
 import { createHash, randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
 import { getPrismaClient } from '@/server/db/prisma';
@@ -29,6 +30,15 @@ type Tx = Prisma.TransactionClient;
 type Policy = { saleMonths: number; donationMonths: number; warningDays: number };
 export const seesCost = (actor: Actor) => ['ADMIN', 'ACCOUNTING_CFO'].includes(actor.roleId);
 const query = <T>(tx: Tx, sql: Prisma.Sql) => tx.$queryRaw<T[]>(sql);
+function receiptPrefix() {
+  const year =
+    Number(
+      new Intl.DateTimeFormat('en-US', { year: 'numeric', timeZone: 'Asia/Bangkok' }).format(
+        new Date(),
+      ),
+    ) + 543;
+  return 'GR-' + year + '-';
+}
 export function allow(actor: Actor, roles: string[]) {
   if (!roles.includes(actor.roleId)) throw new RecordError(403, 'ไม่มีสิทธิ์ทำรายการนี้');
 }
@@ -172,8 +182,16 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
       return { data: { id: 1, action } };
     }
     if (action === 'receive') {
-      if (!Array.isArray(body.lots) || body.lots.length < 1 || body.lots.length > 50)
-        throw new RecordError(400, 'เพิ่มล็อตรับเข้า 1–50 รายการ');
+      if (!Array.isArray(body.lots) || body.lots.length !== 1)
+        throw new RecordError(400, 'การรับเข้าแต่ละครั้งต้องมี 1 ล็อต');
+      const code = str(body.code, 'ID รับเข้า', true, 100);
+      const prefix = receiptPrefix();
+      if (
+        !code.startsWith(prefix) ||
+        !/^\d{5}$/.test(code.slice(prefix.length)) ||
+        Number(code.slice(prefix.length)) < 1
+      )
+        throw new RecordError(400, 'ID ต้องใช้ตัวอักษร GR ปีปัจจุบัน และเลขลำดับ 00001–99999');
       const inputs = body.lots.map((v) => {
         const b = object(v);
         const manufacturedOn = day(b.manufacturedOn),
@@ -183,7 +201,7 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
         return {
           productId: id(b.productId, 'สินค้า'),
           warehouseId: id(b.warehouseId, 'คลัง'),
-          lotNumber: str(b.lotNumber, 'เลขล็อต', true, 100),
+          lotNumber: code,
           quantity: qty(b.quantity),
           totalCost: cost(b.totalCost),
           manufacturedOn,
@@ -195,7 +213,6 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
         inputs.map((l) => l.productId),
       );
       const receiptId = randomUUID();
-      const code = str(body.code, 'เลขที่รับเข้า', true, 100);
       await tx.$executeRaw(
         Prisma.sql`INSERT INTO stock_receipts(id,code,source,notes,actor_user_id) VALUES(${receiptId}::uuid,${code},${str(body.source, 'แหล่งที่มา', false)},${str(body.notes, 'หมายเหตุ', false)},${actor.id}::uuid)`,
       );
@@ -274,6 +291,25 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
     }
     const warehouseId = id(body.warehouseId, 'คลัง');
     const b = await balance(tx, lotId, warehouseId);
+    if (action === 'destroy') {
+      const wh = await warehouse(tx, warehouseId);
+      if (wh.code !== 'DISPOSAL') throw new RecordError(400, 'ทำลายได้เฉพาะคลังรอทำลาย');
+      const previous = await query<{ destroyed: boolean }>(
+        tx,
+        Prisma.sql`SELECT EXISTS(SELECT 1 FROM stock_movements WHERE lot_id=${lotId}::uuid AND warehouse_id=${warehouseId}::uuid AND kind='ทำลายแล้ว') AS destroyed`,
+      );
+      if (previous[0]?.destroyed)
+        throw new RecordError(409, 'ล็อตนี้บันทึกทำลายแล้ว ไม่สามารถทำซ้ำ');
+      if (b.reserved > 0) throw new RecordError(409, 'ล็อตมีจำนวนจองอยู่ ไม่สามารถทำลาย');
+      if (b.quantity <= 0 || b.quantity !== qty(body.expectedQuantity) || body.confirmed !== true)
+        throw new RecordError(409, 'ยอดคงเหลือเปลี่ยนหรือยังไม่ยืนยัน กรุณาโหลดข้อมูลใหม่');
+      const sourceId = randomUUID();
+      await tx.$executeRaw(
+        Prisma.sql`UPDATE stock_balances SET quantity=0 WHERE lot_id=${lotId}::uuid AND warehouse_id=${warehouseId}::uuid`,
+      );
+      await movement(tx, actor, lotId, warehouseId, -b.quantity, 'ทำลายแล้ว', sourceId, reason);
+      return { data: { id: sourceId, lotId, warehouseId, action, destroyedQuantity: b.quantity } };
+    }
     if (action === 'adjust') {
       const target = qty(body.quantity, true);
       if (target < b.reserved)
@@ -352,36 +388,58 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
     throw new RecordError(400, 'คำสั่งไม่ถูกต้อง');
   });
 }
-export async function operationOptions(actor: Actor): Promise<{ data: OperationOptions }> {
+export async function operationOptions(actor: Actor, scope?: 'receive') {
   return getPrismaClient().$transaction(async (tx) => {
-    const p = await policy(tx);
-    const minimum = addMonths(bangkokDay(), p.saleMonths);
-    const products = await query<OperationOptions['products'][number]>(
-      tx,
-      Prisma.sql`SELECT p.id,p.code,p.name,p.sale_price::text AS "salePrice",p.unit,COALESCE((SELECT sum(b.quantity-b.reserved)::int FROM product_lots l JOIN stock_balances b ON b.lot_id=l.id JOIN warehouses w ON w.id=b.warehouse_id WHERE l.product_id=p.id AND w.code='MAIN' AND l.condition='ปกติ' AND l.expires_on>${bangkokDay()}::date AND l.expires_on>=${minimum}::date),0) AS available FROM products p WHERE p.deleted_at IS NULL AND p.status='ACTIVE' ORDER BY p.name,p.id`,
-    );
-    const customers = await query<OperationOptions['customers'][number]>(
-      tx,
-      Prisma.sql`SELECT c.id,c.code,c.name,COALESCE(t.name,'') AS "territoryName" FROM customers c LEFT JOIN sales_territories t ON t.id=c.territory_id WHERE c.deleted_at IS NULL ORDER BY c.name,c.id`,
-    );
+    const p = scope ? undefined : await policy(tx);
+    const minimum = p ? addMonths(bangkokDay(), p.saleMonths) : '';
+    const products = scope
+      ? await query<OperationOptions['products'][number]>(
+          tx,
+          Prisma.sql`SELECT id,code,name,unit FROM products WHERE deleted_at IS NULL AND status='ACTIVE' ORDER BY name,id`,
+        )
+      : await query<OperationOptions['products'][number]>(
+          tx,
+          Prisma.sql`SELECT p.id,p.code,p.name,p.sale_price::text AS "salePrice",p.unit,COALESCE((SELECT sum(b.quantity-b.reserved)::int FROM product_lots l JOIN stock_balances b ON b.lot_id=l.id JOIN warehouses w ON w.id=b.warehouse_id WHERE l.product_id=p.id AND w.code='MAIN' AND l.condition='ปกติ' AND l.expires_on>${bangkokDay()}::date AND l.expires_on>=${minimum}::date),0) AS available FROM products p WHERE p.deleted_at IS NULL AND p.status='ACTIVE' ORDER BY p.name,p.id`,
+        );
+    const customers = scope
+      ? []
+      : await query<OperationOptions['customers'][number]>(
+          tx,
+          Prisma.sql`SELECT c.id,c.code,c.name,COALESCE(t.name,'') AS "territoryName" FROM customers c LEFT JOIN sales_territories t ON t.id=c.territory_id WHERE c.deleted_at IS NULL ORDER BY c.name,c.id`,
+        );
     const warehouses = await query<OperationOptions['warehouses'][number]>(
       tx,
       Prisma.sql`SELECT id,code,name FROM warehouses WHERE code IN ('MAIN','MARKETING','DISPOSAL') ORDER BY code`,
     );
     const users =
-      actor.roleId === 'ADMIN'
+      !scope && actor.roleId === 'ADMIN'
         ? await query<OperationOptions['users'][number]>(
             tx,
             Prisma.sql`SELECT u.id,u.employee_code AS code,u.name,r.role_id AS "roleId" FROM users u JOIN user_roles r ON r.user_id=u.id WHERE u.deleted_at IS NULL AND u.status='ACTIVE' ORDER BY u.name`,
           )
         : [];
-    return { data: { products, customers, warehouses, users, actor, policy: p } };
+    const prefix = receiptPrefix();
+    const receiptNumbers =
+      actor.roleId === 'ADMIN'
+        ? await query<{ value: string }>(
+            tx,
+            Prisma.sql`SELECT (COALESCE(MAX(substring(code FROM ${prefix.length + 1})::int),0)+1)::text AS value FROM stock_receipts WHERE code ~ ${'^' + prefix + '[0-9]{5}$'}`,
+          )
+        : [];
+    if (receiptNumbers[0] && Number(receiptNumbers[0].value) > 99999)
+      throw new RecordError(409, 'เลขลำดับ ID ของปีนี้ครบ 99999 แล้ว');
+    const nextReceiptCode = receiptNumbers[0]
+      ? prefix + receiptNumbers[0].value.padStart(5, '0')
+      : undefined;
+    return scope
+      ? { data: { products, warehouses, actor, nextReceiptCode } }
+      : { data: { products, customers, warehouses, users, actor, policy: p!, nextReceiptCode } };
   });
 }
 function page(params: URLSearchParams) {
   return {
     offset: integer(params, 'offset', 0, 0, 100000),
-    limit: integer(params, 'limit', 10, 1, 50),
+    limit: integer(params, 'limit', 10, 1, 100),
     search: str(params.get('search') ?? '', 'ค้นหา', false, 200),
   };
 }
@@ -400,17 +458,32 @@ function safeLot(row: StockRow, actor: Actor, p: Policy) {
   }
   return result;
 }
-const stockSelect = Prisma.sql`l.id AS "lotId",(l.id::text||':'||w.id::text) AS id,l.product_id AS "productId",p.name AS "productName",p.code AS "productCode",p.unit,l.lot_number AS "lotNumber",l.receipt_id AS "receiptId",r.code AS "receiptCode",r.source,w.id AS "warehouseId",w.name AS "warehouseName",w.code AS "warehouseCode",b.quantity,b.reserved,(b.quantity-b.reserved) AS available,l.received_quantity AS "receivedQuantity",l.total_cost::text AS "totalCost",(l.total_cost/l.received_quantity)::text AS "unitCost",l.manufactured_on::text AS "manufacturedOn",l.expires_on::text AS "expiresOn",l.created_at::text AS "createdAt",l.condition`;
+const stockSelect = Prisma.sql`l.id AS "lotId",(l.id::text||':'||w.id::text) AS id,l.product_id AS "productId",p.name AS "productName",p.code AS "productCode",p.unit,l.lot_number AS "lotNumber",l.receipt_id AS "receiptId",r.code AS "receiptCode",r.source,w.id AS "warehouseId",w.name AS "warehouseName",w.code AS "warehouseCode",b.quantity,b.reserved,(b.quantity-b.reserved) AS available,l.received_quantity AS "receivedQuantity",l.total_cost::text AS "totalCost",(l.total_cost/l.received_quantity)::text AS "unitCost",l.manufactured_on::text AS "manufacturedOn",l.expires_on::text AS "expiresOn",l.created_at::text AS "createdAt",l.condition,EXISTS(SELECT 1 FROM stock_movements sm WHERE sm.lot_id=l.id AND sm.warehouse_id=w.id AND sm.kind='ทำลายแล้ว') AS "disposalDestroyed"`;
 const stockFrom = Prisma.sql`product_lots l JOIN products p ON p.id=l.product_id JOIN stock_receipts r ON r.id=l.receipt_id JOIN stock_balances b ON b.lot_id=l.id JOIN warehouses w ON w.id=b.warehouse_id`;
 export async function inventoryRead(actor: Actor, params: URLSearchParams) {
+  for (const [key, allowed] of [
+    ['scope', ['receive']],
+    ['projection', ['summary']],
+    ['metadata', ['true', 'false']],
+  ] as const) {
+    if (
+      params.getAll(key).length > 1 ||
+      (params.has(key) && !allowed.some((value) => value === params.get(key)))
+    )
+      throw new RecordError(400, 'ขอบเขตหรือรูปแบบข้อมูลไม่ถูกต้อง');
+  }
   const view = params.get('view') ?? 'stock';
-  if (view === 'options') return operationOptions(actor);
+  if (view === 'options') {
+    const scope = params.get('scope');
+    if (scope !== null && scope !== 'receive') throw new RecordError(400, 'ขอบเขตข้อมูลไม่ถูกต้อง');
+    return operationOptions(actor, scope === 'receive' ? 'receive' : undefined);
+  }
   const { offset, limit, search } = page(params);
   const like = '%' + search.replace(/[\\%_]/g, '\\$&') + '%';
   return getPrismaClient().$transaction(
     async (tx) => {
       const p = await policy(tx);
-      if (view === 'products' || view === 'lots') {
+      if (view === 'products' || view === 'lots' || view === 'receipt-items') {
         const categoryId = params.get('categoryId');
         const category = categoryId
           ? Prisma.sql`AND p.category_id=${id(categoryId)}::uuid`
@@ -440,39 +513,94 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
           if (!['', 'low', 'empty'].includes(stock))
             throw new RecordError(400, 'ตัวกรองจำนวนไม่ถูกต้อง');
           const scoped = warehouseCode ? Prisma.sql`WHERE w.code=${warehouseCode}` : Prisma.empty;
-          const scopeExists = warehouseCode
-            ? Prisma.sql`AND EXISTS(SELECT 1 FROM product_lots x JOIN stock_balances sb ON sb.lot_id=x.id JOIN warehouses wh ON wh.id=sb.warehouse_id WHERE x.product_id=p.id AND wh.code=${warehouseCode} AND sb.quantity>0)`
-            : Prisma.empty;
+          const scopeExists =
+            warehouseCode && warehouseCode !== 'MAIN'
+              ? Prisma.sql`AND EXISTS(SELECT 1 FROM product_lots x JOIN stock_balances sb ON sb.lot_id=x.id JOIN warehouses wh ON wh.id=sb.warehouse_id WHERE x.product_id=p.id AND wh.code=${warehouseCode} AND sb.quantity>0)`
+              : Prisma.empty;
           const ageExists = expiry
             ? Prisma.sql`AND EXISTS(SELECT 1 FROM product_lots l JOIN stock_balances sb ON sb.lot_id=l.id JOIN warehouses wh ON wh.id=sb.warehouse_id WHERE l.product_id=p.id AND sb.quantity>0 ${warehouseCode ? Prisma.sql`AND wh.code=${warehouseCode}` : Prisma.empty} ${expiryFilter})`
             : Prisma.empty;
           const cte = Prisma.sql`WITH totals AS (
-            SELECT l.product_id, sum(b.quantity)::int AS quantity,sum(b.reserved)::int AS reserved
+            SELECT l.product_id, sum(b.quantity)::int AS quantity,sum(b.reserved)::int AS reserved,count(DISTINCT l.id) FILTER (WHERE b.quantity>0)::int AS "lotCount"
             FROM product_lots l JOIN stock_balances b ON b.lot_id=l.id JOIN warehouses w ON w.id=b.warehouse_id ${scoped} GROUP BY l.product_id
+          ), main_totals AS (
+            SELECT l.product_id,sum(b.quantity)::int AS quantity
+            FROM product_lots l JOIN stock_balances b ON b.lot_id=l.id JOIN warehouses w ON w.id=b.warehouse_id
+            WHERE w.code='MAIN' GROUP BY l.product_id
           ), sale AS (
             SELECT l.product_id,sum(b.quantity-b.reserved)::int AS available
             FROM product_lots l JOIN stock_balances b ON b.lot_id=l.id JOIN warehouses w ON w.id=b.warehouse_id
             WHERE w.code='MAIN' AND l.condition='ปกติ' AND l.expires_on>${today}::date AND l.expires_on>=${addMonths(today, p.saleMonths)}::date GROUP BY l.product_id
           ), items AS (
             SELECT p.id,p.code,p.name,p.category_id AS "categoryId",c.name AS "categoryName",p.unit,p.sale_price::text AS "salePrice",p.status::text,p.deleted_at::text AS "deletedAt",
-            COALESCE(t.quantity,0) AS quantity,COALESCE(t.reserved,0) AS reserved,COALESCE(t.quantity,0)-COALESCE(t.reserved,0) AS available,COALESCE(s.available,0) AS "mainAvailable"
-            FROM products p JOIN product_categories c ON c.id=p.category_id LEFT JOIN totals t ON t.product_id=p.id LEFT JOIN sale s ON s.product_id=p.id
+            COALESCE(t.quantity,0) AS quantity,COALESCE(t.reserved,0) AS reserved,COALESCE(t.quantity,0)-COALESCE(t.reserved,0) AS available,COALESCE(s.available,0) AS "mainAvailable",COALESCE(m.quantity,0) AS "mainQuantity",COALESCE(t."lotCount",0) AS "lotCount"
+            FROM products p JOIN product_categories c ON c.id=p.category_id LEFT JOIN totals t ON t.product_id=p.id LEFT JOIN sale s ON s.product_id=p.id LEFT JOIN main_totals m ON m.product_id=p.id
             WHERE ${deleted === 'true' ? Prisma.sql`p.deleted_at IS NOT NULL` : Prisma.sql`p.deleted_at IS NULL`} AND (p.name ILIKE ${like} OR p.code ILIKE ${like}) ${category} ${scopeExists} ${ageExists} ${status ? Prisma.sql`AND p.status::text=${status}` : Prisma.empty}
           )`;
           const where =
             stock === 'low'
-              ? Prisma.sql`WHERE "mainAvailable"<50`
+              ? Prisma.sql`WHERE "mainQuantity" BETWEEN 1 AND 50`
               : stock === 'empty'
-                ? Prisma.sql`WHERE "mainAvailable"=0`
+                ? Prisma.sql`WHERE "mainQuantity"=0`
                 : Prisma.empty;
+          const order = sqlTableOrder(
+            params,
+            {
+              code: Prisma.sql`code`,
+              name: Prisma.sql`name`,
+              categoryName: Prisma.sql`"categoryName"`,
+              unit: Prisma.sql`unit`,
+              salePrice: Prisma.sql`"salePrice"::numeric`,
+              quantity: Prisma.sql`quantity`,
+              lotCount: Prisma.sql`"lotCount"`,
+              status: Prisma.sql`CASE WHEN "mainQuantity"=0 THEN 0 WHEN "mainQuantity" BETWEEN 1 AND 50 THEN 1 ELSE 2 END`,
+              marketingDays: Prisma.sql`(SELECT min(ml.expires_on) FROM product_lots ml JOIN stock_balances mb ON mb.lot_id=ml.id JOIN warehouses mw ON mw.id=mb.warehouse_id WHERE ml.product_id=items.id AND mw.code='MARKETING' AND mb.quantity>0)`,
+            },
+            Prisma.sql`code,id`,
+            Prisma.sql`id`,
+          );
           const data = await query<StockProductRow>(
             tx,
-            Prisma.sql`${cte} SELECT * FROM items ${where} ORDER BY code,id OFFSET ${offset} LIMIT ${limit}`,
+            Prisma.sql`${cte} SELECT * FROM items ${where} ORDER BY ${order} OFFSET ${offset} LIMIT ${limit}`,
           );
           const count = await query<{ total: number }>(
             tx,
             Prisma.sql`${cte} SELECT count(*)::int AS total FROM items ${where}`,
           );
+          if (warehouseCode === 'MARKETING' && data.length) {
+            if (params.get('projection') === 'summary') {
+              const days = await query<{ productId: string; days: number }>(
+                tx,
+                Prisma.sql`SELECT l.product_id AS "productId",(min(l.expires_on)-${today}::date)::int AS days FROM product_lots l JOIN stock_balances b ON b.lot_id=l.id JOIN warehouses w ON w.id=b.warehouse_id WHERE w.code='MARKETING' AND b.quantity>0 AND l.product_id IN (${Prisma.join(data.map((row) => Prisma.sql`${row.id}::uuid`))}) GROUP BY l.product_id`,
+              );
+              for (const row of data)
+                row.marketingDays = days.find((item) => item.productId === row.id)?.days ?? null;
+            } else {
+              const lots = await query<{
+                productId: string;
+                id: string;
+                receiptCode: string;
+                quantity: number;
+                expiresOn: string;
+                daysUntilExpiry: number;
+              }>(
+                tx,
+                Prisma.sql`SELECT l.product_id AS "productId",l.id,r.code AS "receiptCode",b.quantity,l.expires_on::text AS "expiresOn",(l.expires_on-${today}::date)::int AS "daysUntilExpiry" FROM product_lots l JOIN stock_receipts r ON r.id=l.receipt_id JOIN stock_balances b ON b.lot_id=l.id JOIN warehouses w ON w.id=b.warehouse_id WHERE w.code='MARKETING' AND b.quantity>0 AND l.product_id IN (${Prisma.join(data.map((row) => Prisma.sql`${row.id}::uuid`))}) ORDER BY l.expires_on,l.id`,
+              );
+              for (const row of data)
+                row.marketingLots = lots
+                  .filter((lot) => lot.productId === row.id)
+                  .map((lot) => ({
+                    id: lot.id,
+                    receiptCode: lot.receiptCode,
+                    quantity: lot.quantity,
+                    expiresOn: lot.expiresOn,
+                    daysUntilExpiry: lot.daysUntilExpiry,
+                  }));
+            }
+          }
+          if (params.get('metadata') === 'false')
+            return pageResult(data, count[0].total, offset, limit);
           const categories = await query<{ id: string; name: string }>(
             tx,
             Prisma.sql`SELECT id,name FROM product_categories ORDER BY name,id`,
@@ -487,14 +615,53 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
         const product = productId
           ? Prisma.sql`AND l.product_id=${id(productId)}::uuid`
           : Prisma.empty;
+        const lotId = params.get('lotId');
+        const selectedLot = lotId
+          ? Prisma.sql`AND l.id=${id(lotId, 'ล็อตสินค้า')}::uuid`
+          : Prisma.empty;
         const expiryBefore = params.get('expiryBefore');
         const dateFilter = expiryBefore
           ? Prisma.sql`AND l.expires_on<=${day(expiryBefore)}::date`
           : Prisma.empty;
-        const where = Prisma.sql`(p.name ILIKE ${like} OR p.code ILIKE ${like} OR l.lot_number ILIKE ${like}) ${category} ${warehouse} ${product} ${expiryFilter} ${dateFilter}`;
+        const remaining = params.get('remaining') ?? 'false';
+        if (!['true', 'false'].includes(remaining))
+          throw new RecordError(400, 'ตัวกรองล็อตคงเหลือไม่ถูกต้อง');
+        const activeScope =
+          remaining === 'true' || warehouseCode
+            ? Prisma.sql`AND (EXISTS(SELECT 1 FROM stock_balances sb JOIN warehouses wh ON wh.id=sb.warehouse_id WHERE sb.lot_id=l.id AND sb.quantity>0 ${warehouseCode ? Prisma.sql`AND wh.code=${warehouseCode}` : Prisma.empty}) ${remaining === 'true' && (!warehouseCode || warehouseCode === 'DISPOSAL') ? Prisma.sql`OR EXISTS(SELECT 1 FROM stock_movements sm JOIN warehouses dw ON dw.id=sm.warehouse_id WHERE sm.lot_id=l.id AND dw.code='DISPOSAL' AND sm.kind='ทำลายแล้ว')` : Prisma.empty})`
+            : Prisma.empty;
+        const where = Prisma.sql`(p.name ILIKE ${like} OR p.code ILIKE ${like} OR l.lot_number ILIKE ${like}) ${category} ${warehouse} ${product} ${selectedLot} ${expiryFilter} ${dateFilter} ${activeScope}`;
+        const sortColumns: Record<string, Prisma.Sql> = {
+          receiptCode: Prisma.sql`(SELECT code FROM stock_receipts WHERE id=l.receipt_id)`,
+          lotNumber: Prisma.sql`l.lot_number`,
+          productName: Prisma.sql`p.name`,
+          productCode: Prisma.sql`p.code`,
+          createdAt: Prisma.sql`l.created_at`,
+          manufacturedOn: Prisma.sql`l.manufactured_on`,
+          expiresOn: Prisma.sql`l.expires_on`,
+          receivedQuantity: Prisma.sql`l.received_quantity`,
+          condition: Prisma.sql`l.condition`,
+          quantity: Prisma.sql`(SELECT COALESCE(sum(sb.quantity),0) FROM stock_balances sb JOIN warehouses wh ON wh.id=sb.warehouse_id WHERE sb.lot_id=l.id ${warehouseCode ? Prisma.sql`AND wh.code=${warehouseCode}` : Prisma.empty})`,
+          reserved: Prisma.sql`(SELECT COALESCE(sum(sb.reserved),0) FROM stock_balances sb WHERE sb.lot_id=l.id)`,
+          available: Prisma.sql`(SELECT COALESCE(sum(sb.quantity-sb.reserved),0) FROM stock_balances sb WHERE sb.lot_id=l.id)`,
+          warehouseName: Prisma.sql`(SELECT min(wh.name) FROM stock_balances sb JOIN warehouses wh ON wh.id=sb.warehouse_id WHERE sb.lot_id=l.id AND sb.quantity>0)`,
+          disposalDestroyed: Prisma.sql`EXISTS(SELECT 1 FROM stock_movements sm WHERE sm.lot_id=l.id AND sm.kind='ทำลายแล้ว')`,
+        };
+        if (seesCost(actor)) {
+          sortColumns.totalCost = Prisma.sql`l.total_cost`;
+          sortColumns.unitCost = Prisma.sql`l.total_cost/l.received_quantity`;
+        }
+        const order = sqlTableOrder(
+          params,
+          sortColumns,
+          view === 'receipt-items'
+            ? Prisma.sql`l.created_at DESC,l.id DESC`
+            : Prisma.sql`l.expires_on,l.id`,
+          Prisma.sql`l.id`,
+        );
         const ids = await query<{ id: string }>(
           tx,
-          Prisma.sql`SELECT l.id FROM product_lots l JOIN products p ON p.id=l.product_id WHERE ${where} ORDER BY l.expires_on,l.id OFFSET ${offset} LIMIT ${limit}`,
+          Prisma.sql`SELECT l.id FROM product_lots l JOIN products p ON p.id=l.product_id WHERE ${where} ORDER BY ${order} OFFSET ${offset} LIMIT ${limit}`,
         );
         const counts = await query<{ total: number }>(
           tx,
@@ -519,7 +686,12 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
             balances: rows,
           };
         });
-        return pageResult(data, counts[0].total, offset, limit);
+        return {
+          ...pageResult(data, counts[0].total, offset, limit),
+          ...(view === 'receipt-items' && params.has('lotId')
+            ? { capabilities: { canCorrectReceipt: actor.roleId === 'ADMIN' } }
+            : {}),
+        };
       }
       if (view === 'stock') {
         const warehouseFilter = params.get('warehouseId');
@@ -543,6 +715,10 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
         );
       }
       if (view === 'receipts') {
+        const receiptId = params.get('receiptId');
+        const receiptFilter = receiptId
+          ? Prisma.sql`AND r.id=${id(receiptId, 'รายการรับเข้า')}::uuid`
+          : Prisma.empty;
         const rows = await query<{
           id: string;
           code: string;
@@ -552,7 +728,7 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
           actorName: string;
         }>(
           tx,
-          Prisma.sql`SELECT r.id,r.code,r.source,r.notes,r.created_at::text AS "createdAt",u.name AS "actorName" FROM stock_receipts r JOIN users u ON u.id=r.actor_user_id WHERE r.code ILIKE ${like} OR r.source ILIKE ${like} ORDER BY r.created_at DESC,r.id OFFSET ${offset} LIMIT ${limit}`,
+          Prisma.sql`SELECT r.id,r.code,r.source,r.notes,r.created_at::text AS "createdAt",u.name AS "actorName" FROM stock_receipts r JOIN users u ON u.id=r.actor_user_id WHERE (r.code ILIKE ${like} OR r.source ILIKE ${like}) ${receiptFilter} ORDER BY r.created_at DESC,r.id OFFSET ${offset} LIMIT ${limit}`,
         );
         const data = [];
         for (const r of rows) {
@@ -578,14 +754,28 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
         }
         const count = await query<{ total: number }>(
           tx,
-          Prisma.sql`SELECT count(*)::int AS total FROM stock_receipts WHERE code ILIKE ${like} OR source ILIKE ${like}`,
+          Prisma.sql`SELECT count(*)::int AS total FROM stock_receipts r WHERE (r.code ILIKE ${like} OR r.source ILIKE ${like}) ${receiptFilter}`,
         );
         return pageResult(data, count[0].total, offset, limit);
       }
       if (view === 'movements') {
+        const order = sqlTableOrder(
+          params,
+          {
+            occurredAt: Prisma.sql`m.occurred_at`,
+            productName: Prisma.sql`p.name`,
+            lotNumber: Prisma.sql`l.lot_number`,
+            warehouseName: Prisma.sql`w.name`,
+            quantity: Prisma.sql`m.quantity`,
+            kind: Prisma.sql`m.kind`,
+            actorName: Prisma.sql`u.name`,
+          },
+          Prisma.sql`m.occurred_at DESC,m.id`,
+          Prisma.sql`m.id`,
+        );
         const rows = await query(
           tx,
-          Prisma.sql`SELECT m.id,m.lot_id AS "lotId",l.lot_number AS "lotNumber",p.name AS "productName",w.name AS "warehouseName",m.quantity,m.kind,m.source_id AS "sourceId",m.reason,u.name AS "actorName",m.occurred_at::text AS "occurredAt" FROM stock_movements m JOIN product_lots l ON l.id=m.lot_id JOIN products p ON p.id=l.product_id JOIN warehouses w ON w.id=m.warehouse_id JOIN users u ON u.id=m.actor_user_id WHERE p.name ILIKE ${like} OR l.lot_number ILIKE ${like} ORDER BY m.occurred_at DESC,m.id OFFSET ${offset} LIMIT ${limit}`,
+          Prisma.sql`SELECT m.id,m.lot_id AS "lotId",l.lot_number AS "lotNumber",p.name AS "productName",w.name AS "warehouseName",m.quantity,m.kind,m.source_id AS "sourceId",m.reason,u.name AS "actorName",m.occurred_at::text AS "occurredAt" FROM stock_movements m JOIN product_lots l ON l.id=m.lot_id JOIN products p ON p.id=l.product_id JOIN warehouses w ON w.id=m.warehouse_id JOIN users u ON u.id=m.actor_user_id WHERE p.name ILIKE ${like} OR l.lot_number ILIKE ${like} ORDER BY ${order} OFFSET ${offset} LIMIT ${limit}`,
         );
         const count = await query<{ total: number }>(
           tx,
@@ -872,9 +1062,22 @@ export async function orderRead(actor: Actor, params: URLSearchParams, orderId?:
         like = '%' + search.replace(/[\\%_]/g, '\\$&') + '%',
         status = params.get('status') ?? '';
       const where = Prisma.sql`o.deleted_at IS NULL AND (o.code ILIKE ${like} OR o.name ILIKE ${like} OR c.name ILIKE ${like}) ${status ? Prisma.sql`AND o.status=${status}` : Prisma.empty}`;
+      const order = sqlTableOrder(
+        params,
+        {
+          code: Prisma.sql`o.code`,
+          customerName: Prisma.sql`c.name`,
+          territoryName: Prisma.sql`t.name`,
+          createdAt: Prisma.sql`o.created_at`,
+          amount: Prisma.sql`o.amount`,
+          status: Prisma.sql`o.status`,
+        },
+        Prisma.sql`o.created_at DESC,o.id`,
+        Prisma.sql`o.id`,
+      );
       const rows = await query<OrderRow>(
         tx,
-        Prisma.sql`SELECT ${orderSelect} FROM ${orderFrom} WHERE ${where} ORDER BY o.created_at DESC,o.id OFFSET ${offset} LIMIT ${limit}`,
+        Prisma.sql`SELECT ${orderSelect} FROM ${orderFrom} WHERE ${where} ORDER BY ${order} OFFSET ${offset} LIMIT ${limit}`,
       );
       const count = await query<{ total: number }>(
         tx,

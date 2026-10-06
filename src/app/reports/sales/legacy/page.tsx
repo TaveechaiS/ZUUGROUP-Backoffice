@@ -1,10 +1,16 @@
 'use client';
+import PaginationControls from '@/components/ui/pagination-controls';
 import type { RecordListResponse } from '@/types/api/records';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Get, Update } from '@/service/http';
+import SortableTable, {
+  useTableSort,
+  withTableSort,
+  TableSortControls,
+} from '@/components/ui/sortable-table';
 import { SearchIcon } from '@/components/icons/status-icons';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
@@ -96,6 +102,8 @@ export default function Page() {
   const [ownerFilter, setOwnerFilter] = useState('ทุกผู้รับผิดชอบ');
   const [statusFilter, setStatusFilter] = useState('ทุกสถานะ');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const sort = useTableSort(() => setCurrentPage(1));
   const [notice, setNotice] = useState('');
 
   const [options, setOptions] = useState<RecordFilters>({});
@@ -110,8 +118,8 @@ export default function Page() {
       setLoading(true);
       setError('');
       const params = new URLSearchParams({
-        offset: String((currentPage - 1) * 10),
-        limit: '10',
+        offset: String((currentPage - 1) * pageSize),
+        limit: String(pageSize),
         search,
         tab: selectedTab,
         filter,
@@ -125,7 +133,10 @@ export default function Page() {
         params.set(LOCAL_PAGE.display[2], ownerFilter);
       if (statusFilter !== 'ทุกสถานะ') params.set('status', statusFilter);
       if (metadataRetry.current !== retry) params.set('include', 'filters,config');
-      Get<RecordListResponse>(apiPath + '?' + params, controller.signal)
+      Get<RecordListResponse>(
+        withTableSort(apiPath + '?' + params, { key: sort.key, direction: sort.direction }),
+        controller.signal,
+      )
         .then((r) => {
           if (controller.signal.aborted) return;
           if (r.filters) setOptions(r.filters);
@@ -134,7 +145,7 @@ export default function Page() {
           if (r.filters && r.config) metadataRetry.current = retry;
           setRows(r.data);
           setTotal(r.pagination.total);
-          const lastPage = Math.max(1, Math.ceil(r.pagination.total / 10));
+          const lastPage = Math.max(1, Math.ceil(r.pagination.total / pageSize));
           if (currentPage > lastPage) {
             setCurrentPage(lastPage);
             setRows([]);
@@ -157,6 +168,7 @@ export default function Page() {
   }, [
     apiPath,
     currentPage,
+    pageSize,
     search,
     selectedTab,
     filter,
@@ -165,8 +177,11 @@ export default function Page() {
     ownerFilter,
     statusFilter,
     retry,
+    ,
+    sort.key,
+    sort.direction,
   ]);
-  const pageCount = Math.max(1, Math.ceil(total / 10));
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const pagedRows = loading ? [] : rows;
   const statuses = options.status ?? [];
   const types = options[LOCAL_PAGE.display[0] ?? ''] ?? [];
@@ -193,6 +208,34 @@ export default function Page() {
       setRestoreBusy('');
     }
   }
+  const tableSortColumns = (
+    isCustomerList
+      ? [
+          'name',
+          LOCAL_PAGE.display[0],
+          'code',
+          LOCAL_PAGE.display[1],
+          'salesName',
+          LOCAL_PAGE.display[3],
+          'status',
+        ]
+      : [
+          'name',
+          LOCAL_PAGE.display[0],
+          'code',
+          LOCAL_PAGE.display[1],
+          LOCAL_PAGE.display[2] === 'managerId'
+            ? 'managerName'
+            : LOCAL_PAGE.display[2] === 'salesId'
+              ? 'salesName'
+              : LOCAL_PAGE.display[2],
+          ['customer-groups', 'sales-territories'].includes(LOCAL_PAGE.key)
+            ? 'memberCount'
+            : LOCAL_PAGE.display[3],
+          'status',
+        ]
+  ).map((key) => (key === 'managerId' ? 'managerName' : key === 'salesId' ? 'salesName' : key));
+
   const tableHeaders = isCustomerList
     ? ['ชื่อลูกค้า/บริษัท', 'ประเภท', 'รหัสลูกค้า', 'จังหวัด', 'ผู้ดูแล', 'เงื่อนไข', 'สถานะ']
     : [
@@ -352,8 +395,19 @@ export default function Page() {
             ))}
           </div>
         )}
+        <TableSortControls
+          sort={sort}
+          columns={tableHeaders.map((label, index) => ({
+            label,
+            key: tableSortColumns[index] ?? null,
+          }))}
+        />
         <div className={selectedTab === 'ลบแล้ว' ? 'hidden' : 'hidden overflow-x-auto md:block'}>
-          <table className="w-full min-w-[640px] table-fixed border-collapse text-left">
+          <SortableTable
+            sort={sort}
+            columns={tableSortColumns}
+            className="w-full min-w-[640px] table-fixed border-collapse text-left"
+          >
             <thead className="bg-[#f7f8fa] text-xs poppins-semibold text-[#2f3a4d]">
               <tr>
                 {tableHeaders.map((column) => (
@@ -372,7 +426,7 @@ export default function Page() {
                 <RecordTableRow key={item.code} row={item} detailHref={detailHref} />
               ))}
             </tbody>
-          </table>
+          </SortableTable>
         </div>
         <div
           className={selectedTab === 'ลบแล้ว' ? 'hidden' : 'divide-y divide-[#e8ebef] md:hidden'}
@@ -388,43 +442,19 @@ export default function Page() {
             onRefresh={() => setRetry((n) => n + 1)}
           />
         )}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#e3e9f0] px-6 py-5 text-sm text-[#758195]">
-          <span>
-            แสดง {pagedRows.length} จาก {total} รายการ
-          </span>
-          <nav className="flex items-center gap-1" aria-label="เปลี่ยนหน้ารายการ">
-            <button
-              type="button"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
-              className="h-9 rounded border border-[#e3e9f0] px-3 disabled:cursor-default disabled:text-[#aab3bf]"
-            >
-              ‹ ก่อนหน้า
-            </button>
-            {Array.from(
-              { length: Math.min(5, pageCount) },
-              (_, index) => Math.max(1, Math.min(currentPage - 2, pageCount - 4)) + index,
-            ).map((number) => (
-              <button
-                key={number}
-                type="button"
-                aria-current={currentPage === number ? 'page' : undefined}
-                onClick={() => setCurrentPage(number)}
-                className={`h-9 min-w-9 rounded border px-1 text-sm ${currentPage === number ? 'border-[#1a58a7] bg-[#1a58a7] poppins-semibold text-white' : 'border-[#e3e9f0] text-[#758195] hover:bg-[#f7f9fc]'}`}
-              >
-                {number}
-              </button>
-            ))}
-            <button
-              type="button"
-              disabled={currentPage >= pageCount}
-              onClick={() => setCurrentPage((value) => Math.min(pageCount, value + 1))}
-              className="h-9 rounded border border-[#e3e9f0] px-3 disabled:cursor-default disabled:text-[#aab3bf]"
-            >
-              ถัดไป ›
-            </button>
-          </nav>
-        </div>
+        <PaginationControls
+          page={currentPage}
+          pages={pageCount}
+          total={total}
+          count={pagedRows.length}
+          onChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          disabled={loading}
+        />
       </div>
     </section>
   );

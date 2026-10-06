@@ -36,7 +36,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     resourceQuery(request.nextUrl.searchParams, []);
     const { id } = await context.params;
     if (!uuidPattern.test(id)) throw new ResourceQueryError('ID ต้องเป็น UUID');
-    const product = await getProductById(id);
+    const product = await getProductById(
+      id,
+      ['ADMIN', 'ACCOUNTING_CFO'].includes(actor.userRole?.roleId ?? ''),
+    );
     if (!product || (product.deletedAt && actor.userRole?.roleId !== 'ADMIN'))
       return NextResponse.json({ error: 'ไม่พบสินค้า' }, { status: 404 });
     return NextResponse.json({ product }, { headers: { 'Cache-Control': 'private, no-store' } });

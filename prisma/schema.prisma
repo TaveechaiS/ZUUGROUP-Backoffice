@@ -3,7 +3,37 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+model ProductCreateRequest {
+  id String @id @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  productId String @unique @map("product_id") @db.Uuid
+  payload Json
+  digest String
+  status String @default("pending")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  files ProductFile[]
+  @@map("product_create_requests")
+}
+model ProductFile {
+  id String @id @db.Uuid
+  requestId String @map("request_id") @db.Uuid
+  request ProductCreateRequest @relation(fields:[requestId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  kind String
+  name String
+  type String
+  size Int
+  path String @unique
+  digest String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([requestId],map:"product_files_request_idx")
+  @@map("product_files")
+}
+
 model ProductOption {
+  codeGroupProducts Product[] @relation("ProductCodeGroup")
+  codeFormatProducts Product[] @relation("ProductCodeFormat")
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   kind String
   name String
@@ -154,6 +184,7 @@ enum ProductStatus {
 }
 
 model User {
+  productCreateRequests ProductCreateRequest[]
   managedTerritories SalesTerritory[] @relation("TerritoryManager")
   salesTerritories SalesTerritory[] @relation("TerritorySales")
   stockReceipts StockReceipt[]
@@ -302,6 +333,11 @@ model Warehouse {
 }
 
 model Product {
+  details Json?
+  codeGroupId String? @map("code_group_id") @db.Uuid
+  codeFormatId String? @map("code_format_id") @db.Uuid
+  codeGroup ProductOption? @relation("ProductCodeGroup",fields:[codeGroupId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  codeFormat ProductOption? @relation("ProductCodeFormat",fields:[codeFormatId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   lots ProductLot[]
   orderLines SalesOrderLine[]
   id                 String          @id @default(uuid()) @db.Uuid
@@ -309,9 +345,9 @@ model Product {
   sequence           Int
   name               String
   categoryId         String          @map("category_id") @db.Uuid
-  dosageFormId       String          @map("dosage_form_id") @db.Uuid
-  drugId             String          @map("drug_id") @db.Uuid
-  defaultWarehouseId String          @map("default_warehouse_id") @db.Uuid
+  dosageFormId       String?         @map("dosage_form_id") @db.Uuid
+  drugId             String?         @map("drug_id") @db.Uuid
+  defaultWarehouseId String?         @map("default_warehouse_id") @db.Uuid
   unit               String
   salePrice          Decimal         @map("sale_price") @db.Decimal(12, 2)
   status             ProductStatus   @default(ACTIVE)
@@ -322,11 +358,11 @@ model Product {
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
   category           ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  dosageForm         DosageForm      @relation(fields: [dosageFormId], references: [id], onDelete: Restrict)
-  drug               Drug            @relation(fields: [drugId], references: [id], onDelete: Restrict)
-  defaultWarehouse   Warehouse       @relation(fields: [defaultWarehouseId], references: [id], onDelete: Restrict)
+  dosageForm         DosageForm?     @relation(fields: [dosageFormId], references: [id], onDelete: Restrict)
+  drug               Drug?          @relation(fields: [drugId], references: [id], onDelete: Restrict)
+  defaultWarehouse   Warehouse?     @relation(fields: [defaultWarehouseId], references: [id], onDelete: Restrict)
 
-  @@unique([categoryId, dosageFormId, sequence])
+  @@unique([codeGroupId, codeFormatId, sequence], map:"products_full_sequence_key")
   @@index([deletedAt, createdAt])
   @@index([categoryId, status])
   @@index([dosageFormId])

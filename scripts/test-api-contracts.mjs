@@ -212,8 +212,8 @@ assert.equal(
   'customers.update',
 );
 assert.equal(report.inventoryQuery(new URLSearchParams()).limit, 10);
-error(() => report.inventoryQuery(new URLSearchParams('limit=51')), 'limit ไม่ถูกต้อง');
-assert.equal(warehouse.warehouseQuery(new URLSearchParams('limit=51')), null);
+error(() => report.inventoryQuery(new URLSearchParams('limit=101')), 'limit ไม่ถูกต้อง');
+assert.equal(warehouse.warehouseQuery(new URLSearchParams('limit=101')), null);
 assert.equal(warehouse.warehouseQuery(new URLSearchParams('offset=')).offset, 0); // Keep the existing Number conversion.
 
 function walk(directory) {

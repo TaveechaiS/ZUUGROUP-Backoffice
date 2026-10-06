@@ -185,35 +185,32 @@ try {
   const receive = {
     action: 'receive',
     idempotencyKey: key(),
-    code: prefix,
-    source: 'fixture',
+    code: (await ops.operationOptions(admin)).data.nextReceiptCode,
     lots: [
       {
         productId: pid,
         warehouseId: main,
-        lotNumber: 'first',
         quantity: 10,
         totalCost: '50',
         manufacturedOn: '2026-01-01',
         expiresOn: '2028-01-01',
       },
-      {
-        productId: pid,
-        warehouseId: main,
-        lotNumber: 'second',
-        quantity: 10,
-        totalCost: '70',
-        manufacturedOn: '2026-01-01',
-        expiresOn: '2029-01-01',
-      },
     ],
   };
-  await test('รับหลายล็อต + retry ไม่เพิ่มซ้ำ', async () => {
+  await test('รับครั้งละหนึ่งล็อต + retry ไม่เพิ่มซ้ำ', async () => {
     const a = await ops.inventoryWrite(admin, receive),
       b = await ops.inventoryWrite(admin, receive);
     assert.equal(a.data.id, b.data.id);
     receipt = a.data.id;
-    [lot1, lot2] = a.data.lotIds;
+    [lot1] = a.data.lotIds;
+    assert.equal((await db.productLot.findUnique({ where: { id: lot1 } })).lotNumber, receive.code);
+    const second = await ops.inventoryWrite(admin, {
+      ...receive,
+      idempotencyKey: key(),
+      code: (await ops.operationOptions(admin)).data.nextReceiptCode,
+      lots: [{ ...receive.lots[0], totalCost: '70', expiresOn: '2029-01-01' }],
+    });
+    [lot2] = second.data.lotIds;
     assert.equal(await db.productLot.count({ where: { productId: pid } }), 2);
   });
   const create = (n) => ({
@@ -500,7 +497,7 @@ try {
   await test('ประวัติแก้รับไม่เผยต้นทุนให้ Sales', async () => {
     const response = await ops.inventoryRead(
       sales,
-      new URLSearchParams({ view: 'receipts', search: prefix }),
+      new URLSearchParams({ view: 'receipts', receiptId: receipt }),
     );
     assert.ok(!JSON.stringify(response).includes('totalCost'));
     assert.ok(!JSON.stringify(response).includes('beforeData'));

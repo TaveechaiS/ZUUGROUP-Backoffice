@@ -1,4 +1,6 @@
 'use client';
+import PaginationControls from '@/components/ui/pagination-controls';
+import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sortable-table';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { AuditListResponse } from '@/types/api/audit';
@@ -32,6 +34,7 @@ function actionName(action: string) {
 }
 
 export default function Page() {
+  const sort = useTableSort();
   const searchParams = useSearchParams();
   const initialFilters = {
     q: searchParams.get('q') ?? '',
@@ -46,9 +49,23 @@ export default function Page() {
       action: initialFilters.action ?? '',
     }).toString(),
   );
-  const { rows, total, page, pages, setPage, loading, error, reload, actions } = useAudit(
+  const {
+    pageSize,
+    setPageSize,
+    rows,
+    total,
+    page,
+    pages,
+    setPage,
+    loading,
+    error,
+    reload,
+    actions,
+  } = useAudit(
     '/api/audit-logs',
-    filters,
+    withTableSort('/api/audit-logs?' + filters, { key: sort.key, direction: sort.direction }).split(
+      '?',
+    )[1],
     'rows',
     Number(initialFilters.page),
   );
@@ -108,9 +125,26 @@ export default function Page() {
           ค้นหา
         </button>
       </form>
-      <div className="relative min-h-44 overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white" aria-busy={loading}>
-        <LoadingComponent isVisible={loading && !error} variant="content" label="กำลังโหลดรายการ..." />
-        <table className="w-full min-w-[850px] border-collapse text-left text-sm">
+      <div
+        className="relative min-h-44 overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white"
+        aria-busy={loading}
+      >
+        <LoadingComponent
+          isVisible={loading && !error}
+          variant="content"
+          label="กำลังโหลดรายการ..."
+        />
+        <SortableTable
+          sort={{
+            ...sort,
+            select: (key) => {
+              sort.select(key);
+              setPage(1);
+            },
+          }}
+          columns={['occurredAt', 'action', 'actor', 'target', 'requestId']}
+          className="w-full min-w-[850px] border-collapse text-left text-sm"
+        >
           <thead className="bg-[#f7f8fa] text-xs poppins-semibold text-[#2f3a4d]">
             <tr>
               {[
@@ -153,38 +187,25 @@ export default function Page() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </SortableTable>
         {!loading && !error && rows.length === 0 && (
           <p className="px-5 py-12 text-center text-sm text-[#8492a6]">
             {q || action ? 'ไม่พบเหตุการณ์ที่ตรงกับเงื่อนไข' : 'ยังไม่มีประวัติการทำรายการ'}
           </p>
         )}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-4 text-sm text-[#758195]">
-          <span>
-            แสดง {rows.length} จาก {total} รายการ
-          </span>
-          <div className="flex items-center gap-2">
-            <span>
-              {page} / {pages}
-            </span>
-            <button
-              type="button"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-              className="rounded border px-3 py-1 hover:bg-[#f8f9fb] disabled:opacity-40"
-            >
-              ก่อนหน้า
-            </button>
-            <button
-              type="button"
-              disabled={page >= pages}
-              onClick={() => setPage(page + 1)}
-              className="rounded border px-3 py-1 hover:bg-[#f8f9fb] disabled:opacity-40"
-            >
-              ถัดไป
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          page={page}
+          pages={pages}
+          total={total}
+          count={rows.length}
+          onChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+          disabled={loading}
+        />
       </div>
     </section>
   );
@@ -197,6 +218,7 @@ function useAudit(_path: string, filters: string, _key: string, initialPage = 1)
   );
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -208,9 +230,9 @@ function useAudit(_path: string, filters: string, _key: string, initialPage = 1)
       setLoading(true);
       setError('');
       const params = new URLSearchParams(filters);
-      params.set('limit', '10');
+      params.set('limit', String(pageSize));
       if (metadataRetry.current !== retry) params.set('include', 'filters');
-      params.set('offset', String((page - 1) * 10));
+      params.set('offset', String((page - 1) * pageSize));
       Get<AuditListResponse>(`${path}?${params}`, controller.signal)
         .then((result) => {
           if (controller.signal.aborted) return;
@@ -218,7 +240,7 @@ function useAudit(_path: string, filters: string, _key: string, initialPage = 1)
             setActions(result.filters.actions);
             metadataRetry.current = retry;
           }
-          const pages = Math.max(1, Math.ceil(result.pagination.total / 10));
+          const pages = Math.max(1, Math.ceil(result.pagination.total / pageSize));
           setTotal(result.pagination.total);
           if (page > pages) {
             setPage(pages);
@@ -241,14 +263,16 @@ function useAudit(_path: string, filters: string, _key: string, initialPage = 1)
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [path, filters, page, retry]);
+  }, [path, filters, page, pageSize, retry]);
   return {
     actions,
     rows,
     total,
     page,
-    pages: Math.max(1, Math.ceil(total / 10)),
+    pages: Math.max(1, Math.ceil(total / pageSize)),
     setPage,
+    pageSize,
+    setPageSize,
     loading,
     error,
     reload: () => setRetry((n) => n + 1),

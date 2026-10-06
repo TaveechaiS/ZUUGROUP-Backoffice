@@ -1,5 +1,409 @@
 # งานที่กำลังทำ
 
+## TASK-216 Checkpoint — 2026-10-06
+
+- CHECKPOINT_READY: เอกสาร Checkpoint/HANDOFF/Specs/Plan/Task216พร้อม; TypeScript/ESLintไฟล์โค้ดเปลี่ยนทั้งหมด/diffผ่าน. เก็บงาน TASK154–215 เป็น local commit บน AI; hashจริงตรวจ Git log หลัง commit. คง WAITING_FOR_UAT ไม่ push/deploy/แก้DB. ไม่รวม secrets/backups/src generated/.next; next-env.d.ts เป็น ambient definition ที่ tracked และเปลี่ยนตาม production build.
+
+- IN_PROGRESS: เจ้าของขอ checkpoint. Scopeเก็บงานที่อนุมัติ TASK154–215 และเอกสารส่งต่อเป็น local commit บน AI ตาม checkpoint เดิม; ไม่ push/deploy/แก้ DB. แผนย่อย: ตรวจ diff/ไฟล์ใหม่และไม่รวม secrets/generated/backups → Specs/Plan/HANDOFF/Checkpoint/Task216 → lint/type/diff และหลักฐานทดสอบล่าสุด → stage รายการที่ตรวจแล้ว → local commit → ตรวจ hash/status. งานพฤติกรรมที่ยังรอ UAT คงสถานะรอ ไม่ปิดแทนเจ้าของ.
+
+## TASK-215 แก้สินค้าเต็ม/API/ไฟล์/version/history — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: Full edit บันทึกจริงทุกช่อง/code/unit/filesในpage; ไม่เปิดปิดขาย. Snapshotversion+rowlockกันทับ409และรักษาdraft; requestretryidempotent/auditก่อนหลัง/ประวัติAccordionpagedsort/BEBangkok. DBrollback14tests+UIactualpageVMผ่าน รวมreferencequantityไม่เปลี่ยน/ไฟล์ถอน404/cancelปลอดภัย/lostresponseไม่ซ้ำ/authcost. TypeScript/ESLint/build/contracts14/routes77/diffผ่าน; CloudZuugroup43requestsพร้อมตัวอย่างและtestsอ่านกลับ/expectedVersion/IDsเดิมคง. ไม่มีschema/ข้อมูลธุรกิจถาวร/commit/deploy. UATตาม tasks/TASK-215-product-full-edit.md.
+
+- IMPLEMENTING / VERIFICATION: ปิด OPEN กฎรหัสและหน่วยแล้ว. API begin-edit/commit dispatch/version rowlock/full validation/files membership/history และฟอร์ม detail บันทึกจริงอยู่ใน page แล้ว. ทดสอบ DB transaction rollback 13 กรณีผ่าน รวมแก้รหัส/หน่วยแม้มีล็อต จำนวนคงเดิม stale409/ไฟล์ถอด404/cancelรักษาเดิม/idempotentaudit/costhistoryredact. กำลังตรวจ UI/retry/roles/build และ Postman 43 เส้น. ไม่มี schema ใหม่หรือข้อมูลธุรกิจถาวรเปลี่ยน.
+
+- RULE_APPROVED: เจ้าของตอบแก้ข้อมูลได้ทุกอย่างรวมID. ขอบเขตIDตามคำถามคือรหัสสินค้า(codeที่แสดงเว็บ) กลุ่ม/รูปแบบ/เลขลำดับและunitแก้ได้แม้มีreference; ตรวจduplicatecode/sequenceเสมอ. UUIDภายในที่เป็นFKใช้ผูกข้อมูลเดิมไม่ใช่ช่องIDที่แสดง. ไม่ล็อกfieldsตามจำนวนreference ไม่แปลง/ปรับstockquantityเมื่อเปลี่ยนunit. Auditก่อนหลังcode/unit/fields/filesและredirectcodeใหม่หลังsave. OPENด้านกฎนี้ปิดแล้ว.
+
+- IN_PROGRESS / CODE_UNIT_RULE_OPEN: เจ้าของอนุมัติแก้ข้อมูลสินค้าเต็มจริง/ไฟล์/กันทับ/ประวัติ ไม่เพิ่มเปิดปิดขาย. ถามกติกาcode/unitเมื่อมีreferenceแล้วรอคำตอบ ส่วนอื่นดำเนินได้. แผนย่อย: contract/types→reusependingrequest/fileuploadสำหรับeditpurposeในJSONpayload(ไม่มีschemaใหม่)→versionhashจากrowพร้อมsnapshotอ่าน→Admineditbegin/upload/commitatomic/idempotent409stale→historypagedAuditที่มีเดิม→detailpagecomboboxตามkind/ไฟล์keep/remove/new10MB/retry/conflict/SuccessAlert/historyAccordion→testsrollbackisolated/mock/readonly/lint/type/build/Postman. Editrequest.product_idเป็นUUIDเฉพาะrequestที่มีuniqueเดิม, targetProductIdในpayload.edit; ห้ามcreationcommitรับeditpurpose. ไฟล์ถูกถอนจากdetailsไม่อ่านได้อีก แต่เก็บprivateauditmetadata/objectเดิมจนมีretentionpolicy ไม่purgeของจริง. Scopeproducts/full/service/handler/types/validation/routesและproducts/[id]/page/layout/Postman/docs/tests. ใช้UIกลาง ไม่มีpagecomponentfilesใหม่. ไม่schema/roles/stockbusiness/เปิดปิดขาย/commit/deploy. จะแยกdependentcode/unitก่อนคำตอบ ไม่เดากฎOPEN.
+
+## TASK-214 ลบเส้นบน Pagination — 2026-10-06
+
+- COMPLETED: outerwrapperไม่มีborder-tแล้ว ESLint/diffผ่าน คงspacing/buttons/behavior.
+
+- IN_PROGRESS: เจ้าของให้ลบเส้นด้านบนPagination. Scopepagination-controls.tsxถอนborder-tและbordercolorouterwrapperเท่านั้น คงspacing/ปุ่ม/behavior. Specs/Plan/task→class→lint/diff.
+
+## TASK-213 สลับทิศลูกศร Sort — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ↓activeasc/↑activedescแล้ว ทุกตารางใช้กลางเดิม; คงsortdata/aria-sort/3จังหวะ. ESLint/diffผ่าน ไม่API/DB.
+
+- IN_PROGRESS: เจ้าของให้↑มากไปน้อย(desc),↓น้อยไปมาก(asc). เปลี่ยนเฉพาะการจับคู่สีSVGในsortable-table.tsx ไม่เปลี่ยนasc/desc/API/aria-sort/กด3จังหวะ. Specs/Plan/task→สลับ2strokeconditions→lint/diff/ตรวจpath.
+
+## TASK-212 Combobox ในข้อความจำนวน Pagination — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: summaryแสดง[select]จากtotalรายการแล้ว ลบlabelรายการต่อหน้าแยก คงhandler/options/สีเว็บ. ESLint/diff/Paginationcontrols/actualstockpageVMผ่าน; ไม่API/DB. UATเลือกจำนวนจากข้อความได้และกลับหน้า1ตามเดิม.
+
+- IN_PROGRESS: เจ้าของให้ข้อความแสดง[select10]จาก13รายการ โดยselectแทนเลขแรกและไม่มีlabelแยกแสดงรายการต่อหน้า. ขอบเขตpagination-controls.tsx JSXsummaryเท่านั้น คงpageSize10/20/50/100/ARIAและhandlerเดิม; ไม่มีonPageSizeChangeยังแสดงcountตามเดิม. Specs/Plan/task→markup→lint/diff/ทดสอบPaginationเดิม. ไม่API/DB.
+
+## TASK-211 Pagination สีหลักเว็บ — 2026-10-06
+
+- COMPLETED: activebg/border/selectfocus/buttonfocusเป็น#1A58A7แล้ว ไม่มีสีเขียวเดิมในcomponent. ESLint/diffผ่าน. เปลี่ยนเฉพาะสี ไม่API/DB/พฤติกรรม.
+
+- IN_PROGRESS: เจ้าของให้ใช้สีเว็บแทนสีเขียวตัวอย่าง. ขอบเขตpagination-controls.tsxเท่านั้น เปลี่ยน#015A32เป็น#1A58A7ทั้งactiveborder/bg/selectfocus/buttonfocus; คงlayout/จำนวนหน้า/pageSize/APIเดิม. Specs/Plan/task→สี→lint/diff/ค้นไม่มีเขียวเดิม.
+
+## TASK-210 Pagination รูปแบบเจ้าของและเลือก10/20/50/100 — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: PaginationControlsSVG/active#015A32/first-last/ellipsis/select10-20-50-100กลางใน26pagesแล้ว. ทุกpageSize reset1/querylimit-offset/count/pagesและคำขอเก่าignore/Abort; APIcap100/detail1คง. Postman41requestsเดิม/14pageddescriptionsอัปเดตและอ่านกลับครบ/defaultlimit10. ESLint/TypeScript/Build/diff/UIboundary/actualstockPageVM/100cap101reject/detail1/14productstockcontracts/route77/Combo25ผ่าน. Fulllegacytest-api-contractsยังติดassertruntimeconstantsproduct-fullเดิม ระบุTaskไม่อ้างว่าผ่าน. ไม่DBwrite/schema/commit/deploy รอbrowserUAT.
+
+- IN_PROGRESS: ใช้PaginationUIกลางตามตัวอย่าง(svgprevnext/first-last/ellipsis/active#015A32/nativebuttonคงlibเดิม) และselect10/20/50/100default10. Scopeทุกตารางที่มีpagingในเว็บ: 14recordlists/users/audit/products/warehouses/history/lots/orders/settings/linkedterritorycustomer. ไม่เปลี่ยนComboboxครบชุด/lookupฟอร์มเดิม. ลำดับ: Specs/Plan→กลางUI→localpageSize/querylimit/offset/totalPagesและresetหน้า1พร้อมcancelคำขอเก่า→servercap100(คงdetail1)→Postmanlimitvariableคำอธิบาย→testUIboundary/100API/route/lint/type/build. SharedcomponentอนุญาตเฉพาะPagination ไม่สร้างpagecomponents. คงsort/filter/metadata/roles/stockbusiness; ไม่DBschema/write/commit/deploy. ไฟล์pagingcomponent/25pages/servervalidators-services/tests/docs/Postmancollection.
+
+## TASK-209 ย้าย components/operations เข้าแต่ละ page — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ย้าย11pagesครบ/ไม่มีoperationsUIimportsและถอนโฟลเดอร์components/operationsแล้ว. order3routesใช้workflowlocal/route modeเดิม; linkedpanel2pagesและsharedhelpersเลือกเฉพาะตัวใช้; unusedinventory/lotUIถอน. TypeScript/ESLint/diff/productionbuildผ่าน; existingtest-route-pagesผ่าน77routes/14fieldsets/guards. API/DB/server/operations/roles/idempotencyคงเดิม ไม่มีDBwrite/commit/deploy. UATorders3/customer-territory/productsstockตามTask209.
+
+- IN_PROGRESS: เจ้าของให้ย้ายoperationsUIเข้าpageของจุดใช้งาน. Scopeคือcomponents/operations ไม่ใช่server/operationsหรือtypesAPI. ลำดับ: Specs/Plan/task→ย้ายOrderWorkspaceไปorders/list/create/detailแต่ละpageกำหนดmodeเดิม→LinkedRecordPanel localในcustomers/[id]และterritories/[id]→helperวันที่/ราคา/Field/Paging/styles localเฉพาะชื่อที่แต่ละpageใช้→ถอนinventory-workspace/lot-stock-tableที่ไม่มีcallerและไฟล์operationsUIเดิม→ปรับtest-route-pagesอ่านpageจริง→lint/type/build/tests/diff. ใช้UIกลางSort/Status/Pagination/SuccessAlert/Loading/Confirmationเดิมได้. ไม่API/DB/กฎธุรกิจ/สิทธิ์/commit/deploy. ไฟล์orders3/customerdetail2/products6/pagesและcomponents/operations5,script/docs. ตรวจรับrouteทุกจุด/commandrole/idempotency/วันที่ไทยsort/paging10คงเดิม.
+
+## TASK-208 ย้าย ProductOptionsManager เข้า page — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: โค้ด/helpersทั้งชุดอยู่settings/product-options/page.tsxแล้ว; defaultPageclientใช้React.use(searchParams)คงkind/defaultcodeGroup. ลบcomponents/settings/product-options-manager.tsxและไม่มีreferenceในsrc. ESLint/TypeScript/diffผ่าน; คงAdminlayout/API/sharedcomponents/CRUD/sort/page10 ไม่API/DB/commit/deploy. ตรวจหน้า/URLkind/เพิ่มแก้ปิดตามTask208.
+
+- IN_PROGRESS: ผู้ใช้ให้ย้ายโค้ดcomponents/settings/product-options-manager.tsxทั้งหมดเข้าapp/settings/product-options/page.tsx. ลำดับ: Specs/Plan/task → pageclientใช้React.useรับsearchParamsและdefaultkindcodeGroup → ย้ายhelpers/importsเดิม → ลบไฟล์เฉพาะหน้าที่ไม่มีผู้ใช้ → lint/type/diff. คงAdminserverlayout/API/ตาราง10/Sort/SuccessAlert/Combo/CRUDเดิม ไม่เพิ่มcomponentแยกหรือAPI/DB. ตรวจรับkindqueryถูกและเพิ่ม/แก้/ปิดรายการเหมือนเดิม.
+
+## TASK-207 Postman และ API ตามแผนที่อนุมัติ — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: CloudZuugroup uid55942202-9e4e5e82-607d-4bea-9a5d-e1c9a9b8d12f อ่านกลับ41requests/41descriptions/41tests/81examples/10resourcefolders/auth/formdataครบ/secretblank. ComboครบชุดจากbatchSQLเดียว/scroll10/localfilter/cacheต่อformและfocusinvalidate; thinreceive3queriesแทน6/details1request; readSSRเลิกmasters,marketingminSQL/metadatareuse/lazyimages. Contract13cases+Combo25ค่าผ่าน lint/type/build/diffผ่าน; SupabaseSELECTใหม่จริงผ่าน. P4ประเมินpayloadจริงเฉพาะfieldsและfixture ไม่เพิ่มETag/thumbnail/queueตามเงื่อนไขวัดก่อน. ไม่writeDB/schema/commit/deploy. APIแก้full-productเป็นข้อจำกัดเดิมระบุในCollection/Task ไม่สร้างนอกงาน. รายละเอียด tasks/TASK-207-postman-products-stock-api.md.
+
+- IN_PROGRESS: เจ้าของอนุมัติ TASK-206 ทั้งหมด โดยเปลี่ยน Combobox เป็นโหลดตัวเลือกทั้งหมดและเลื่อนในกล่องสูงสุดประมาณ10รายการ ไม่ค้น/โหลดเพิ่มทีละ10หรือ lookup selectedID เพื่อแบ่งหน้า. ตารางยัง10รายการ/หน้า. ขอบเขต: ปรับ Specs/Plan/contract → จัด Collection Zuugroup local/cloud ใน workspace ที่ตรวจพบ → thin receive options/capabilities → batch master เมื่อแก้สินค้า/ตัวเลือกทั้งหมดในcombo → lazy/history/projections ที่จำเป็น → ตรวจ lint/type/contracts/read-only. ไม่สร้าง component เฉพาะหน้า ไม่เปลี่ยนธุรกรรม1รับ1ล็อต/เกณฑ์คลัง/DBschema. ไฟล์: postman/*, docs/api/*, products create/detail/layout, stock create/receipt detail, server operations/products/options และtypes, search-combobox. Cache/thumbnail/queueประเมินตามP4 ไม่เพิ่มโดยไม่มีประโยชน์. ตรวจรับ: Collectionอ่านกลับตรงfolder, no secrets,combo scroll10ครบค่า, stock bootstrapไม่ส่งcustomers/users,detailไม่requestoptionsเพิ่ม, role/cost/stock/count/idempotencyคงเดิม.
+
+## TASK-206 แผนPostmanZuugroup/products/stockและลดข้อมูล — 2026-10-06
+
+- APPROVED: เจ้าของอนุมัติและแก้ComboตามTASK207; สถานะPlanReadyด้านล่างเป็นประวัติรอบก่อนอนุมัติ.
+
+- PLAN_READY / WAITING_FOR_APPROVAL: แผนfolder→actualroutes/knownpagination10/50lookup/oversizedoptions/receiptactorrequest/SSRmasters/lazyfiles/batchread/cachevalidationพร้อมแล้ว. เอกสารระบุphases/files/checks/1รับ1ล็อต/role/idempotency/sourceofficial. รอบนี้แก้เอกสารเท่านั้น ไม่มีruntime/API/DB/Postman/localcollectionmutation.
+
+- PLAN_ONLY: เจ้าของขอแผนก่อนสร้างชุดZuugroupใหม่หลังแจ้งลบในPostman. รอบนี้สำรวจโค้ด/routes/collectionsเก่า/แหล่งofficial และบันทึกSpecs/Plan/แผนย่อยเท่านั้น. CollectionเดียวZuugroupโฟลเดอร์products+stockและย่อยตามงาน authเป็นsupport. เสนอthinstockbootstrap/actorcapabilities/asynclookup10/pageprojection/lazysection-files/readbatch/metadatareuse. ปัจจุบันtable10มีแล้ว optionsค้นบางจุด50และinventoryoptionsส่งเกินความต้องการ. ไม่แก้code/API/DB/collectionไฟล์/CloudหรือinstallCLI. หลังอนุมัติค่อยเปิดimplementationtaskเฉพาะphase. CLIไม่พบในPATH ตรวจbinding/authก่อนเริ่มจริง.
+
+## TASK-205 Sortสามจังหวะคืนลำดับเดิม — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: asc→desc→ไม่มีsortและใหม่ascแล้ว labelคืนลำดับเดิม. ESLint/TypeScript/diff/mockcycle/localoriginal/aria-none/colors/queryempty/callbackผ่าน ไม่API/DB/commit/deploy รอbrowser.
+
+- IN_PROGRESS: shared useTableSort select samekey asc→desc→keyempty(defaultasc), keyใหม่asc; aria-label ครั้ง3คืนลำดับเดิม. Localไม่reorderเมื่อkeyempty/globalถอนqueryกลับAPIdefaultพร้อมpage1. เอกสาร→hook/label→lint/mockcycle+query/order. ไม่API/DB.
+
+## TASK-204 Sortเล็กลงและสีอ่อนกลืนหัวตาราง — 2026-10-06
+
+- COMPLETED: SVG12×11/defaultcurrentColor55%/active#65758b-inactive#cbd5e1แล้ว คงpath/gap/behavior. Scopedlint/diffผ่าน ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: shared sortable-table.tsx SVG14×13→12×11 defaultcurrentColor opacity55%, active#65758b/อีกทิศ#cbd5e1 opacity100%. คงpath/ช่องว่าง/behavior. เอกสาร→style→lint/diff ไม่API/DB.
+
+## TASK-203 ไอคอน sortเล็กและชิดข้อความ — 2026-10-06
+
+- COMPLETED: sharedbuttonไม่w-full/betweenแล้ว gap1.5 SVG14×13 คงviewBox/path/colors/behavior. ScopedESLint/diffผ่าน ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: sortable-table.tsx เฉพาะUIหัวsort ถอนw-full/justify-between ใช้gap1.5และSVG14×13คงviewBox/path/colors/aria/handlers. เอกสาร→sharedclasses/size→lint/diff. ไม่API/DB/behavior.
+
+## TASK-202 ถอนราคาต้นทุนจากตารางสินค้าและคลัง — 2026-10-06
+
+- COMPLETED: ถอน header/cell/sortplaceholder จากrootและทั้ง3คลังแล้ว คงต้นทุนล็อต. Scoped ESLint/TypeScript/diffและmock4scopeheader-cell-sortcountsตรง/root-MAIN-MARKETING8 DISPOSAL7ผ่าน ไม่ API/DBwrite/commit/deploy.
+
+- IN_PROGRESS: products/page.tsx และstock/[warehouse]/page.tsx ถอนheaderราคาต้นทุน/cellplaceholder/columnsortnullให้ตรงกัน; คงต้นทุนล็อตในdetail/history/reportเดิม. เอกสาร→columns/cells→lint/type/headeralignment. ทำต่อเนื่องกับTASK201sortที่รอปิดผลตรวจ. ไม่ API/DB.
+
+## TASK-201 Sort ทุกตารางพร้อมไอคอนขึ้นลง — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ทุก25ไฟล์tableใช้shared sorter/SVGตามเจ้าของ/สีขึ้นลง/aria-sortและmobilecontrols; globalAPIallowlist/orderก่อนpaging/idtie/costguard และlocalnumeric/date/stable/null-last. ESLint/TypeScript/buildผ่าน; mockSVG/arrows/numeric/date/ties/null/action/globalSQL/registry14/mobile/reportpage1/navigation/destroyretryผ่าน; EXPLAIN4queryบนDBread-onlyvalid. ไม่DBwrite/schema/commit/deploy ยังไม่ได้browserUAT. TASK202ถอนcostheaderต่อเนื่อง mappingเรียบร้อย.
+
+- ขอบเขตเอกสารส่งมอบ: docs/api/table-sorting.md ระบุquery/allowlist/ตัวอย่างและสิทธิ์cost; บันทึกผล testsในTASK201/Planหลังbuild. ไม่มีPostmancloud mutation.
+
+- ขอบเขตเพิ่ม: records/reports.ts inventory report ใช้Prismaก่อนpaging; api/users/export/route.ts invalidsort400. ระหว่างlintพบhookcallbackอ้างsetPageก่อนประกาศ จะย้ายหลังstateและusers/auditใช้callbackที่tableหลังuseList; แก้depsให้จับkey/directionไม่อ้างsortobjectทั้งตัว.
+
+- ขอบเขตเพิ่มระหว่างตรวจ: api/users/route.ts และ api/audit-logs/route.ts รับ RecordError จากsortเป็น400; exportUsersคงsortเดียวกับหน้า; mobile record cardsเพิ่มSortControlsกลางเพราะtableเดิมซ่อนที่mobile. Inventory viewเปลี่ยนต้องreset sortป้องกันkeyข้ามview. ไม่เพิ่มเส้นAPIใหม่.
+
+- IN_PROGRESS: ตารางทั้ง25ไฟล์ในsrc (record lists13, users/audit/options, products/stock/detail, operations workspaces/lot table). เพิ่ม shared sortable-table/useTableSort และ sorting validation server allowlist. Paged tablesส่งsortBy/sortDirection/APIORDERก่อนpaging (records/users/audit/options/inventory/orders/products legacy); local detail sortในหน้าโดยใช้ค่าข้อมูลจริง. UI SVGตามเจ้าของสองpath เปลี่ยนสีน้ำเงินทิศactive/อีกทิศเทา กดสลับasc/desc aria-sort/keyboard; actioncolumnsไม่sort. เอกสาร→shared→server→allpages→lint/type/mock/inventorycoverage. ไม่DBwrite/schema/businessrule.
+
+## TASK-200 คงแถวล็อตทำลายหลังรีเฟรช — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: remaining all/DISPOSALรวมdestroyed movementแถว0แล้ว คงMAIN/MARKETINGpositive และsummarylotCountpositive/qty0. ESLint/TypeScript/diff/mockscoperows-count/UIfreshstateflagและSQLread-onlyfixture visible1/lotcount0/qty0ผ่าน ไม่ DBwrite/schema/commit/deploy รอbrowser.
+
+- IN_PROGRESS: เจ้าของแก้ให้แถวทำลายคงอยู่หลังrefresh แต่ยอดและlotCountไม่นับ. service.ts remaining scopeเพิ่มORmovementทำลายแล้วเฉพาะDISPOSAL/all; main/marketingยังpositive. คงstock summarypositive countและยอด0เดิม. เอกสาร→API→mockscope/readback/lint/type. ไม่schema/DBwrite.
+
+## TASK-199 ยืนยันทำลายล็อตในคลังรอทำลาย — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: Admin destroy DISPOSALทั้งยอด/confirm/expected qty/reserved/duplicate guard แล้ว ledger+auditในtransactionและflagถาวร. UIconfirm→SuccessAlert/คำทำลายแล้วกดไม่ได้ คงแถวรอบนี้ และhistoryflagหลังreload. ESLint/TypeScript/diff/UI+service mockผ่าน; SQLread-onlymarker/constraintตรวจแล้ว ไม่มี DB writeจริง/schema/commit/deploy รอbrowser+UATทำลายจริง.
+
+- IN_PROGRESS: เจ้าของอนุมัติปุ่มทำลายจริงรายล็อต. products/[id]/page.tsx ปุ่มAdminในcurrentOnly DISPOSAL/confirm→POSTdestroy→SuccessAlert/disabledคำทำลายแล้วและpinแถวรอบนี้; historyแสดงflagถาวร. service.ts actiondestroy quantityทั้งหมดDISPOSAL/ไม่reserved/ไม่ซ้ำ/ledger+audit transactionเดิม และ stockSelect flagEXISTS; types/statusbadge. เอกสาร→API→UI→mock/lint/type. ไม่schemaหรือDBwriteจริงระหว่างพัฒนา.
+
+## TASK-198 สถานะการตลาดแสดงวันต่ำสุด — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: MARKETING badgeเดียวจาก minวันของล็อตคงเหลือ ไม่มีID/จำนวน/วันที่ในcellแล้ว. ESLint/diff/mock30-10/zero-stock/today/expired/emptyผ่าน ไม่ API/DB/commit/deploy รอbrowser.
+
+- IN_PROGRESS: stock/[warehouse]/page.tsx สถานะ MARKETING แสดง badge เดียวจาก min daysUntilExpiry ของ marketingLots quantity>0; ลบ ID/จำนวน/วันหมดอายุในcellและunusedimports. เอกสาร→UI→lint/mockค่าต่ำสุด/0/expired/empty. ไม่ API/DB.
+
+## TASK-197 ย้ายแท็บจำนวนสินค้าไปคลังหลัก — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: MAINสามแท็บแล้ว root/MARKETING/DISPOSALมีทั้งหมดอย่างเดียว. ESLint/diff และ mockจำนวนแท็บ/querylow-emptyMAIN/offset0ผ่าน ไม่ API/DB/commit/deploy รอbrowser.
+
+- IN_PROGRESS: products/page.tsx เหลือแท็บทั้งหมด; stock/[warehouse]/page.tsx เฉพาะ MAIN มีทั้งหมด/low/empty. คง API stock filter MAIN เดิมและ reset page1 เมื่อเปลี่ยนแท็บ. ลำดับ Specs/Plan/Task → tabs → lint/mock query. ไม่ API/DB.
+
+## TASK-196 กล่องล็อตที่ยังเหลือในรายละเอียดสินค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: กล่องล็อตสินค้าคงเหลือเปิดเริ่มต้น/tabsคลัง/contextจากตารางคลังแล้ว API positive EXISTS scopedก่อนpaging/count; แสดงยอด/balancesเฉพาะ scope และคงประวัติเดิม. ESLint/TypeScript/diff ผ่าน; UI mock2→1หลังโอน/context/all/old historyและ service mock3คลัง/count/invalidfilter ผ่าน. ไม่ DBwrite/schema/auto transfer/commit/deploy รอbrowser.
+
+- IN_PROGRESS: products/[id]/page.tsx เพิ่มกล่องล็อตคงเหลือ ใช้ local LotHistory currentOnly โหมดใหม่/tabsคลังและ positive balances; service.ts lots remaining=true/warehouseCode EXISTS ก่อน paging/count. warehouse/page.tsx link product ส่ง warehouse context. ลำดับเอกสาร→API scope→กล่อง/tab/link→lint/type/mock. คง history เดิมรวมล็อตหมดแล้ว ไม่ schema/write/auto-transfer.
+
+## TASK-195 สถานะแยกคลังและวันเหลือรายล็อต — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: API mainQuantity/lotCount scoped positive distinct; tabs low/empty นับ MAIN และ MAIN=0 ยังแสดง. ทุกตารางจำนวนสต็อกหลังราคาขาย; MARKETING รายการ ID/จำนวน/วันหมดอายุ/วันเหลือแต่ละล็อตจาก paged product IDs; DISPOSAL ไม่มีสถานะ. StatusBadge pattern กลาง. ESLint/TypeScript/diff/UI+service mocks ผ่าน; SQL read-only จริงและ CTE ตัวอย่างโอน 3→2/1→0/1 ผ่าน ไม่ DB write/schema/auto transfer/commit/deploy รอ browser UAT.
+
+- ขอบเขตปรับตามเจ้าของ: ทุกคลังเพิ่มจำนวนสต็อกหลังราคาขาย นับ distinct ล็อต quantity>0 เฉพาะคลังนั้น. MARKETING คงแถวสินค้ารวมและแสดงรายการล็อต/วันเหลือในสถานะพร้อม ID link เพื่อเห็น lotCount รวม. API products เพิ่ม lotCount/marketingLots ด้วย query หลัง paging; ไม่ต้องเปลี่ยน lots view. แสดงจำนวนตามการโอนที่บันทึกจริง ไม่สร้างการโอนอัตโนมัติขณะเกณฑ์ OPEN.
+
+- IN_PROGRESS: products/page.tsx status MAIN quantity และ stock tabs API ใช้ MAIN quantity; stock/[warehouse]/page.tsx MAIN status MAIN, MARKETING view lots แยก ID/วันที่/วันเหลือและยอดเฉพาะ MARKETING, DISPOSAL ถอนสถานะ. service.ts mainQuantity CTE/filters และ lots warehouseCode+positive scope/paging/categories/days status; types operations และ StatusBadge pattern กลาง. ลำดับเอกสาร→API→pages→lint/type/mock. ไม่ schema/DBwrite/auto-transfer.
+
+## TASK-194 แก้รายละเอียดการเติมสต็อก — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: หน้าเดิมดูรายละเอียดก่อน Admin กดแก้สลับปุ่มล่างสุด ยกเลิก/บันทึก; dirty cancel alert คงค่าเดิม. POST correct จริงพร้อมเหตุผล/คลังและ retry key เดิมเมื่อผลไม่แน่นอน; สำเร็จ reload/alert. ไม่แก้ ID/สินค้า/กฎ backend. ESLint/TypeScript/diff/mock view/edit/cancel/validation/payload/retry/readback/409 ผ่าน ไม่มี DB write/schema/commit/deploy รอ browser UAT.
+
+- IN_PROGRESS: receipts/[id]/page.tsx โหมดดู/แก้และปุ่มแก้ไข↔ยกเลิกบันทึกพร้อม SuccessAlert; ใช้ inventory correct API เดิมสำหรับจำนวน/ต้นทุน/วันผลิตหมดอายุ เหตุผล/คลังปรับผลต่าง. โหลด options เพื่อสิทธิ์ Admin. คง ID/สินค้าและยอดคงเหลือ readonly ไม่เปลี่ยนกฎ 7 วัน/จอง/ledger เดิม. ลำดับ Specs/Plan/Task → state/form/save/retry → lint/type/mock; ไม่ DB writes รอบพัฒนา.
+
+## TASK-193 คลิกทั้งแถวประวัติเติมสต็อก — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: คลิกพื้นที่แถวและ Enter/Space เปิด lot.id แล้ว คงลิงก์สินค้าและ guard event ไม่เปิดซ้อน พร้อม hover/focus. ESLint/TypeScript/diff และ mock สองแถว/keyboard/nested link ผ่าน. ไม่ API/DB/commit/deploy รอตรวจเบราว์เซอร์.
+
+- IN_PROGRESS: stock/page.tsx เปิดรายละเอียด lot.id เมื่อคลิกพื้นที่แถวหรือ Enter/Space บนแถว; คงลิงก์ ID/สินค้าโดยไม่ให้ event เปิดซ้อน. ลำดับ Specs/Plan/Task → row handlers/hover/focus → lint/type/mock. ไม่ API/DB.
+
+## TASK-192 ลบคำอธิบายใต้ปุ่มเพิ่มสต็อก — 2026-10-06
+
+- COMPLETED: ลบข้อความสองบรรทัดใต้ปุ่มแล้ว คงปุ่ม/handlers/dialog เดิม. Scoped ESLint และ diff check ผ่าน ไม่ API/DB/commit/deploy.
+
+- IN_PROGRESS: ลบข้อความกลับไปประวัติการเติมของ/ยืนยันก่อนเพิ่มยอดเข้าคลังใน stock/create/page.tsx เท่านั้น. ลำดับบันทึก Specs/Plan/Task → ลบสองข้อความ → scoped lint/diff; คง handlers ของปุ่มและ dialog เดิม.
+
+## TASK-191 IDตัวอักษรคงที่/ปี/เลขแก้ได้ — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ID เป็น GR-ปี พ.ศ.-เลข 5 หลัก; GR/ปี readonly เลขแก้ได้และเติมศูนย์. เลขอัตโนมัติแยกตามปี Bangkok; API ตรวจรูปแบบ/ปี/เลขและคงข้อมูลเดิม. ESLint/TypeScript ผ่าน; mock ฟอร์มแก้เลข/ยืนยัน/ยกเลิก/retry และ service เปลี่ยนปี/next/overflow/invalid ผ่าน ไม่มี DB write/schema/commit/deploy. รอตรวจในเบราว์เซอร์.
+
+- IN_PROGRESS: เจ้าของให้IDเป็นตัวอักษรเปลี่ยนไม่ได้-ปี-เลขเปลี่ยนได้. ขอบเขตstock/create/page.tsxสามส่วนGR/yearreadonly/sequenceeditable, operations/service.tsnextGR-ปีพ.ศ.-เลข5หลักตามBangkokและvalidateprefix/currentyear, test-linked-operations.mjsfixtureเลขใหม่, ACTIVE/Specs/Plan/Task191. ลำดับเอกสาร→serverprefix/nextannual→UIseqแก้pad5→fixtures→lint/type/mockyear/manual/prefix/retry. ไม่schema/DBwriteและไม่แก้IDเก่า.
+
+## TASK-190 วันหมดอายุเพิ่มสต็อกกว้างหนึ่งฝั่ง — 2026-10-06
+
+- COMPLETED: expiresOnคงbasisครึ่งแถวที่mdและถอนgrowแล้ว มือถือเต็มแถว. ESLint/diffผ่าน ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: เจ้าของให้วันหมดอายุกว้างเท่าหนึ่งฝั่ง ไม่เต็มแถว. ขอบเขตstock/create/page.tsxเฉพาะclassflexfieldexpiresOnและACTIVE/Specs/Plan/Task190. ลำดับเอกสาร→ถอนgrowของexpiresOnที่mdคงbasisครึ่งแถว/mobilesเต็ม→lint/diff. ไม่พฤติกรรม/API/DB/ฟิลด์อื่น.
+
+## TASK-189 IDเปิดเฉพาะล็อตที่เติม — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: report/historylinkใช้lotUUIDแล้ว detailอ่านreceipt-items&lotIdแสดงสินค้าเดียว/จำนวนรับคงเหลือ/ต้นทุนตามrole/วันผลิตหมดอายุ/ตารางคลังเฉพาะล็อต ไม่มีbatchtable. APIfilterUUIDทั้งids/count คงlistingเดิม. ESLint/TypeScript/diffผ่าน; SSRmockA-BsharedreceiptกดAไม่B/costwarehouseไม่ปน/กดBไม่A/unknownไม่แสดงอื่นผ่าน; serviceMockexact1/boundrowscount/invalid400/unfiltered2ผ่าน. ไม่มีDBwrite/schema/commit/deploy รอbrowserclick.
+
+- IN_PROGRESS: เจ้าของให้กดIDดูเฉพาะสินค้า/ล็อตของแถวนั้น ไม่ทั้งชุดรับ. ขอบเขตstock/page.tsxและproduct[id]/pagehistorylinkใช้lot.id, stock/receipts/[id]/page.tsxอ่านreceipt-items&lotIdและแสดงsingleitem, operations/service.tslotIdUUIDfilterทั้งids/count, ACTIVE/Specs/Plan/Task189. ลำดับเอกสาร→filterlotId→linklotUUID→singleitemรายละเอียด/ยอดคลัง→lint/type/mockisolation. คงrouteเดิมแต่[id]เป็นUUIDล็อต ไม่DBwrite/schemaหรือเปลี่ยนvisibleIDเก่า.
+
+## TASK-188 ประวัติเติมหนึ่งแถวต่อสินค้า/ล็อตและIDเดียว — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: report5คอลัมน์ID/เวลา/สินค้า/จำนวนรับ/ต้นทุนรวมล็อตแล้ว หนึ่งแถวต่อล็อตและGETreceipt-itemspaging10ตามล็อตจริง/ล่าสุดก่อน คงlotvieworderbyเดิม. IDเดียวlinkdetailและformlabelIDไม่มีเลขรับ+เลขล็อต. แสดงreceivedQuantityไม่ใช่quantityคงเหลือ ต้นทุนตามrole. ESLint/TypeScript/diffผ่าน; SSRmock2สินค้าสองแถว/header5/IDlink/รับ20แม้เหลือ5/cost100ผ่าน; serviceMockdedupสองคลัง/totalcount2/order/paging/กรองต้นทุนSales/lotviewเดิมผ่าน. ไม่DBwrite/schema/commit/deploy รอbrowser.
+
+- IN_PROGRESS: เจ้าของให้ตารางhistoryเป็นID/วันเวลา/สินค้า/จำนวนรับ/ต้นทุนรวมล็อต ไม่เลขรับ+เลขล็อตแยก. ขอบเขตstock/page.tsx, stock/create/page.tsxlabelID, operations/service.tsและhandlers.tsเพิ่มGETviewreceipt-itemsใช้lotsqueryเรียงรับล่าสุด/หนึ่งล็อตหนึ่งแถว/pagingต้นทุนตามrole, ACTIVE/Specs/Plan/Task188. ลำดับเอกสาร→readviewpaginateจริงตามล็อต→report5columns/linkID→labelID→lint/type/mockread/render. ไม่schema/DBwrite/เปลี่ยนIDเก่า.
+
+## TASK-187 IDรับเข้าเป็นล็อต / ถอนแหล่งและอายุ / สองต้นทุน — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: form/report/detail/historyใช้IDรับเข้าแล้ว ไม่มีเลขล็อต/source/ageในUI รับใหม่APIexact1ล็อตใช้codeเป็นlot_number คงUUID/ข้อมูลเก่า. Totalกรอก/unitcostreadonlyคำนวณตามจำนวน รายละเอียด/historyมีทั้งสองต้นทุนตามrole. SSR/statemockไม่มี3ช่อง/unitcost5เมื่อ100/20/payloadไม่ส่งlotNumber-source/confirmretryผ่าน; mockserviceรับ1ล็อตcodeเดียว/retryไม่ซ้ำ/2ล็อต400ก่อนเขียนผ่าน. lint/type/build/diffผ่าน ปรับintegrationfixtureเป็น2รับเพื่อคง2ล็อตแล้วlintผ่าน แต่ไม่รันDBintegrationจริง/ไม่schema/DBwrite/commit/deploy. รอbrowser/UAT.
+
+- ขอบเขตcompatibilitytests: ปรับscripts/test-linked-operations.mjs fixtureรับ2ล็อตให้เป็นรับ2ครั้งครั้งละ1ล็อตตามกฎใหม่ ยังคงFEFO/orderfixtures2ล็อตและretryassertionsเดิม ไม่มีรันintegrationนี้กับDBจริงในรอบนี้ เพราะmockreceiveตรวจruleโดยไม่เพิ่มข้อมูลแล้ว.
+
+- IN_PROGRESS: เจ้าของให้เลขรับเข้าเป็นID และรับ1รอบ=1ล็อต ถอนเลขล็อต/อายุคำนวณ/แหล่งที่มา เพิ่มแสดงต้นทุนรวมล็อตและต่อชิ้น. ขอบเขตstock/create/page, stock/page, stock/receipts/[id]/page, product[id]history, operations/service.tsreceive, ACTIVE/Specs/Plan/Task187. ลำดับเอกสาร→createไม่มีlotNumber/source/ageและunitCostderived→serveroneLot/lotNumber=receiptcode→รายงาน/รายละเอียด/historyใช้IDไม่แยกเลขล็อตและถอนsource→lint/type/mockreceive/render. รักษาUUID/ข้อมูลเก่า/เลขautoeditable ไม่schema/DBwrite. ต้นทุนต่อชิ้นreadonly=total/quantityตามbackendเดิม.
+
+## TASK-186 รายงานรับเข้า5คอลัมน์และหน้ารายละเอียด[id] — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: report5คอลัมน์/หนึ่งแถวต่อreceiptแล้ว กดเลขเปิดstock/receipts/[id]ข้อมูลตรงUUID/ล็อต/ยอดแยกคลัง; historyสินค้าlinkตรงreceiptด้วย. APIreceiptIdfilteruuidboundทั้งrows/countไม่เปลี่ยนlistเดิม. รวมdistinctlot/แยกหน่วยป้องกันยอดซ้ำ. ESLint/TypeScript/build/diffผ่าน; SSRmock5headers/link/70box+4bottle/noinline/detaildedup/wrongidไม่แสดงรายการอื่นผ่าน; mockservicefilterทั้ง2query/invalidid400/plainpagingผ่าน. SQLreadonlyจริงmatch1/missing0 ไม่DBwrite/schema/commit/deploy. รอbrowserclick/UAT.
+
+- IN_PROGRESS: เจ้าของให้reportหนึ่งแถวต่อรับเข้าแสดงเลข/เวลา/แหล่ง/จำนวนรับ/ผู้บันทึก กดเลขเปิด[id]. ขอบเขตstock/page.tsx, stock/receipts/[id]/page.tsxใหม่, products/[id]/page.tsxreceiptlink, admin-shell, operations/service.tsรับreceiptIdfilter, ACTIVE/Specs/Plan/Task186. ลำดับเอกสาร→filterAPIuuidตรงรายการ/รวมcounts→reportถอนinline/จำนวนล็อต→detailอ่านreceiptและล็อต→Shell/link→lint/type/build/mockread. คงต้นทุนตามroleและไม่DBwrite/schema.
+
+## TASK-185 เลขที่รับเข้าอัตโนมัติแก้เองได้ — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: GEToptionsAdminคืนnextReceiptCodeจากmaxGR+1แล้ว ฟอร์มเติมครั้งแรกและinputยังแก้เองได้/ไม่overwriteโหลดซ้ำ. ReadSQLจริงได้serial1จึงเสนอGR-00001. MockserviceตรวจAdmin-only/max/ขั้นต่ำ5หลัก/เลขใหญ่ผ่าน; SSR/stateตรวจprefillGR-00016/manualคงเมื่อโหลดซ้ำและreceiveconfirm/retryผ่าน. ESLint/TypeScript/diffผ่าน ไม่มีDBwrite/schema/commit/deploy.
+
+- IN_PROGRESS: เจ้าของให้เลขรับเข้าสร้างเองแต่แก้ได้. ขอบเขตoperations/service.ts GEToptionsเพิ่มnextReceiptCode, types/api/operations.ts optionalfield, stock/create/page.tsxprefill, ACTIVE/Specs/Plan/Task185. เลขเริ่มGR-00001/maxเลขGRในDB+1ขั้นต่ำ5หลัก ไม่จองก่อนรับจริง คงmanualเลขเดิม/unique409/idempotencyretry. ลำดับเอกสาร→nextจากDB→เติมเฉพาะช่องว่างครั้งแรก→ทดสอบmax/pad/รักษาmanual/retry→lint/type. ไม่schema/DBwriteหรือเปลี่ยนflowรับเข้า.
+
+## TASK-184 ประวัติเติมสต็อก / ประวัติล็อตในสินค้า / ฟอร์มรับเข้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: reportอ่านreceiptsไม่มีTabแล้ว แยกlotIdก่อนนับ/รวมรับเพื่อไม่ซ้ำเมื่อกระจายคลัง; [id]Accordionlazyอ่านlots/productId+paging; /stock/createฟอร์มflex/Accordion/iconเดิม เลือกMAIN/สินค้าprefillquery รับหนึ่งล็อตพร้อมConfirmationก่อนPOSTเดิม+SuccessAlert. Retryหลัง503คงpayload/idempotencyและไม่ปลดแก้ข้อมูลแม้ยกเลิกdialogretry เพื่อกันรับซ้ำ. Nav/Shellเปิดrouteใหม่ serverAdminguardและlegacyredirectครบ ไม่มีcomponentใหม่แยก. ESLint/TypeScript/build/diffและSSR/state mockผ่าน: defaultMAIN/product, validation, icon, confirmcancel,503retry, successpayload, dedup70แทน90, lazyhistoryscope. ไม่DB/APIเขียนจริงในtests ไม่แก้backend/กฎย้าย/commit/deploy. รอbrowser/UATรับจริง.
+
+- IN_PROGRESS: เจ้าของยืนยันรายงานสต็อกคือประวัติเติมของไม่มีTab, [id]มีAccordionตารางประวัติล็อต, เพิ่มสต็อกเหมือนเพิ่มสินค้า/iconเดิม โค้ดในproducts/stockpageไม่สร้างcomponentแยก. ขอบเขตproducts/stock/page.tsx, stock/create/page.tsx+layout.tsxใหม่, products/[id]/page.tsx, navigation/SidebarShellเปิดroute, receipts/pagelegacyredirect, ACTIVE/Specs/Plan/Task184. ใช้GETinventory receipts/lots/optionsและPOSTreceiveเดิมพร้อมConfirmationDialog/idempotency ไม่แก้กฎย้ายOPENหรือDB. ลำดับcontractเอกสาร→readhistory→formรับเข้าเปลี่ยนชุดข้อมูล/defaultMAIN→navroute→lint/type/build/SSRmockformhistory. ไม่มีโอนล็อตอัตโนมัติ/stockattachmentsใหม่.
+
+## TASK-183 แผนรับเข้า/ย้ายล็อต/นับของขายเฉพาะคลังหลัก — 2026-10-06
+
+- ขอบเขตแผนหน้ารายงานเพิ่มเติม: เจ้าของขอPlanก่อน ถามจำนวนล็อต/อายุ/ยอดรวมทุกคลังและลิงก์ใกล้หมดไปเติมของ. แก้เอกสารสี่ไฟล์เดิมเพื่อเสนอsummaryสินค้า→detailล็อตแยกคลัง, จำนวนล็อตปัจจุบันdistinctล็อตที่มียอด, สถานะคลังหลักเปิดเพิ่มสต็อกprefillproduct/defaultMAINไม่ใช่เพิ่มสินค้าใหม่. เกณฑ์เวลา/auto/manualยังรอคำตอบ ไม่มีimplementation. แผนย่อยระบุลำดับ/ไฟล์คาดหมาย/ตรวจรับ.
+
+- ขอบเขตเพิ่มเติมเอกสาร: เจ้าของยืนยันข้อมูลอายุยา/วันผลิต/วันหมดอายุแยกล็อต และสถานะแยกคลัง: MAINหมด/ใกล้หมดตามจำนวน, MARKETINGวันเหลือก่อนหมดอายุรายล็อต ไม่มีใกล้หมด, DISPOSALไม่มีสถานะ. ปรับSpecs/Plan/Task183ตามนี้เท่านั้น ยังไม่code/DB. กฎเวลาย้าย/วิธียืนยัน/สินค้าหลายล็อตในแถวเดียวและกรณีหมดอายุยังOPEN ไม่เดา.
+
+- PLANNING / WAITING_FOR_RULES: เจ้าของยืนยันรับเข้าเลือกคลังได้ค่าเริ่มต้นMAIN เก็บยอดแยกล็อต/คลัง ล็อตเก่าย้ายไปMARKETINGต้องลดMAIN/เพิ่มMARKETINGจำนวนเดียวกัน และใกล้หมดนับเฉพาะMAIN. ขอบเขตเอกสารACTIVE/Specs/Plan/Task183เท่านั้น; ยังไม่แก้code/API/DB. ลำดับเทียบกฎเดิม→บันทึกยืนยัน/ตัวอย่าง20+50→ถามเวลานับจากรับเข้าหรือหมดอายุและmanual/auto→แผนหน้ารายงาน/เพิ่มสต็อกเมื่อกฎพร้อม. คงTASK179รอขอบเขตลบตาราง.
+
+## TASK-182 ตั้งค่าระบบหน้าเปล่าและเข้าข้อมูลพื้นฐานจากSideรอง — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: /settingsคืนnullแล้ว Shellแสดงroutechildren ไม่มีหัวข้อ/การ์ดภาพ1 และถอนSettingsHome/หน้าlegacyเดิม. Sideรองคงลิงก์ข้อมูลพื้นฐานสินค้าพร้อมฟอร์ม/ตารางภาพ2. Prettier/ESLint/TypeScript/diff/importsผ่าน ไม่API/DB/commit/deploy รอเจ้าของตรวจคลิกหน้า.
+
+- IN_PROGRESS: เจ้าของให้ลบหัวข้อ/การ์ดภาพ1 เปิดตั้งค่าระบบหน้าเปล่า และใช้หน้าข้อมูลพื้นฐานสินค้าภาพ2ผ่านSideรอง. ขอบเขตsettings/page.tsxคืนnull, admin-shellใช้routechildrenแทนSettingsHome, ถอนcomponents/settings/settings-home.tsx, ACTIVE/Specs/Plan/Task182. คงSideรอง/link/product-optionsmanagerรูป2และguardเดิม. ลำดับเอกสาร→ถอนการ์ด/หน้าเก่า→Shellchildren→lint/type/diff. ไม่API/DBเปลี่ยน.
+
+## TASK-181 ย้าย ProductStockList เข้า pageสินค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ตาราง/state/APIloading/tab/pagingอยู่products/page.tsxและstock/[warehouse]/page.tsxแล้ว ถอนcomponentเดิม/ไม่มีimportข้ามpage. Layoutคลังใหม่คงserver404เฉพาะmain/marketing/disposal. ใช้Pagination/StatusBadge/Loading/RequestState/moneyกลางเดิม. ESLint/production build/TypeScript/diffผ่าน หลังbuildอัปเดตNextroute typesที่ค้างก่อนเพิ่มlayout. ไม่API/DB/commit/deploy รอbrowserรายการและสามคลัง.
+
+- IN_PROGRESS: เจ้าของให้ย้ายProductStockListเข้าproducts/page. ขอบเขตproducts/page.tsx, products/stock/[warehouse]/page.tsxกับlayout.tsxใหม่, components/operations/product-stock-list.tsxที่ถอน, ACTIVE/Specs/Plan/Task181. ลำดับเอกสาร→ย้ายตาราง/loader/stateเข้าpageทั้งรายการและคลังที่เคยใช้ร่วม→คงguardwarehouseในserverlayout→ถอนimport/componentเก่า→format/lint/type/build. คงส่วนกลางPagination/StatusBadge/Loading/RequestState/money. ไม่มีAPI/DBเปลี่ยน.
+
+## TASK-180 ถอนต้นทุนและภาษีจากข้อมูลหลักสินค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนต้นทุน/ภาษีจากcreate/detail/contractแล้ว ไม่มี7%อัตโนมัติหรือvalidationบังคับสองช่อง. ราคาขายคงเดิม. Integration11กลุ่มผ่านพร้อมยืนยันสร้าง/อ่านกลับไม่มีสองค่าและlegacyต้นทุนยังกันสิทธิ์; rollbackและลบไฟล์ทดสอบหมด countsคง. ESLint/TypeScript/diffผ่าน ไม่migration/ลบข้อมูล/เพิ่มฟอร์มรับเข้าเอกสาร/commit/deploy. งานลบตารางTASK179ยังรอขอบเขต ไม่ถือว่าคำขอนี้อนุมัติรายการลบ.
+
+- IN_PROGRESS: เจ้าของให้ราคาต้นทุนกำหนดตอนรับของเข้า ภาษีตอนทำเอกสาร. ถอนสองช่องจากcreate/pageและdetail/pageที่จัดแบบฟอร์มเดียวกัน รวมcontractPRODUCT_TEXT_FIELDS/validationไม่บังคับภาษี. ขอบเขตACTIVE/Specs/Plan/Task180, pagesสองไฟล์, types/api/product-full.ts, server/validation/product-full.ts, test-product-full.mjs, docs/api/product-full.mdและตัวอย่าง. คงข้อมูลเก่าที่บันทึกในDB/ต้นทุนล็อต/ตารางHeader-only ไม่เพิ่มฟอร์มรับเข้าหรือภาษีเอกสารในรอบนี้. ลำดับเอกสาร→ถอนUI/contract→ทดสอบสร้างไม่มีต้นทุนภาษี/ไฟล์→lint/type/diff.
+
+## TASK-179 ตรวจตาราง Supabase ที่ยังไม่ใช้ — 2026-10-06
+
+- DISCOVERY / WAITING_FOR_SCOPE: เจ้าของขอลบตารางที่ยังไม่ใช้เพื่อเห็นชุดที่ต้องพัฒนาต่อ. ตรวจpublic40ตาราง/counts/FKกับโค้ดจริงแล้ว พบหลายหน้าซ่อนแต่APIยังอ้าง จึงถามนิยามไม่ใช้: ไม่มีโค้ดเรียกเลย หรือพักโมดูลที่หน้ายังไม่เปิดและปรับAPIก่อนลบ. รอบนี้ขอบเขตเอกสารACTIVE/Specs/Plan/Task179และinventoryเท่านั้น ไม่มีDDL/ลบข้อมูล. ลำดับinventory→แยกใช้จริง/โมดูลพัก/legacy→รับขอบเขต→backup/แผนถอดdependencyก่อนลบแบบระบุชื่อตาราง ไม่CASCADEข้ามขอบเขต. คงauth/storageระบบSupabase.
+
+## TASK-178 รวมโค้ดเฉพาะหน้าสินค้าใน route — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: โค้ดcreateพร้อมpicker/แนบไฟล์อยู่create/page.tsx และรายละเอียดอยู่[id]/page.tsxแล้ว ไม่มีimportcomponents/productsหรือexportส่วนย่อยข้ามpage. ถอนcomponentเฉพาะหน้าหกไฟล์รวมlegacyที่ไม่เรียก; AdminShellแสดงroutechildren. คงcomponentที่ใช้ร่วมหลายroute/SuccessAlert/RouteDataProviderและserverlayoutเดิม. Prettier/ESLint/TypeScript/production build/diffผ่าน ไม่เปลี่ยนAPI/DBหรือรันintegrationเขียนข้อมูลซ้ำ. รอเจ้าของตรวจหน้า/บันทึกผ่านbrowser.
+
+- IN_PROGRESS: เจ้าของให้โค้ดหน้าสินค้าอยู่page/layout คงcomponentส่วนกลางที่ใช้ซ้ำ. ย้ายcreate/detail/ช่องเลือก/แนบไฟล์จากcomponents/productsเข้าcreate/page.tsxและ[id]/page.tsx ลบcomponentเก่าที่ไม่มีผู้ใช้ รวมlegacyที่ไม่ได้เรียก แก้AdminShellให้renderchildrenของcreate ไม่แทรกฟอร์มเอง. คงProductStockListที่ใช้ร่วมรายการและคลังหลายroute รวมSuccessAlert/RouteDataProvider/sidebarส่วนกลาง. ขอบเขตACTIVE/Specs/Plan/Task178, pagesสองไฟล์, components/productsหกไฟล์, admin-shell. ลำดับเอกสาร→ย้ายโค้ด/imports→ลบไฟล์ไม่ใช้→format/lint/type/build. ไม่แก้API/DB/กฎบันทึก/หน้าตา.
+
+## TASK-177 เชื่อมสร้างสินค้าครบข้อมูลและไฟล์ — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: สร้างสินค้าครบฟอร์มพร้อมรูป/เอกสาร private ไม่เกิน10MBต่อไฟล์แล้ว เลขถัดไปจริง5หลักแก้ได้/ห้ามซ้ำ ตรวจ manifest ครบก่อน commit และ retry ไม่สร้างซ้ำ. Integration11กลุ่มผ่าน รวมอ่านกลับทุกช่อง/ไฟล์จริง UUIDตัวพิมพ์ใหญ่/เล็ก สิทธิ์/ต้นทุน/cleanup/เลขซ้ำ; rollbackและลบfixtureแล้ว สินค้า12รายการ/stock950คงเดิม. Prisma generate, ESLint, TypeScript, production build และ SSRฟอร์มผ่าน; HTTPanonymous401ตรวจจริง. Migration/bucketใช้จริงพร้อมbackupignored. ชุดตัวอย่างและAPIอยู่docs/examples/TASK-177-product-example.mdกับdocs/api/product-full.md. ยังไม่ตรวจกรอกผ่านbrowser; แก้รายละเอียดครบข้อมูลยังlocalตามTASK165. ไม่seedข้อมูลธุรกิจ/commit/deploy.
+
+- ขอบเขตยืนยันไฟล์ครบ: requestpayloadเก็บmanifestUUID/kind/name/size/type/hashก่อนupload commitตรวจครบ ป้องกันpartialuploadsuccess. เพิ่มtestmissing/undeclared/tamperedmanifest ใช้JSONBเดิม.
+
+- ขอบเขตเอกสารปิดงาน: docs/api/product-full.md สำหรับสัญญาAPI/lifecycle/ข้อจำกัดและdocs/examplesตัวอย่าง พร้อมปรับTask152และSpecs/Planให้สร้างจริงพร้อมแล้วแต่conditionalยา/แก้ไขครบข้อมูลยังไม่เปิด. จัดformatเฉพาะTS/MJSที่แก้ในTASK177เพื่ออ่านง่าย แล้วตรวจlint/type.
+
+- ขอบเขตcompatibility: public-service.tsและrecords/reports.tsรองรับnullabledrug/dosageจากสินค้าที่ไม่ใช่ยา โดยไม่เปิดต้นทุนหรือเปลี่ยนรายงานธุรกิจ. เพิ่มmodelsrequest/files/relationsในPrismaให้ตรงmigration; เพิ่มAPIstatusretryไม่กดซ้ำ. Dry-run/applymigrationคงสินค้า12/stock950 มีbackupignored.
+
+- IN_PROGRESS: เจ้าของขอข้อมูลตัวอย่าง/เชื่อมบันทึกทุกช่องและยืนยันรวมรูปเอกสาร10MBต่อไฟล์หลายไฟล์. ขอบเขตใหม่schema/migration, server/products full-service/validation/types, APIproducts full-create/full-next/files/detailอ่านprofile, Supabaseprivatebucket/serverstorage, create/pickers/attachment/detail UI, scriptssetup/testและชุดตัวอย่าง, ACTIVE/Specs/Plan/Task177. ลำดับcontract/แผน → additive migration/backup → validate/next/create/files → UI → integrationrollback/filescleanup/readback/lint/type. ไม่เปลี่ยนstock/สร้างยอด ไม่เดากฎบังคับยาเพิ่มเติม.
+
+## TASK-176 เลขลำดับเริ่มต้นและรหัสเต็มตามตัวเลือก — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: sequenceเริ่ม00001แก้ได้และfullcodeตามselectedcode/paddedsequenceแล้ว pickercallbackส่งnullเมื่อรายการปิด/ตรวจไม่ได้. ESLint/diffและhandlerstate initial/เลือก/แก้/pad/0/changeformat/invalidผ่าน. ยังไม่nextDB/uniqueจริง ไม่API/DB/commit/deploy รอbrowser.
+
+- IN_PROGRESS: รหัสสินค้าในหน้าเพิ่มสินค้าเลขเริ่ม00001แก้ได้ รหัสเต็มตามcodeGroup/codeFormat/sequence. ขอบเขตproduct-create-preview.tsx, product-option-combobox.tsx optionalonChange และACTIVE/Specs/Plan/Task176. ลำดับบันทึก → callbackเลือก/validateรายการ → parentรหัสประกอบ → lint/state/render/diff. ยังpreviewไม่nextDB/uniqueจริงตามTASK152.
+
+## TASK-175 ดาวบังคับที่หัวข้อเพิ่ม — 2026-10-06
+
+- COMPLETED: ดาวแดงท้ายหัวข้อเพิ่มแล้ว ถอนดาวและpaddingในช่องรหัสชื่อ คงrequired/validation. ESLint/diffผ่าน ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: ถอนดาวในช่องรหัสชื่อ ย้ายดาวแดงหัวข้อเพิ่มkind คงaria-required/validation. ขอบเขตmanager.tsxและACTIVE/Specs/Plan/Task175. ลำดับบันทึก → ย้ายspan/removeinputpadding → lint/diff.
+
+## TASK-174 กรอบร่วมรายการและส่วนเพิ่ม — 2026-10-06
+
+- COMPLETED: topgridborder roundedครอบselector/form/รหัสชื่อ/ปุ่มแล้ว search/tableแยกด้านล่าง. ESLint/diffผ่าน ยังไม่ตรวจภาพbrowser ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: กรอบเดียวครอบselectorรายการ/หัวข้อเพิ่ม/รหัสชื่อ/ปุ่ม ไม่ครอบค้นหาและtable. ขอบเขตmanager.tsxและACTIVE/Specs/Plan/Task174. ลำดับบันทึก → ส่งselectorเข้าตำแหน่งกรอบร่วมpanel → grid1:1ภายใน/tableแยก → lint/render/diff. คงCRUD.
+
+## TASK-173 ถอนกรอบนอกส่วนรายการ — 2026-10-06
+
+- COMPLETED: ถอนwrapperborder/rounded/paddingรายการแล้ว คงinputborder/h11. ESLint/diffผ่าน ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: ถอนborder/rounded/paddingกรอบครอบComboboxรายการ คงinputborder/heightเดิม. ขอบเขตmanager.tsxและACTIVE/Specs/Plan/Task173. ลำดับบันทึก → wrapperclass → lint/diff.
+
+## TASK-172 บันทึกชิดขวาสุด — 2026-10-06
+
+- COMPLETED: justify-end/order-lastบันทึกขวาสุดแล้ว คงsubmitเดิม. ESLint/diffผ่าน ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: จัดปุ่มบันทึกชิดขวาสุดส่วนเพิ่มข้อมูล คงยกเลิกก่อนบันทึกเวลาแก้. ขอบเขตmanager.tsxและACTIVE/Specs/Plan/Task172. ลำดับบันทึก → justify-end/order → lint/diff. ไม่เปลี่ยนsubmit.
+
+## TASK-171 Placeholder รหัสชื่อ/ถอนกรอบช่องเพิ่ม — 2026-10-06
+
+- COMPLETED: รหัส/ชื่อเป็นplaceholder/aria-labelแล้ว คงดาวแดงด้านขวาภายในช่องและrequired ถอดกรอบครอบinputs/padding คงinputborder. ESLint/diffผ่าน ยังไม่ตรวจภาพbrowser ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: รหัส/ชื่อย้ายplaceholderและaria-label ถอนlabelที่มองเห็น/กรอบครอบinputs คงinputborder/ขนาด/requiredเดิม. ขอบเขตmanager.tsxและACTIVE/Specs/Plan/Task171. ลำดับบันทึก → labels/placeholder/innerborder → lint/diff.
+
+## TASK-170 ปุ่มนอกกรอบและถอนกรอบใหญ่ — 2026-10-06
+
+- COMPLETED: buttonsนอกinnerinputsbox คงformsubmitและถอนborderกรอบใหญ่แล้ว คง2กล่อง/table. ESLint/diffผ่าน ยังไม่ตรวจภาพbrowser ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: ย้ายบันทึก/ยกเลิกออกนอกกรอบinputs และถอนborderกรอบใหญ่ครอบข้อมูลพื้นฐานสินค้า คงกรอบ2ส่วน/table. ขอบเขตmanager.tsxและACTIVE/Specs/Plan/Task170. ลำดับบันทึก → formนอกกรอบ/inputsinnerboxและbuttonsด้านล่าง → ถอนouterborder → lint/diff. คงsubmit/CRUDเดิม.
+
+## TASK-169 หัวข้อและกล่องขนาดเท่ากัน — 2026-10-06
+
+- COMPLETED: หัวข้อเพิ่มอยู่นอกกรอบ grid1:1/stretchกรอบเท่ากัน combo scopedh11 คงcode/namebasisเดิมแล้ว. ESLint/diffผ่าน ยังไม่ตรวจภาพbrowser ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: หัวข้อเพิ่มอยู่นอกกรอบแบบรายการ สองส่วนกว้าง/สูงเท่ากันบนจอกว้าง inputsสูง44px คงbasisรหัส/ชื่อเดิม. ขอบเขต manager.tsxและACTIVE/Specs/Plan/Task169. ลำดับบันทึก → equalgrid/stretch/headeroutside → scopedcomboheight → lint/diff. คงCRUD.
+
+## TASK-168 ฟอร์มเพิ่มขวารายการ — 2026-10-06
+
+- COMPLETED: gridจอกว้างรายการซ้าย/ฟอร์มเพิ่มขวา ค้นหา/ตารางเต็มแถวล่าง มือถือเรียงลงแล้ว. ESLint/diffผ่าน ยังไม่ตรวจภาพbrowser ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: ย้ายฟอร์มเพิ่มกลุ่มรหัส/หัวข้อที่เลือกขวาComboboxรายการ จอกว้าง2คอลัมน์ มือถือเรียงลง ตารางเต็มแถวล่าง. ขอบเขตproduct-options-manager.tsx และACTIVE/Specs/Plan/Task168. ลำดับบันทึก → grid/contents/span → lint/diff. คงAPI/CRUDเดิม.
+
+## TASK-167 Combobox รายการ→ฟอร์ม→ตาราง — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: หน้าแสดงComboboxรายการ10kind→ฟอร์มเพิ่ม→ค้นหา/ตารางpanelเดียวแล้ว ใช้APICRUDเดิม. ESLint/diff/SSR1combo1form1tableลำดับ/รหัสเฉพาะcodeGroupเทียบbrandผ่าน. รอbrowser/CRUDจริง ไม่DBmutation/commit/deploy.
+
+- IN_PROGRESS: เปิดเนื้อหาข้อมูลพื้นฐานสินค้าใหม่เป็นComboboxเลือก10kind ตามด้วยฟอร์มเพิ่มและตารางเฉพาะkind. ขอบเขต product-options-manager.tsx, settings/product-options/page.tsx และACTIVE/Specs/Plan/Task167. ลำดับบันทึก → reuseSearchComboboxชนิดstatic → panelเฉพาะkind/ย้ายค้นหาติดตาราง → routeเปิดmanager → lint/render/diff. APICRUDเดิมไม่เปลี่ยน.
+
+## TASK-166 ล้างเนื้อหาหน้าข้อมูลพื้นฐานสินค้า — 2026-10-06
+
+- COMPLETED: pageคืนnullแล้ว ไม่มีmanager/เนื้อหาภายใน คงShell/Sideรองเดิม. ESLint/diffผ่าน ไม่ลบDB/APIหรือcomponent ไม่commit/deploy.
+
+- IN_PROGRESS: เจ้าของให้ถอนเนื้อหาทั้งหมดหน้าข้อมูลพื้นฐานสินค้า คงSideรองและShell. ขอบเขต settings/product-options/page.tsx และ ACTIVE/Specs/Plan/Task166. ลำดับบันทึก → pageคืนnullไม่mountmanager → lint/diff. คงAPI/DB/componentเดิมพักไว้ ไม่ลบรายการข้อมูลจริง.
+
+## TASK-165 โหมดแก้ไขรายละเอียดสินค้าและ Alert — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: Adminแก้ไขท้ายหน้า→inputs/ยกเลิกบันทึก; cleanCancelทันที dirtyCancelAlert→คืนsnapshot; saveLocalAlert→โหมดดูแล้ว. ESLint/diffและstateflow clean/dirty/save/คืนsnapshotล่าสุด/Adminผ่าน. TypeScriptติด3Prismaเดิม ไม่มีerrorใหม่. ไม่API/DB/ไฟล์แนบใหม่/commit/deploy รอbrowser.
+
+- IN_PROGRESS: ปุ่มแก้ไขล่างสุดAdmin สลับยกเลิก/บันทึก ช่องข้อมูลแก้localได้; ยกเลิกไม่dirtyกลับทันที dirtyAlertก่อนคืนค่า บันทึกlocalพร้อมAlertระบุยังไม่DB. ขอบเขต product-detail-preview.tsx และ ACTIVE/Specs/Plan/Task165. ลำดับบันทึก → draft/snapshot/buttons/Alert → lint/stateflow/render/diff. คงTASK152พัก API/ไฟล์แนบจริงไม่เชื่อม.
+
+## TASK-164 Accordion รายละเอียดสินค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: 3กล่องdetails/summaryพร้อมลูกศรpath/ขนาด/สี/หมุนแบบเพิ่มสินค้าและopen stateแล้ว. ข้อมูลทั่วไปเปิดเริ่มต้น คงข้อมูลreadonly. ESLint/diffผ่าน รอตรวจคลิกbrowser ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: products/[id]เปลี่ยน3กล่องเป็นAccordion ใช้ลูกศร/styleเดียวเพิ่มสินค้า. ขอบเขต product-detail-preview.tsx และ ACTIVE/Specs/Plan/Task164. ลำดับบันทึก → details/summary/open state → lint/diff. เปิดข้อมูลทั่วไปเริ่มต้นแบบเพิ่มสินค้า คงข้อมูลreadonlyเดิม.
+
+## TASK-163 ถอนแท็บลบแล้วและปุ่มเพิ่มข้างแท็บ — 2026-10-06
+
+- COMPLETED: ถอนแท็บลบแล้ว/ปุ่มเพิ่มขวาแท็บแล้ว คง3แท็บ/Sideรอง. Requestdeleted=falseเสมอและstockfilterเดิม. ESLint/diffผ่าน ไม่API/DB/commit/deploy.
+
+- IN_PROGRESS: ถอนแท็บลบแล้วและปุ่มเพิ่มสินค้าขวาแถวแท็บใน product-stock-list.tsx. ขอบเขตไฟล์นี้และ ACTIVE/Specs/Plan/Task163. ลำดับบันทึก → ถอนUI/import/statebranchที่ไม่ใช้ → lint/diff. คงเมนูเพิ่มสินค้าและAPIdeletedเดิม.
+
+## TASK-162 แท็บหมดและใกล้หมดตามจำนวนคงเหลือ — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: SQLกรองquantity0/1–50ทั้งdata/count และป้ายUIquantityตรงแล้ว. ESLint/diff/SSRfixture0/1/50/51โดยmainAvailableสวนทาง+SQLcontractผ่าน. ไม่ทดสอบDBจริงหรือเปลี่ยนยอด รอbrowser ไม่commit/deploy.
+
+- IN_PROGRESS: เกณฑ์ใหม่สินค้าหมดquantity=0 ใกล้หมดquantity1–50รวมขอบ พร้อมStatusBadgeตรงเกณฑ์. ขอบเขต product-stock-list.tsx และoperations/service.ts, ACTIVE/Specs/Plan/Task162. ลำดับบันทึก → SQLfilterquantityใช้ร่วมdata/count → UIstatusquantity → lint/boundary/diff. ไม่เปลี่ยนยอด/จอง/FEFO/DBdata.
+
+## TASK-161 รายละเอียดสินค้าครบตามฟอร์ม — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: หน้าdetailครบ3กล่องทุกช่อง/รหัสแยก/ชื่อสองภาษา/ไฟล์แล้ว อ่านค่าที่มีจากRouteData ใหม่—. Legacyแยกไฟล์ไม่mount. ESLint/diff/renderreadonlyทุกกล่อง/ค่าจริงfixtureผ่าน. TypeScriptติด3errorPrismaเดิม ไม่มีerrorใหม่. รอbrowser ไม่API/DB/commit/deploy.
+
+- ขอบเขตเพิ่ม: ย้ายโค้ดLegacyไปproduct-detail-legacy.tsx ไม่exportชื่อพิเศษจากNextpage เพื่อคงกติกาrouteของNext. pageใหม่มีdefaultอย่างเดียว.
+
+- IN_PROGRESS: เปิดproducts/[id]ดูรายละเอียดครบหัวข้อแบบเพิ่มสินค้า โดยอ่านRouteDataเดิม/ช่องใหม่— ไม่มีCRUDใหม่. ขอบเขต product-create-preview.tsxแชร์sections, product-detail-preview.tsxใหม่, products/[id]/page.tsxคงlegacyfunction และ admin-shell.tsxเปิดchildrenเฉพาะrouteรายละเอียด. เอกสารACTIVE/Specs/Plan/Task161. ลำดับบันทึก → รายละเอียดreadonly → route/shell → lint/render/diff. ไม่API/DB/เปิดmutationsเดิม.
+
+## TASK-160 คอลัมน์ราคาต้นทุนก่อนราคาขาย — 2026-10-06
+
+- COMPLETED / HEADER_ONLY: เจ้าของตอบว่ายังไม่ต่อข้อมูล ทำHeaderก่อนเท่านั้น. หัวราคาต้นทุนก่อนราคาขายพร้อมแล้ว เซลล์—รองรับแนวคอลัมน์. ยกเลิกสถานะรอแหล่งต้นทุนในรอบนี้ ไม่ทำAPI/DBต่อจนมีคำสั่งใหม่.
+
+- UI_IMPLEMENTED / WAITING_FOR_COST_SOURCE: คอลัมน์ราคาต้นทุนทางซ้ายราคาขายพร้อมเซลล์—และmin-width880แล้ว. ESLint/diffผ่าน. รอคำตอบแหล่งต้นทุนก่อนเชื่อมค่าจริง; ไม่แก้API/DB/commit/deploy.
+
+- IN_PROGRESS: เพิ่มหัวตาราง/เซลล์ราคาต้นทุนก่อนราคาขายใน product-stock-list.tsx. ขอบเขตไฟล์นี้และ ACTIVE/Specs/Plan/Task160. ลำดับบันทึก → columnแสดง—เมื่อยังไม่มีข้อมูล → lint/diff. APIยังไม่มีต้นทุนระดับสินค้า รอเจ้าของเลือกแหล่ง ไม่เดาต้นทุนล็อต/สูตร ไม่แก้API/DB.
+
+## TASK-159 แสดงข้อมูลพื้นฐานสินค้าทันที — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ทุก10หัวข้อเป็นกล่องเต็มแสดงฟอร์ม/ตารางทันทีแล้ว ไม่ต้องเปิดAccordion; kindลิงก์เลื่อนกล่องเป้าหมาย. ESLint/diff/SSR10formsและไม่มีdetailsผ่าน. ยังไม่ตรวจbrowser/CRUDจริง ไม่commit/deploy.
+
+- IN_PROGRESS: เปิดข้อมูลพื้นฐานสินค้าแล้วแสดงเนื้อหาทั้ง10รายการทันที ไม่ต้องเปิดกล่องย่อย. ขอบเขต product-options-manager.tsx และ ACTIVE/Specs/Plan/Task159. ลำดับบันทึก → เปลี่ยนกล่องย่อยเป็นsectionเต็ม/เลิกlazy mount → lint/diff. คงAPI/CRUDเดิม.
+
+## TASK-158 กล่องเต็มข้อมูลพื้นฐานสินค้า — 2026-10-06
+
+- COMPLETED: หัวข้อหลักเป็นdiv border rounded แสดงเนื้อหาเต็ม ถอนouterAccordion/state/ลูกศรแล้ว คงกล่องย่อย. ESLint/diffผ่าน ไม่commit/deploy.
+
+- IN_PROGRESS: เจ้าของไม่เอาAccordionหัวข้อหลัก ขอboxเต็ม border rounded. ขอบเขต product-options-manager.tsx และ ACTIVE/Specs/Plan/Task158. ลำดับบันทึก → ถอนouter details/summary/state/ลูกศร ใช้divกรอบ → lint/diff. คงกล่องย่อยและCRUDเดิม.
+
+## TASK-157 Accordion หัวข้อข้อมูลพื้นฐานสินค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: หัวข้อหลักเป็นAccordionเปิดเริ่มต้น/พับ10กล่องย่อยได้แล้ว คงเนื้อหาmounted. ESLint/diff/render11details-summaryและouterเปิดผ่าน. ยังไม่คลิกจริงในbrowser ไม่มีAPI/DB/commit/deploy.
+
+- IN_PROGRESS: เปลี่ยนหัวข้อข้อมูลพื้นฐานสินค้าเป็นAccordionครอบ10กล่องเดิม. ขอบเขต product-options-manager.tsx และ ACTIVE/Specs/Plan/Task157. ลำดับบันทึก → details/summaryระดับหัวข้อ → lint/render/diff. เปิดเริ่มต้นเพื่อคงการเข้าหัวข้อจากลิงก์ และพับได้ไม่ล้างstate.
+
+## TASK-156 ข้อมูลทั่วไปเปิดเริ่มต้นและรวมราคา — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ข้อมูลทั่วไปเปิดเริ่มต้น กล่องอื่นพับ; ราคา3ช่องย้ายต่อบริษัทผู้ผลิตก่อนรายละเอียดสินค้า ถอนหมวดราคาแล้ว. ESLint/diff และrender3กล่อง/open state/lำดับ/ภาษี7ผ่าน. ยังไม่คลิกจริงในbrowser ไม่มีAPI/DB/commit/deploy.
+
+- IN_PROGRESS: เปิดกล่องข้อมูลทั่วไปเริ่มต้นและย้ายราคาต้นทุน/ราคาขาย/ภาษีต่อจากบริษัทผู้ผลิต ก่อนรายละเอียดสินค้า ถอนกล่องราคาและการจำหน่าย. ขอบเขต product-create-preview.tsx, ACTIVE/Specs/Plan/Task156. ลำดับบันทึก → ย้าย fields/สถานะเปิดปิด → lint/render/diff. คงชนิด input/default/ดาว/previewเดิม.
+
+## TASK-155 กล่องเปิดปิดข้อมูลพื้นฐานสินค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: กล่อง10ชนิดเปิดปิดแยกได้ lazy mount/คง state และ initialKind เปิดหัวข้อจากลิงก์. Render10กล่อง/1panelเริ่มต้น/ไม่มีselectorเดิมและ diff ผ่าน; ESLint รอบแรกผ่าน. TypeScriptพบ3error Prisma generatedเดิมใน users route/prisma.ts ไม่มีerrorไฟล์ที่แก้. ยังไม่คลิกจริงหรือรันCRUDกับDBในงานนี้ ไม่commit/deploy.
+
+- IN_PROGRESS: แยกรายการกลาง10ชนิดเป็น details/summary แบบเพิ่มสินค้า. ขอบเขต product-options-manager.tsx และ ACTIVE/Specs/Plan/Task155. ลำดับบันทึก → กล่อง10รายการ/ฟอร์มและตารางแยก → lazy mount เมื่อเปิดและเก็บ state เมื่อพับ → lint/type/diff. คง API/กฎCRUD/สถานะกลาง.
+
+## TASK-154 ชื่อ Topbar ตั้งค่าระบบ — 2026-10-06
+
+- COMPLETED: Topbar ของ /settings และหน้าย่อยใช้ชื่อ “ตั้งค่าระบบ” แล้ว คงชื่อเมนูรองเดิม. ESLint/diff ผ่าน. ไม่มี API/DB/commit/deploy.
+
+- IN_PROGRESS: เจ้าของให้ Topbar หน้าตั้งค่าระบบแสดงตั้งค่าระบบ. ขอบเขต admin-shell.tsx และ ACTIVE/Specs/Plan/Task154. ลำดับบันทึก → ใช้ชื่อหมวดตั้งค่าระบบทั้งหน้าหลัก/หน้าย่อย → ESLint/diff. ไม่เปลี่ยนชื่อ Side รองหรือพฤติกรรม.
+
 ## TASK-153 Checkpoint งานสินค้าและรายการกลาง — 2026-10-05
 
 - CHECKPOINT_READY: บันทึก checkpointรอบ2/HANDOFF/Specs/Plan/แผนย่อยครบ. TypeScriptและESLintทุกไฟล์โค้ดที่เปลี่ยน/ใหม่ผ่าน; diff whitespaceผ่าน. เก็บ local commit บน AI และยืนยัน hash/status ด้วย Git หลัง commit. ไม่มี DB mutation/push/deploy. TASK152ยังรอคำตอบตามเดิม.

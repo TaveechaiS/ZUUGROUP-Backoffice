@@ -9,6 +9,7 @@ export type Option = {
   territoryName?: string;
 };
 export type OperationOptions = {
+  nextReceiptCode?: string;
   products: Option[];
   customers: Option[];
   warehouses: Option[];
@@ -16,6 +17,10 @@ export type OperationOptions = {
   actor: { id: string; roleId: string; name: string };
   policy: { saleMonths: number; donationMonths: number; warningDays: number };
 };
+export type ReceiveOptions = Pick<
+  OperationOptions,
+  'nextReceiptCode' | 'products' | 'warehouses' | 'actor'
+>;
 export type StockRow = {
   id: string;
   lotId: string;
@@ -39,6 +44,7 @@ export type StockRow = {
   createdAt: string;
   condition: string;
   status: string;
+  disposalDestroyed?: boolean;
   totalCost?: string;
   unitCost?: string;
 };
@@ -57,6 +63,16 @@ export type StockProductRow = {
   reserved: number;
   available: number;
   mainAvailable: number;
+  mainQuantity: number;
+  lotCount: number;
+  marketingDays?: number | null;
+  marketingLots?: {
+    id: string;
+    receiptCode: string;
+    quantity: number;
+    expiresOn: string;
+    daysUntilExpiry: number;
+  }[];
 };
 export type ReceiptRow = {
   id: string;
@@ -120,6 +136,7 @@ export type OrderRow = {
   grossProfit?: string;
 };
 export type PageData<T> = {
+  capabilities?: { canCorrectReceipt: boolean };
   data: T[];
   pagination: { offset: number; limit: number; total: number; hasMore: boolean };
 };

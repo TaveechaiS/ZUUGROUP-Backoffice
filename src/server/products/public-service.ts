@@ -21,7 +21,15 @@ const productSelect = {
 
 type PublicProduct = Prisma.ProductGetPayload<{ select: typeof productSelect }>;
 function productData(row: PublicProduct): PublicProductView {
-  return row;
+  return row
+    ? {
+        ...row,
+        dosageFormId: row.dosageFormId ?? '',
+        drugId: row.drugId ?? '',
+        dosageForm: row.dosageForm ?? { name: '' },
+        drug: row.drug ?? { name: '' },
+      }
+    : row;
 }
 
 export async function publicProducts(params: URLSearchParams): Promise<PublicProductsResponse> {

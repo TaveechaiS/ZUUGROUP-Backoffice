@@ -75,6 +75,7 @@ const statusTones: Record<string, StatusTone> = {
   ไม่มี: 'neutral',
   ไม่มีข้อมูล: 'neutral',
   สิ้นสุดแล้ว: 'neutral',
+  ทำลายแล้ว: 'neutral',
   ยังไม่ระบุ: 'neutral',
   ยังไม่มีบทบาท: 'neutral',
 };
@@ -87,6 +88,8 @@ function toneFor(value: string): StatusTone {
       ? statusTones[label.toUpperCase()]
       : undefined;
   if (mapped) return mapped;
+  if (/^เหลือ \d+ วัน$/.test(label)) return 'info';
+  if (label === 'หมดอายุวันนี้' || /^หมดอายุแล้ว \d+ วัน$/.test(label)) return 'danger';
   if (label.startsWith('รอ') || label.startsWith('ครบกำหนด')) return 'warning';
   if (label.startsWith('กำลัง')) return 'info';
   return 'neutral';

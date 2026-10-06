@@ -1,4 +1,5 @@
 import 'server-only';
+import { tableSort } from '@/server/validation/table-sort';
 
 import { getPrismaClient, readWithConnectionRetry } from '@/server/db/prisma';
 import type { Prisma } from '@/generated/prisma/client';
@@ -63,6 +64,7 @@ export function userListWhere(params: URLSearchParams): Prisma.UserWhereInput {
 export async function paginatedUsers(params: URLSearchParams): Promise<UsersListResponse> {
   const { offset, limit } = paginationQuery(params);
   const where = userListWhere(params);
+  const orderBy = userSortOrder(params);
   return readWithConnectionRetry(async (db) => {
     const [total, rows] = await db.$transaction(
       [
@@ -70,7 +72,7 @@ export async function paginatedUsers(params: URLSearchParams): Promise<UsersList
         db.user.findMany({
           where,
           include: userInclude,
-          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          orderBy,
           skip: offset,
           take: limit,
         }),
@@ -82,14 +84,35 @@ export async function paginatedUsers(params: URLSearchParams): Promise<UsersList
 }
 export async function exportUsers(params: URLSearchParams) {
   const where = userListWhere(params);
+  const orderBy = userSortOrder(params);
   const rows = await readWithConnectionRetry((db) =>
     db.user.findMany({
       where,
       include: userInclude,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      orderBy,
     }),
   );
   return rows.map(toUserRow);
+}
+function userSortOrder(params: URLSearchParams): Prisma.UserOrderByWithRelationInput[] {
+  const sort = tableSort(params, [
+    'name',
+    'employeeCode',
+    'email',
+    'team',
+    'status',
+    'lastLoginAt',
+    'deletedAt',
+    'role',
+  ]);
+  if (!sort.key) return [{ createdAt: 'desc' }, { id: 'desc' }];
+  const primary: Prisma.UserOrderByWithRelationInput =
+    sort.key === 'role'
+      ? { userRole: { role: { name: sort.direction } } }
+      : ['lastLoginAt', 'deletedAt', 'team'].includes(sort.key)
+        ? { [sort.key]: { sort: sort.direction, nulls: 'last' } }
+        : { [sort.key]: sort.direction };
+  return [primary, { id: 'asc' }];
 }
 
 export async function getUserByEmployeeCode(employeeCode: string) {

@@ -7,6 +7,7 @@ import { getPrismaClient } from '@/server/db/prisma';
 import { paginatedUsers } from '@/server/users/service';
 import { userCreateInput } from '@/server/validation/users';
 import { PaginationError } from '@/server/pagination';
+import { RecordError } from '@/server/validation/records';
 
 export async function GET(request: NextRequest) {
   const { error } = await authorizeUserManagement(request);
@@ -38,13 +39,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          caught instanceof PaginationError || caught instanceof ResourceQueryError
+          caught instanceof PaginationError ||
+          caught instanceof ResourceQueryError ||
+          caught instanceof RecordError
             ? caught.message
             : 'โหลดผู้ใช้งานไม่สำเร็จ',
       },
       {
         status:
-          caught instanceof PaginationError || caught instanceof ResourceQueryError ? 400 : 503,
+          caught instanceof PaginationError ||
+          caught instanceof ResourceQueryError ||
+          caught instanceof RecordError
+            ? 400
+            : 503,
       },
     );
   }

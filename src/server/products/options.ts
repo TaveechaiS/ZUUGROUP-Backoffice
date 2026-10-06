@@ -1,4 +1,5 @@
 import 'server-only';
+import { sqlTableOrder } from '@/server/validation/table-sort';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
 import { getPrismaClient } from '@/server/db/prisma';
@@ -15,6 +16,28 @@ const legacyTables = {
   dosageForm: 'dosage_forms',
   ingredient: 'drugs',
 } as const;
+
+// Complete option sets for form comboboxes; table pagination remains separate.
+export async function batchProductOptions(params: URLSearchParams) {
+  const kinds = (params.get('kinds') ?? '').split(',');
+  if (
+    params.getAll('kinds').length !== 1 ||
+    !kinds.length ||
+    kinds.length > Object.keys(PRODUCT_OPTION_KINDS).length ||
+    new Set(kinds).size !== kinds.length ||
+    !kinds.every(isProductOptionKind)
+  )
+    throw new ProductError('ประเภทข้อมูลไม่ถูกต้อง');
+  if ([...params.keys()].some((key) => key !== 'kinds'))
+    throw new ProductError('ชุดตัวเลือกไม่รองรับตัวกรองหรือการแบ่งหน้า');
+  const rows = await getPrismaClient().$queryRaw<ProductOption[]>(
+    Prisma.sql`SELECT id,kind,name,code,active,version FROM product_options WHERE active=true AND kind IN (${Prisma.join(kinds)}) ORDER BY kind,name,id`,
+  );
+  const options = Object.fromEntries(
+    kinds.map((kind) => [kind, rows.filter((row) => row.kind === kind)]),
+  );
+  return { options };
+}
 function nameValue(value: unknown) {
   const name = typeof value === 'string' ? value.normalize('NFKC').trim().replace(/\s+/g, ' ') : '';
   if (!name || [...name].length > 160) throw new ProductError('กรุณากรอกชื่อไม่เกิน 160 ตัวอักษร');
@@ -35,7 +58,7 @@ export async function listProductOptions(
   const inactive = params.get('includeInactive') ?? 'false';
   if (!['true', 'false'].includes(inactive)) throw new ProductError('ตัวกรองไม่ถูกต้อง');
   if (inactive === 'true' && !isAdmin) throw new ProductError('ไม่มีสิทธิ์ดูรายการที่ปิด', 403);
-  const limit = integer(params.get('limit'), 50, 100);
+  const limit = integer(params.get('limit'), 10, 100);
   const offset = integer(params.get('offset'), 0, 1000000);
   if (!limit) throw new ProductError('จำนวนรายการต้องมากกว่า 0');
   const search = (params.get('search') ?? '').normalize('NFKC').trim();
@@ -43,11 +66,22 @@ export async function listProductOptions(
   const pattern = '%' + search.replace(/[\\%_]/g, '\\$&') + '%';
   const itemId = params.get('id');
   if (itemId && !uuidPattern.test(itemId)) throw new ProductError('รหัสรายการไม่ถูกต้อง');
+  let order: Prisma.Sql;
+  try {
+    order = sqlTableOrder(
+      params,
+      { code: Prisma.sql`code`, name: Prisma.sql`name`, active: Prisma.sql`active` },
+      Prisma.sql`name,id`,
+      Prisma.sql`id`,
+    );
+  } catch {
+    throw new ProductError('คอลัมน์หรือทิศทางเรียงข้อมูลไม่ถูกต้อง');
+  }
   return getPrismaClient().$transaction(
     async (tx) => {
       const where = Prisma.sql`kind=${kind} ${itemId ? Prisma.sql`AND id=${itemId}::uuid` : Prisma.empty} ${inactive === 'true' ? Prisma.empty : Prisma.sql`AND active=true`} AND (name ILIKE ${pattern} OR code ILIKE ${pattern})`;
       const data = await tx.$queryRaw<ProductOption[]>(
-        Prisma.sql`SELECT id,kind,name,code,active,version FROM product_options WHERE ${where} ORDER BY name,id LIMIT ${limit} OFFSET ${offset}`,
+        Prisma.sql`SELECT id,kind,name,code,active,version FROM product_options WHERE ${where} ORDER BY ${order} LIMIT ${limit} OFFSET ${offset}`,
       );
       const count = await tx.$queryRaw<{ total: number }[]>(
         Prisma.sql`SELECT count(*)::int AS total FROM product_options WHERE ${where}`,

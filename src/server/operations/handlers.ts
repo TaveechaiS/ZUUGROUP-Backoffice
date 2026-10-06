@@ -26,7 +26,7 @@ export async function operationsHandler(
       const query = resourceQuery(
         params,
         resource === 'inventory'
-          ? ['stock', 'products', 'lots', 'receipts', 'movements', 'options']
+          ? ['stock', 'products', 'lots', 'receipts', 'receipt-items', 'movements', 'options']
           : ['options'],
       );
       if (query.include.length) throw new ResourceQueryError('API นี้ใช้ view ไม่รองรับ include');

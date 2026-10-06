@@ -15,6 +15,7 @@ import type {
   RecordConfigResponse,
 } from '@/types/api/records';
 import 'server-only';
+import { sqlTableOrder } from '@/server/validation/table-sort';
 import { Prisma } from '@/generated/prisma/client';
 import { getPrismaClient, readWithConnectionRetry } from '@/server/db/prisma';
 import { moduleFor, RECORD_MODULES } from '@/features/records/types';
@@ -126,13 +127,26 @@ export async function recordList(
   params: URLSearchParams,
 ): Promise<RecordListResponse> {
   const offset = integer(params, 'offset', 0, 0, 100000),
-    limit = integer(params, 'limit', 10, 1, 50),
+    limit = integer(params, 'limit', 10, 1, 100),
     where = predicate(m, params);
+  const sortColumns = Object.fromEntries(m.fields.map((field) => [field.key, column(field.key)]));
+  for (const key of ['createdAt', 'updatedAt']) sortColumns[key] = column(key);
+  if (['customers', 'sales-territories'].includes(m.key))
+    for (const key of ['managerName', 'salesName']) sortColumns[key] = Prisma.raw('"' + key + '"');
+  if (m.key === 'customers') sortColumns.territoryName = Prisma.sql`"territoryName"`;
+  if (['sales-territories', 'customer-groups'].includes(m.key))
+    sortColumns.memberCount = Prisma.sql`"memberCount"`;
+  const order = sqlTableOrder(
+    params,
+    sortColumns,
+    Prisma.sql`created_at DESC,id ASC`,
+    Prisma.sql`id ASC`,
+  );
   return readWithConnectionRetry(async (db) => {
     const [rows, counts] = await db.$transaction(
       [
         db.$queryRaw<DbRow[]>(
-          Prisma.sql`SELECT ${select(m)} FROM ${table(m)} WHERE ${where} ORDER BY created_at DESC,id ASC OFFSET ${offset} LIMIT ${limit}`,
+          Prisma.sql`SELECT ${select(m)} FROM ${table(m)} WHERE ${where} ORDER BY ${order} OFFSET ${offset} LIMIT ${limit}`,
         ),
         db.$queryRaw<{ total: number }[]>(
           Prisma.sql`SELECT count(*)::int total FROM ${table(m)} WHERE ${where}`,

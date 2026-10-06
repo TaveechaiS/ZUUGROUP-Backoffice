@@ -8,7 +8,7 @@ export function warehouseQuery(params: URLSearchParams) {
     offset > 100000 ||
     !Number.isSafeInteger(limit) ||
     limit < 1 ||
-    limit > 50 ||
+    limit > 100 ||
     search.length > 200
   )
     return null;

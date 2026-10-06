@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { requireActiveUser } from '@/server/auth/current-user';
 import { RouteDataProvider } from '@/components/ui/route-data';
 import { notFound } from 'next/navigation';
-import { getProductByCode, productMasters } from '@/server/products/service';
+import { getProductByCode } from '@/server/products/service';
 export default async function Layout({
   children,
   params,
@@ -12,7 +12,10 @@ export default async function Layout({
 }) {
   const actor = await requireActiveUser();
   const { id } = await params;
-  const product = await getProductByCode(id);
+  const product = await getProductByCode(
+    id,
+    ['ADMIN', 'ACCOUNTING_CFO'].includes(actor.userRole?.roleId ?? ''),
+  );
   if (!product || (product.deletedAt && actor.userRole?.roleId !== 'ADMIN')) notFound();
   return (
     <RouteDataProvider
@@ -21,7 +24,6 @@ export default async function Layout({
         actorId: actor.id,
         isAdmin: actor.userRole?.roleId === 'ADMIN',
         product,
-        masters: await productMasters(),
       }}
     >
       {children}

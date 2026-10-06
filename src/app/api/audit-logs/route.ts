@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { authorizeUserManagement } from '@/server/auth/api-authorization';
 import { paginatedAuditEvents, auditFilters } from '@/server/audit-logs/service';
 import { PaginationError } from '@/server/pagination';
+import { RecordError } from '@/server/validation/records';
 export async function GET(request: NextRequest) {
   const { error } = await authorizeUserManagement(request, 'ประวัติ');
   if (error) return error;
@@ -26,13 +27,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          caught instanceof PaginationError || caught instanceof ResourceQueryError
+          caught instanceof PaginationError ||
+          caught instanceof ResourceQueryError ||
+          caught instanceof RecordError
             ? caught.message
             : 'โหลดประวัติไม่สำเร็จ',
       },
       {
         status:
-          caught instanceof PaginationError || caught instanceof ResourceQueryError ? 400 : 503,
+          caught instanceof PaginationError ||
+          caught instanceof ResourceQueryError ||
+          caught instanceof RecordError
+            ? 400
+            : 503,
       },
     );
   }

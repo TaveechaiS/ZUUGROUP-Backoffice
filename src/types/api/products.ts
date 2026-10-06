@@ -1,5 +1,8 @@
 import type { Pagination, OffsetPagination, DataResponse } from '@/types/api';
+import type { ProductDetails } from './product-full';
 export type ProductView = {
+  version?: string;
+  details?: ProductDetails;
   id: string;
   code: string;
   name: string;

@@ -14,6 +14,7 @@ function walk(dir) {
 const pages = walk('src/app').filter((file) => file.endsWith('page.tsx'));
 for (const file of pages) {
   const source = fs.readFileSync(file, 'utf8');
+  assert.ok(!source.includes('components/operations'), file + ': operations UI import remains');
   assert.ok(!source.includes('components/pages'), file + ': shared full page import');
   assert.ok(
     !/ModuleListPage|RecordFormPage|RecordDetailPage|usePaginatedList/.test(source),
@@ -68,7 +69,13 @@ for (const recordModule of definitions) {
     continue;
   }
   if (recordModule.key === 'orders') {
-    const workflow = fs.readFileSync('src/components/operations/order-workspace.tsx', 'utf8');
+    const workflow = [
+      'src/app/orders/page.tsx',
+      'src/app/orders/create/page.tsx',
+      'src/app/orders/[id]/page.tsx',
+    ]
+      .map((file) => fs.readFileSync(file, 'utf8'))
+      .join('\n');
     assert.ok(
       workflow.includes('productId') &&
         workflow.includes('quantity') &&

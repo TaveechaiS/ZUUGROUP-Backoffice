@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 type Option = { id: string; code: string; name: string };
 type Props = {
+  local?: boolean;
   field: { key: string; label: string; required: boolean };
   value: string;
   onChange: (value: string) => void;
@@ -20,6 +21,7 @@ type Props = {
   setError: Dispatch<SetStateAction<string>>;
 };
 export default function SearchCombobox({
+  local = false,
   field,
   value,
   onChange,
@@ -69,7 +71,7 @@ export default function SearchCombobox({
   function startSearch() {
     setOpen(true);
     setActive(0);
-    if (!statusModule && (search || offset)) setLoading(true);
+    if (!local && !statusModule && (search || offset)) setLoading(true);
     setSearch('');
     setOffset(0);
   }
@@ -102,7 +104,7 @@ export default function SearchCombobox({
         }}
         onChange={(e) => {
           setOpen(true);
-          if (!statusModule) {
+          if (!local && !statusModule) {
             setLoading(true);
             setError('');
           }
@@ -148,7 +150,7 @@ export default function SearchCombobox({
             role="listbox"
             aria-label={field.label}
             aria-busy={loading}
-            className="m-0 max-h-64 list-none overflow-y-auto p-1"
+            className="m-0 max-h-[min(25rem,50vh)] list-none overflow-y-auto p-0"
           >
             <li
               id={`${listId}-0`}
@@ -159,7 +161,7 @@ export default function SearchCombobox({
                 event.preventDefault();
                 choose(0);
               }}
-              className={`cursor-pointer rounded px-3 py-2 text-sm ${active === 0 ? 'bg-blue-50 text-blue-700' : 'text-[#344256] hover:bg-blue-50'}`}
+              className={`flex h-10 cursor-pointer items-center rounded px-3 text-sm ${active === 0 ? 'bg-blue-50 text-blue-700' : 'text-[#344256] hover:bg-blue-50'}`}
             >
               ยังไม่ระบุ
             </li>
@@ -176,7 +178,7 @@ export default function SearchCombobox({
                     event.preventDefault();
                     choose(index + 1);
                   }}
-                  className={`cursor-pointer rounded px-3 py-2 text-sm ${active === index + 1 ? 'bg-blue-50 text-blue-700' : 'text-[#344256] hover:bg-blue-50'}`}
+                  className={`flex h-10 cursor-pointer items-center overflow-hidden whitespace-nowrap rounded px-3 text-sm ${active === index + 1 ? 'bg-blue-50 text-blue-700' : 'text-[#344256] hover:bg-blue-50'}`}
                 >
                   {optionLabel(option)}
                 </li>
@@ -195,7 +197,7 @@ export default function SearchCombobox({
               ไม่พบรายการ
             </p>
           ) : null}
-          {!statusModule && (
+          {!local && !statusModule && (
             <div className="flex justify-between border-t border-[#e3e9f0] p-2 text-xs text-[#1a58a7]">
               <button
                 type="button"

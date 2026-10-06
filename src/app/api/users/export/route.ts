@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { authorizeUserManagement } from '@/server/auth/api-authorization';
 import { exportUsers } from '@/server/users/service';
 import { PaginationError } from '@/server/pagination';
+import { RecordError } from '@/server/validation/records';
 export async function GET(request: NextRequest) {
   const { error } = await authorizeUserManagement(request);
   if (error) return error;
@@ -42,8 +43,13 @@ export async function GET(request: NextRequest) {
     });
   } catch (caught) {
     return NextResponse.json(
-      { error: caught instanceof PaginationError ? caught.message : 'ส่งออกผู้ใช้งานไม่สำเร็จ' },
-      { status: caught instanceof PaginationError ? 400 : 503 },
+      {
+        error:
+          caught instanceof PaginationError || caught instanceof RecordError
+            ? caught.message
+            : 'ส่งออกผู้ใช้งานไม่สำเร็จ',
+      },
+      { status: caught instanceof PaginationError || caught instanceof RecordError ? 400 : 503 },
     );
   }
 }

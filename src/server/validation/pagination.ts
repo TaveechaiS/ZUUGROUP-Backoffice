@@ -10,7 +10,7 @@ export function paginationQuery(params: URLSearchParams) {
       throw new PaginationError(`${key} ต้องเป็นจำนวนเต็ม ${min}–${max}`);
     return value;
   };
-  return { offset: integer('offset', 0, 0, 100000), limit: integer('limit', 10, 1, 50) };
+  return { offset: integer('offset', 0, 0, 100000), limit: integer('limit', 10, 1, 100) };
 }
 export function queryText(params: URLSearchParams, key: string, max = 160) {
   const value = (params.get(key) ?? '').trim();

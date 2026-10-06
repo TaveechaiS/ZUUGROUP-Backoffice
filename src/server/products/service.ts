@@ -1,7 +1,8 @@
 import 'server-only';
+import { tableSort } from '@/server/validation/table-sort';
 
 import { randomUUID } from 'node:crypto';
-import type { Prisma, ProductStatus } from '@/generated/prisma/client';
+import { Prisma, type ProductStatus } from '@/generated/prisma/client';
 import { getPrismaClient, readWithConnectionRetry } from '@/server/db/prisma';
 import {
   PaginationError,
@@ -20,29 +21,35 @@ import {
   productMasterInput,
 } from '@/server/validation/products';
 import type { ProductView, ProductsListResponse } from '@/types/api/products';
+import type { ProductDetails } from '@/types/api/product-full';
 export { ProductError, productInput } from '@/server/validation/products';
 type ProductWithRelations = Prisma.ProductGetPayload<{ include: typeof include }>;
-export function productView(product: ProductWithRelations): ProductView {
+export function productView(product: ProductWithRelations, showCost = false): ProductView {
+  const details = product.details
+    ? (JSON.parse(JSON.stringify(product.details)) as ProductDetails)
+    : undefined;
+  if (details && !showCost) delete details.fields['ราคาต้นทุน'];
   return {
     id: product.id,
+    ...(details ? { details } : {}),
     code: product.code,
     name: product.name,
-    sequence: String(product.sequence).padStart(4, '0'),
+    sequence: String(product.sequence).padStart(product.codeGroupId ? 5 : 4, '0'),
     categoryId: product.categoryId,
     category: { id: product.category.id, name: product.category.name, code: product.category.code },
-    dosageFormId: product.dosageFormId,
+    dosageFormId: product.dosageFormId ?? '',
     dosageForm: {
-      id: product.dosageForm.id,
-      name: product.dosageForm.name,
-      code: product.dosageForm.code,
+      id: product.dosageForm?.id ?? '',
+      name: product.dosageForm?.name ?? '',
+      code: product.dosageForm?.code ?? '',
     },
-    drugId: product.drugId,
-    drug: { id: product.drug.id, name: product.drug.name },
-    defaultWarehouseId: product.defaultWarehouseId,
+    drugId: product.drugId ?? '',
+    drug: { id: product.drug?.id ?? '', name: product.drug?.name ?? '' },
+    defaultWarehouseId: product.defaultWarehouseId ?? '',
     defaultWarehouse: {
-      id: product.defaultWarehouse.id,
-      name: product.defaultWarehouse.name,
-      code: product.defaultWarehouse.code,
+      id: product.defaultWarehouse?.id ?? '',
+      name: product.defaultWarehouse?.name ?? '',
+      code: product.defaultWarehouse?.code ?? '',
     },
     unit: product.unit,
     salePrice: product.salePrice.toFixed(2),
@@ -57,6 +64,30 @@ export async function paginatedProducts(
   isAdmin: boolean,
 ): Promise<ProductsListResponse> {
   const { offset, limit } = paginationQuery(params);
+  let sort: ReturnType<typeof tableSort>;
+  try {
+    sort = tableSort(params, [
+      'name',
+      'code',
+      'categoryId',
+      'dosageFormId',
+      'unit',
+      'salePrice',
+      'status',
+    ]);
+  } catch {
+    throw new ProductError('คอลัมน์หรือทิศทางเรียงข้อมูลไม่ถูกต้อง');
+  }
+  const orderBy: Prisma.ProductOrderByWithRelationInput[] = sort.key
+    ? [
+        sort.key === 'categoryId'
+          ? { category: { name: sort.direction } }
+          : sort.key === 'dosageFormId'
+            ? { dosageForm: { name: sort.direction } }
+            : { [sort.key]: sort.direction },
+        { id: 'asc' },
+      ]
+    : [{ createdAt: 'desc' }, { id: 'desc' }];
   const deleted = queryChoice(params, 'deleted', ['false', 'true'], 'false');
   if (deleted === 'true' && !isAdmin) throw new ProductError('ไม่มีสิทธิ์ดูสินค้าที่ลบแล้ว', 403);
   const status = queryChoice(params, 'status', ['', 'ACTIVE', 'INACTIVE']);
@@ -85,14 +116,17 @@ export async function paginatedProducts(
         db.product.findMany({
           where,
           include,
-          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          orderBy,
           skip: offset,
           take: limit,
         }),
       ],
       { isolationLevel: 'RepeatableRead' },
     );
-    return { products: rows.map(productView), pagination: paginationResult(total, offset, limit) };
+    return {
+      products: rows.map((row) => productView(row, isAdmin)),
+      pagination: paginationResult(total, offset, limit),
+    };
   });
 }
 export async function productListFilters() {
@@ -104,9 +138,23 @@ export async function productListFilters() {
   );
   return { categories };
 }
-export async function getProductByCode(code: string) {
-  const row = await getPrismaClient().product.findUnique({ where: { code }, include });
-  return row ? productView(row) : null;
+export async function getProductByCode(code: string, showCost = false) {
+  return productDetail({ code }, showCost);
+}
+async function productDetail(where: Prisma.ProductWhereUniqueInput, showCost: boolean) {
+  return readWithConnectionRetry((db) =>
+    db.$transaction(
+      async (tx) => {
+        const row = await tx.product.findUnique({ where, include });
+        if (!row) return null;
+        const versions = await tx.$queryRaw<{ version: string }[]>(
+          Prisma.sql`SELECT md5(to_jsonb(p)::text) AS version FROM products p WHERE id=${row.id}::uuid`,
+        );
+        return { ...productView(row, showCost), version: versions[0].version };
+      },
+      { isolationLevel: 'RepeatableRead' },
+    ),
+  );
 }
 export async function productMasters() {
   const prisma = getPrismaClient();
@@ -203,6 +251,8 @@ export async function updateProduct(id: string, body: Record<string, unknown>, a
         deleteReason: action === 'delete' ? reason : null,
       };
     } else if (action === 'update') {
+      if (old.details)
+        throw new ProductError('สินค้านี้ใช้ข้อมูลแบบใหม่ กรุณาแก้ผ่านแบบฟอร์มข้อมูลครบ', 409);
       if (old.deletedAt) throw new ProductError('ต้องกู้คืนสินค้าก่อนแก้ไข', 409);
       const input = productInput(body);
       if (old.categoryId !== input.categoryId || old.dosageFormId !== input.dosageFormId) {
@@ -295,9 +345,6 @@ export async function createProductMaster(
   }
 }
 
-export async function getProductById(id: string) {
-  const row = await readWithConnectionRetry((db) =>
-    db.product.findUnique({ where: { id }, include }),
-  );
-  return row ? productView(row) : null;
+export async function getProductById(id: string, showCost = false) {
+  return productDetail({ id }, showCost);
 }

@@ -5,6 +5,7 @@ import { PrismaClient } from '@/generated/prisma/client';
 
 const globalForPrisma = globalThis as typeof globalThis & {
   prismaClient?: PrismaClient;
+  prismaSchemaVersion?: string;
 };
 
 export function getPrismaClient(): PrismaClient {
@@ -12,7 +13,8 @@ export function getPrismaClient(): PrismaClient {
   const staleClient = globalForPrisma.prismaClient;
   if (
     staleClient &&
-    (typeof staleClient.product?.findMany !== 'function' ||
+    (globalForPrisma.prismaSchemaVersion !== 'product-full-v1' ||
+      typeof staleClient.product?.findMany !== 'function' ||
       typeof staleClient.customer?.findMany !== 'function' ||
       typeof staleClient.productLot?.findMany !== 'function')
   ) {
@@ -30,6 +32,7 @@ export function getPrismaClient(): PrismaClient {
     globalForPrisma.prismaClient = new PrismaClient({
       adapter: new PrismaPg({ connectionString }),
     });
+    globalForPrisma.prismaSchemaVersion = 'product-full-v1';
   }
 
   if (typeof globalForPrisma.prismaClient.product?.findMany !== 'function') {

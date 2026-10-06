@@ -15,8 +15,6 @@ import SalesDocumentSecondarySidebar from '@/components/layout/sales-document-se
 import TerritorySecondarySidebar from '@/components/layout/territory-secondary-sidebar';
 import StockSecondarySidebar from '@/components/layout/stock-secondary-sidebar';
 import NavigationOnlyTabs from '@/components/layout/navigation-only-tabs';
-import ProductCreatePreview from '@/components/products/product-create-preview';
-import SettingsHome from '@/components/settings/settings-home';
 import SettingsSecondarySidebar from '@/components/layout/settings-secondary-sidebar';
 import { logout } from '@/app/login/actions';
 
@@ -31,6 +29,9 @@ export function AdminShell({
   const shellRef = useRef<HTMLElement>(null);
   const topbarRef = useRef<HTMLDivElement>(null);
   const currentPath = usePathname();
+  const showProductDetail =
+    /^\/products\/[^/]+$/.test(currentPath) &&
+    !['/products/create', '/products/stock'].includes(currentPath);
   const showProductTable = [
     '/products',
     '/products/stock/main',
@@ -38,6 +39,7 @@ export function AdminShell({
     '/products/stock/disposal',
   ].includes(currentPath);
   const page: AdminPage = getAdminPage(currentPath) ?? ADMIN_PAGES[0];
+  const settingsSection = currentPath === '/settings' || currentPath.startsWith('/settings/');
   const stockSection = page.href === '/products/stock' || page.parentHref === '/products/stock';
   const productSection =
     !stockSection &&
@@ -123,7 +125,9 @@ export function AdminShell({
                                   ? 'ใบเสนอราคา'
                                   : orderSection
                                     ? 'คำสั่งซื้อ'
-                                    : page.label}
+                                    : settingsSection
+                                      ? 'ตั้งค่าระบบ'
+                                      : page.label}
               </h1>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 text-xs text-[#59677e] md:gap-5">
@@ -208,12 +212,14 @@ export function AdminShell({
               <SettingsSecondarySidebar />
             )}
             <div className="flex min-w-0 flex-1 flex-col">
-              {currentPath === '/products/create' && account?.roleId === 'ADMIN' ? (
-                <ProductCreatePreview />
-              ) : currentPath === '/settings' && account?.roleId === 'ADMIN' ? (
-                <SettingsHome />
-              ) : showProductTable ||
-                (currentPath === '/settings/product-options' && account?.roleId === 'ADMIN') ? (
+              {showProductTable ||
+              currentPath === '/products/stock' ||
+              currentPath.startsWith('/products/stock/receipts/') ||
+              (currentPath === '/products/stock/create' && account?.roleId === 'ADMIN') ||
+              (currentPath === '/settings' && account?.roleId === 'ADMIN') ||
+              showProductDetail ||
+              (currentPath === '/products/create' && account?.roleId === 'ADMIN') ||
+              (currentPath === '/settings/product-options' && account?.roleId === 'ADMIN') ? (
                 children
               ) : (
                 <NavigationOnlyTabs

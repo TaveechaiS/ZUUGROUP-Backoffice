@@ -1,4 +1,4 @@
-import InventoryWorkspace from '@/components/operations/inventory-workspace';
+import { redirect } from 'next/navigation';
 export default function Page() {
-  return <InventoryWorkspace initialView="receipts" />;
+  redirect('/products/stock/create');
 }

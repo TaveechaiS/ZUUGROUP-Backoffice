@@ -1,4 +1,6 @@
 'use client';
+import PaginationControls from '@/components/ui/pagination-controls';
+import SortableTable, { useTableSort } from '@/components/ui/sortable-table';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -12,22 +14,21 @@ import ListRequestState from '@/components/ui/list-request-state';
 import LoadingComponent from '@/components/ui/loading-component';
 
 export default function Page() {
+  const sort = useTableSort();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [role, setRole] = useState('ALL');
   const [status, setStatus] = useState('ALL');
   const [view, setView] = useState<'CURRENT' | 'DELETED'>('CURRENT');
   const filters = new URLSearchParams({
+    ...(sort.key ? { sortBy: sort.key, sortDirection: sort.direction } : {}),
     search: query,
     role: role === 'ALL' ? '' : role,
     status: status === 'ALL' ? '' : status,
     deleted: String(view === 'DELETED'),
   }).toString();
-  const { rows, total, page, pages, setPage, loading, error, reload } = useUsers(
-    '/api/users',
-    filters,
-    'users',
-  );
+  const { pageSize, setPageSize, rows, total, page, pages, setPage, loading, error, reload } =
+    useUsers('/api/users', filters, 'users');
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState('');
   async function exportCsv() {
@@ -132,9 +133,32 @@ export default function Page() {
           + เพิ่มผู้ใช้งาน
         </Link>
       </div>
-      <div className="relative min-h-44 overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white" aria-busy={loading}>
-        <LoadingComponent isVisible={loading && !error} variant="content" label="กำลังโหลดรายการ..." />
-        <table className="w-full min-w-[900px] border-collapse text-left">
+      <div
+        className="relative min-h-44 overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white"
+        aria-busy={loading}
+      >
+        <LoadingComponent
+          isVisible={loading && !error}
+          variant="content"
+          label="กำลังโหลดรายการ..."
+        />
+        <SortableTable
+          sort={{
+            ...sort,
+            select: (key) => {
+              sort.select(key);
+              setPage(1);
+            },
+          }}
+          columns={[
+            'name',
+            'role',
+            'team',
+            view === 'DELETED' ? 'deletedAt' : 'lastLoginAt',
+            'status',
+          ]}
+          className="w-full min-w-[900px] border-collapse text-left"
+        >
           <thead className="bg-[#f7f8fa] text-xs poppins-semibold text-[#2f3a4d]">
             <tr>
               {[
@@ -206,38 +230,25 @@ export default function Page() {
               );
             })}
           </tbody>
-        </table>
+        </SortableTable>
         {!loading && !error && total === 0 && (
           <p className="py-12 text-center text-sm text-[#8492a6]">
             {view === 'DELETED' ? 'ไม่มีผู้ใช้งานที่ลบแล้ว' : 'ไม่พบผู้ใช้งาน'}
           </p>
         )}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-4 text-sm text-[#758195]">
-          <span>
-            แสดง {rows.length} จาก {total} รายการ
-          </span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-              className="rounded border px-3 py-1 disabled:opacity-40"
-            >
-              ก่อนหน้า
-            </button>
-            <span>
-              {page} / {pages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= pages}
-              onClick={() => setPage(page + 1)}
-              className="rounded border px-3 py-1 disabled:opacity-40"
-            >
-              ถัดไป
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          page={page}
+          pages={pages}
+          total={total}
+          count={rows.length}
+          onChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+          disabled={loading}
+        />
       </div>
       <button
         type="button"
@@ -258,6 +269,7 @@ function useUsers(_path: string, filters: string, _key: string, initialPage = 1)
   );
   const [rows, setRows] = useState<UserRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -267,12 +279,12 @@ function useUsers(_path: string, filters: string, _key: string, initialPage = 1)
       setLoading(true);
       setError('');
       const params = new URLSearchParams(filters);
-      params.set('limit', '10');
-      params.set('offset', String((page - 1) * 10));
+      params.set('limit', String(pageSize));
+      params.set('offset', String((page - 1) * pageSize));
       Get<UsersListResponse>(`${path}?${params}`, controller.signal)
         .then((result) => {
           if (controller.signal.aborted) return;
-          const pages = Math.max(1, Math.ceil(result.pagination.total / 10));
+          const pages = Math.max(1, Math.ceil(result.pagination.total / pageSize));
           setTotal(result.pagination.total);
           if (page > pages) {
             setPage(pages);
@@ -295,13 +307,15 @@ function useUsers(_path: string, filters: string, _key: string, initialPage = 1)
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [path, filters, page, retry]);
+  }, [path, filters, page, pageSize, retry]);
   return {
     rows,
     total,
     page,
-    pages: Math.max(1, Math.ceil(total / 10)),
+    pages: Math.max(1, Math.ceil(total / pageSize)),
     setPage,
+    pageSize,
+    setPageSize,
     loading,
     error,
     reload: () => setRetry((n) => n + 1),

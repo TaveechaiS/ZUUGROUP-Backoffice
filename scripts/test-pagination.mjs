@@ -13,6 +13,7 @@ function load(file, modules = {}) {
     exports,
     require: (name) => {
       if (name === 'server-only') return {};
+      if (name === '@/generated/prisma/client') return { Prisma: {} };
       if (name === 'node:crypto') return { randomUUID: () => 'unused' };
       if (name.startsWith('@/server/validation/'))
         return load('src/' + name.slice(2) + '.ts', modules);
@@ -36,7 +37,7 @@ assert.deepEqual(plain(pagination.paginationQuery(new URLSearchParams())), {
 });
 for (const input of [
   'limit=0',
-  'limit=51',
+  'limit=101',
   'offset=-1',
   'offset=100001',
   'limit=1.5',
@@ -57,6 +58,8 @@ assert.deepEqual(plain(pagination.paginationResult(15, 10, 10)), {
   totalPages: 2,
 });
 assert.equal(pagination.paginationResult(0, 0, 10).totalPages, 1);
+for (const size of [1, 10, 20, 50, 100])
+  assert.equal(pagination.paginationQuery(new URLSearchParams(`limit=${size}`)).limit, size);
 let calls = [];
 const delegate = {
   count: (query) => {
@@ -95,6 +98,10 @@ assert.equal(calls[1][1].where.userRole.is.roleId, 'SALES');
 assert.equal(calls[1][1].where.status, 'SUSPENDED');
 assert.deepEqual(plain(calls[1][1].where.deletedAt), { not: null });
 assert.equal(calls[1][1].where.OR.length, 3);
+calls = [];
+await users.paginatedUsers(new URLSearchParams('offset=100&limit=100'));
+assert.equal(calls[1][1].skip, 100);
+assert.equal(calls[1][1].take, 100);
 await assert.rejects(
   users.paginatedUsers(new URLSearchParams('role=Inventory')),
   (error) => error.status === 400,

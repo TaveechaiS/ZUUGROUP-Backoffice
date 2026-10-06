@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import { getCurrentApiUser } from '@/server/auth/current-user';
 import { hasSameOrigin } from '@/server/auth/api-authorization';
 import { ProductError } from '@/server/validation/products';
-import { listProductOptions, writeProductOption } from './options';
+import { batchProductOptions, listProductOptions, writeProductOption } from './options';
 export async function productOptionsHandler(request: NextRequest) {
   const headers = { 'Cache-Control': 'private, no-store' };
   try {
@@ -10,9 +10,14 @@ export async function productOptionsHandler(request: NextRequest) {
     if (!user?.userRole) throw new ProductError('กรุณาเข้าสู่ระบบ', 401);
     const admin = user.userRole.roleId === 'ADMIN';
     if (request.method === 'GET')
-      return Response.json(await listProductOptions(request.nextUrl.searchParams, admin), {
-        headers,
-      });
+      return Response.json(
+        request.nextUrl.searchParams.has('kinds')
+          ? await batchProductOptions(request.nextUrl.searchParams)
+          : await listProductOptions(request.nextUrl.searchParams, admin),
+        {
+          headers,
+        },
+      );
     if (!admin || !hasSameOrigin(request))
       throw new ProductError('ไม่มีสิทธิ์จัดการข้อมูลพื้นฐานสินค้า', 403);
     if (request.method !== 'POST' && request.method !== 'PATCH')

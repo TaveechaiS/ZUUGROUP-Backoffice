@@ -8,7 +8,7 @@ export function inventoryQuery(params: URLSearchParams) {
     return Number(v);
   };
   const offset = integer('offset', 0, 100000),
-    limit = integer('limit', 10, 50),
+    limit = integer('limit', 10, 100),
     search = params.get('search')?.trim() ?? '';
   if (search.length > 200) throw new RecordError(400, 'คำค้นยาวเกินกำหนด');
   return { offset, limit, search };

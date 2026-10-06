@@ -1,6 +1,10 @@
 # Handoff — สถานะปัจจุบันของโครงการ
 
-## Checkpoint ล่าสุด — 5 ตุลาคม 2569
+## Checkpoint ล่าสุด — 6 ตุลาคม 2569
+
+อ่าน [Checkpoint 6 ตุลาคม](../tasks/CHECKPOINT-2026-10-06.md) และ [TASK215](../tasks/TASK-215-product-full-edit.md) ก่อนใช้สถานะเก่าด้านล่าง. เก็บ TASK154–215 ใน local Git branch AI ตาม TASK216. เพิ่มและแก้สินค้า/ไฟล์ผ่าน API จริงแล้ว; รองรับแก้รหัสที่แสดงและหน่วยแม้มีล็อต ตรวจversion/เลขซ้ำ/audit/history. สต็อกแยกคลัง/รับเข้ารายชิ้น/ล็อต/การทำลายตามงานที่อนุมัติ; PostmanZuugroup43requests. Pagination10/20/50/100และSortสามจังหวะใช้กลาง; โค้ดเฉพาะหน้าอยู่page/layout. ไม่เพิ่มเปิดปิดขาย. Build/type/lint/APIrollback/UIVMผ่าน; browserUATตาม checkpointยังรอเจ้าของ. คำถามแก้code/unitปิดแล้ว; UUIDภายในคงเดิมและไม่แปลงจำนวนสต็อก. ไม่มีpush/deploy.
+
+## Checkpoint ก่อนหน้า — 5 ตุลาคม 2569
 
 อ่าน [Checkpoint 5 ตุลาคม](../tasks/CHECKPOINT-2026-10-05.md) ก่อนใช้สถานะเก่าด้านล่าง. งาน UI/navigation TASK097–137 เก็บใน local Git AI ก่อนพัก. หน้าเพิ่มสินค้าเป็น preview พร้อมปุ่มและ Alert เท่านั้น ยังไม่บันทึกจริง; master รหัส/ตรวจซ้ำและ upload/DB ยังไม่เปิดใช้. งานถัดไปเริ่มจากตรวจรับตาม checkpoint และคำสั่งเจ้าของ. ไม่มี push/deploy.
 

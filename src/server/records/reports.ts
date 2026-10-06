@@ -1,5 +1,6 @@
 import { inventoryQuery } from '@/server/validation/reports';
 import 'server-only';
+import { tableSort } from '@/server/validation/table-sort';
 import { readWithConnectionRetry } from '@/server/db/prisma';
 import { Prisma } from '@/generated/prisma/client';
 import { recordModule, recordList, recordFilters, RecordError } from './service';
@@ -34,6 +35,24 @@ export async function reportData(key: ReportKey, params: URLSearchParams) {
   if (params.get('deleted') === 'true') throw new RecordError(400, 'รายงานไม่รวมข้อมูลที่ลบแล้ว');
   if (key !== 'inventory') return recordList(recordModule(REPORTS[key].source), params);
   const { offset, limit, search } = inventoryQuery(params);
+  const sort = tableSort(params, [
+    'name',
+    'code',
+    'category.name',
+    'dosageForm.name',
+    'unit',
+    'status',
+  ]);
+  const orderBy: Prisma.ProductOrderByWithRelationInput[] = sort.key
+    ? [
+        sort.key === 'category.name'
+          ? { category: { name: sort.direction } }
+          : sort.key === 'dosageForm.name'
+            ? { dosageForm: { name: sort.direction } }
+            : { [sort.key]: sort.direction },
+        { id: 'asc' },
+      ]
+    : [{ code: 'asc' }, { id: 'asc' }];
   const where = {
     deletedAt: null,
     status: 'ACTIVE' as const,
@@ -65,7 +84,7 @@ export async function reportData(key: ReportKey, params: URLSearchParams) {
           category: { select: { name: true } },
           dosageForm: { select: { name: true } },
         },
-        orderBy: { code: 'asc' },
+        orderBy,
         skip: offset,
         take: limit,
       }),
@@ -79,7 +98,7 @@ export async function reportData(key: ReportKey, params: URLSearchParams) {
             code: p.code,
             name: p.name,
             category: p.category,
-            dosageForm: p.dosageForm,
+            dosageForm: p.dosageForm ?? undefined,
             unit: p.unit,
             status: p.status,
             createdAt: p.createdAt.toISOString(),

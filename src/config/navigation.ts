@@ -113,7 +113,7 @@ export const ADMIN_PAGES: AdminPage[] = [
     parentHref: '/products',
   },
   {
-    href: '/purchases/receipts',
+    href: '/products/stock/create',
     label: 'เพิ่มสต็อกสินค้า',
     section: 'จัดการข้อมูล',
     icon: 'purchases',

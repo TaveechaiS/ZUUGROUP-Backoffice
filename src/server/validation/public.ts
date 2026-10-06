@@ -27,5 +27,5 @@ export function publicQuery(params: URLSearchParams) {
     }
     return value;
   };
-  return { search, offset: integer('offset', 0, 0, 100000), limit: integer('limit', 10, 1, 50) };
+  return { search, offset: integer('offset', 0, 0, 100000), limit: integer('limit', 10, 1, 100) };
 }
