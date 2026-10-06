@@ -170,6 +170,7 @@ vm.runInNewContext(
         };
       if (name.startsWith('@/components/ui/') || name === 'next/link' || name === 'next/image')
         return { default: () => null };
+      if (name === './product-record-history') return { default: () => null };
       throw Error(name);
     },
   },

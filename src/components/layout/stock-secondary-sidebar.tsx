@@ -10,14 +10,14 @@ export default function StockSecondarySidebar() {
   const parentHref = '/products/stock';
   const page = getAdminPage(pathname);
   const pages = [
-    { href: parentHref, label: 'รายงานสต็อกสินค้า' },
+    { href: parentHref, label: 'รายงานสต็อก' },
     ...ADMIN_PAGES.filter((item) => item.parentHref === parentHref),
   ];
 
   return (
     <SecondarySidebarFrame>
       <nav
-        aria-label="เมนูสต็อกสินค้า"
+        aria-label="เมนูสต็อก"
         className="flex gap-1 overflow-x-auto p-2 md:flex-col md:gap-2 md:px-0 md:py-5"
       >
         {pages.map((item) => {

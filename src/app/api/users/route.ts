@@ -8,6 +8,7 @@ import { paginatedUsers } from '@/server/users/service';
 import { userCreateInput } from '@/server/validation/users';
 import { PaginationError } from '@/server/pagination';
 import { RecordError } from '@/server/validation/records';
+import { assignUserTerritory } from '@/server/users/territory';
 
 export async function GET(request: NextRequest) {
   const { error } = await authorizeUserManagement(request);
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
       { error: 'กรุณากรอกข้อมูลให้ครบและตั้งรหัสผ่านอย่างน้อย 8 ตัวอักษร' },
       { status: 400 },
     );
-  const { name, email, team, password, roleId } = input;
+  const { name, email, team, password, roleId, territoryId } = input;
 
   const prisma = getPrismaClient();
   const duplicate = await prisma.user.findFirst({
@@ -109,6 +110,7 @@ export async function POST(request: NextRequest) {
           userRole: { create: { roleId } },
         },
       });
+      if (territoryId) await assignUserTerritory(tx, user.id, territoryId);
       await tx.auditEvent.create({
         data: {
           actorUserId: actor.id,
@@ -116,19 +118,19 @@ export async function POST(request: NextRequest) {
           actorRole: 'ADMIN',
           action: 'USER_CREATED',
           requestId: randomUUID(),
-          after: { employeeCode, email, roleId, status: 'ACTIVE' },
+          after: { employeeCode, email, roleId, status: 'ACTIVE', territoryId: territoryId ?? null },
         },
       });
     });
-  } catch {
+  } catch (caught) {
     const cleanup = await admin.auth.admin.deleteUser(created.data.user.id);
     return NextResponse.json(
       {
         error: cleanup.error
           ? 'บันทึกผู้ใช้ไม่สำเร็จและต้องให้เจ้าของโครงการตรวจบัญชี Auth ที่ค้างอยู่'
-          : 'บันทึกผู้ใช้ไม่สำเร็จ กรุณาลองอีกครั้ง',
+          : caught instanceof RecordError ? caught.message : 'บันทึกผู้ใช้ไม่สำเร็จ กรุณาลองอีกครั้ง',
       },
-      { status: 500 },
+      { status: !cleanup.error && caught instanceof RecordError ? caught.status : 500 },
     );
   }
   return NextResponse.json({ ok: true, employeeCode }, { status: 201 });

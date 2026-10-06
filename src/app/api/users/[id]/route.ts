@@ -8,6 +8,8 @@ import { createSupabaseAdminClient, hasSupabaseAdminKey } from '@/lib/supabase/a
 import { authorizeUserManagement } from '@/server/auth/api-authorization';
 import { getPrismaClient } from '@/server/db/prisma';
 import { userUpdateError } from '@/server/validation/users';
+import { assignUserTerritory } from '@/server/users/territory';
+import { RecordError } from '@/server/validation/records';
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -116,6 +118,8 @@ async function mutate(request: NextRequest, context: Context) {
     }
     try {
       await prisma.$transaction(async (tx) => {
+        const assignment = 'territoryId' in body ? await assignUserTerritory(tx, id,
+          typeof body.territoryId === 'string' && body.territoryId ? body.territoryId.toLowerCase() : null) : null;
         await tx.user.update({
           where: { id },
           data: { employeeCode, name, email, team: team || null },
@@ -132,12 +136,13 @@ async function mutate(request: NextRequest, context: Context) {
               name: target.name,
               email: target.email,
               team: target.team,
+              ...(assignment ? { territoryId: assignment.before } : {}),
             },
-            after: { employeeCode, name, email, team },
+            after: { employeeCode, name, email, team, ...(assignment ? { territoryId: assignment.after } : {}) },
           },
         });
       });
-    } catch {
+    } catch (caught) {
       if (admin) {
         const restored = await admin.auth.admin.updateUserById(
           target.authAccounts[0].providerUserId,
@@ -149,7 +154,8 @@ async function mutate(request: NextRequest, context: Context) {
             { status: 500 },
           );
       }
-      return NextResponse.json({ error: 'บันทึกข้อมูลบัญชีไม่สำเร็จ' }, { status: 500 });
+      return NextResponse.json({ error: caught instanceof RecordError ? caught.message : 'บันทึกข้อมูลบัญชีไม่สำเร็จ' },
+        { status: caught instanceof RecordError ? caught.status : 500 });
     }
     return NextResponse.json({ ok: true });
   }
@@ -176,7 +182,7 @@ async function mutate(request: NextRequest, context: Context) {
       if (action === 'delete' || (action === 'role' && body.roleId !== target.userRole.roleId)) {
         await tx.$queryRaw`SELECT id FROM users WHERE id=${id}::uuid FOR UPDATE`;
         const linked = await tx.salesTerritory.count({
-          where: { OR: [{ managerId: id }, { salesId: id }] },
+          where: { OR: [{ managerId: id }, { salesId: id }, { salesMembers: { some: { userId: id } } }] },
         });
         if (linked) throw new Error('TERRITORY_ASSIGNED');
       }
@@ -274,7 +280,7 @@ async function mutate(request: NextRequest, context: Context) {
       return NextResponse.json(
         {
           error:
-            'ผู้ใช้งานยังรับผิดชอบเขตอยู่ กรุณาเปลี่ยนผู้รับผิดชอบในหน้าเขตก่อนลบหรือเปลี่ยนบทบาท',
+            'ผู้ใช้งานยังรับผิดชอบเขตอยู่ กรุณาถอนเขตในข้อมูลผู้ใช้งานก่อนลบหรือเปลี่ยนบทบาท',
         },
         { status: 409 },
       );

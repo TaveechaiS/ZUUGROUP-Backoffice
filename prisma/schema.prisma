@@ -47,6 +47,53 @@ model ProductOption {
   @@map("product_options")
 }
 
+model CustomerOption {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind String
+  name String
+  code String?
+  days Int?
+  active Boolean @default(true)
+  version Int @default(1)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  codeGroupCustomers Customer[] @relation("CustomerCodeGroup")
+  creditTermCustomers Customer[] @relation("CustomerCreditTerm")
+  files CustomerFile[]
+  @@index([kind,active,name,id],map:"customer_options_kind_active")
+  @@map("customer_options")
+}
+
+model CustomerCreateRequest {
+  id String @id @db.Uuid
+  actorId String @map("actor_id") @db.Uuid
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  customerId String @unique @map("customer_id") @db.Uuid
+  payload Json
+  digest String
+  status String @default("pending")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  files CustomerFile[]
+  @@map("customer_create_requests")
+}
+
+model CustomerFile {
+  id String @id @db.Uuid
+  requestId String @map("request_id") @db.Uuid
+  request CustomerCreateRequest @relation(fields:[requestId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  documentTypeId String @map("document_type_id") @db.Uuid
+  documentType CustomerOption @relation(fields:[documentTypeId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  name String
+  type String
+  size Int
+  path String @unique
+  digest String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([requestId],map:"customer_files_request_idx")
+  @@map("customer_files")
+}
+
 model StockReceipt {
  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
  code String @unique
@@ -185,8 +232,10 @@ enum ProductStatus {
 
 model User {
   productCreateRequests ProductCreateRequest[]
+  customerCreateRequests CustomerCreateRequest[]
   managedTerritories SalesTerritory[] @relation("TerritoryManager")
   salesTerritories SalesTerritory[] @relation("TerritorySales")
+  territorySalesMemberships SalesTerritorySales[]
   stockReceipts StockReceipt[]
   stockMovements StockMovement[]
   receiptRevisions ReceiptRevision[]
@@ -380,7 +429,7 @@ model Customer {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
-  status String @default("ใช้งานอยู่")
+  status String @default("ใช้งาน")
   category String @default("")
   province String @default("")
   owner String @default("")
@@ -392,6 +441,18 @@ model Customer {
   territory SalesTerritory? @relation(fields: [territoryId], references: [id], onDelete: Restrict)
   @@index([territoryId])
   notes String @default("")
+  codeGroupId String? @map("code_group_id") @db.Uuid
+  codeGroup CustomerOption? @relation("CustomerCodeGroup", fields: [codeGroupId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  sequence Int?
+  contactName String @default("") @map("contact_name")
+  phone String @default("")
+  creditTermId String? @map("credit_term_id") @db.Uuid
+  creditTerm CustomerOption? @relation("CustomerCreditTerm", fields: [creditTermId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  creditDays Int? @map("credit_days")
+  creditLimit Decimal? @map("credit_limit") @db.Decimal(14, 2)
+  licenseStatus String @default("") @map("license_status")
+  licenseExpiresAt DateTime? @map("license_expires_at") @db.Date
+  details Json?
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
@@ -399,6 +460,7 @@ model Customer {
   deleteReason String? @map("delete_reason")
   @@index([deletedAt, createdAt])
   @@index([status])
+  @@index([province], map: "customers_province_idx")
   @@map("customers")
 }
 
@@ -423,6 +485,7 @@ model CustomerGroup {
 }
 
 model SalesTerritory {
+  salesMembers SalesTerritorySales[]
   manager User? @relation("TerritoryManager",fields:[managerId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   sales User? @relation("TerritorySales",fields:[salesId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   orders SalesOrder[] @relation("OrderTerritory")
@@ -444,6 +507,17 @@ model SalesTerritory {
   @@index([deletedAt, createdAt])
   @@index([status])
   @@map("sales_territories")
+}
+
+model SalesTerritorySales {
+  territoryId String @map("territory_id") @db.Uuid
+  userId String @unique(map: "sales_territory_sales_user_unique") @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  territory SalesTerritory @relation(fields: [territoryId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([territoryId, userId])
+  @@map("sales_territory_sales")
 }
 
 model CustomerDocument {

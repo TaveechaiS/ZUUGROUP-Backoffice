@@ -1,0 +1,7 @@
+
+# TASK-228 — เขตขายก่อนแล้วหน้าสร้างลูกค้า — 6 ตุลาคม 2569
+
+APPROVED UI ตามคำสั่งล่าสุด: ACTIVE/Specs/Plan → territories listเพิ่มanchor/detailตัวอย่าง/create redirectเข้าฟอร์ม/detailไม่มีAPI → customers/createใช้details/summary/input/spacing/footerตามproducts/create กับข้อมูลในSpecs9 ไม่กำหนดกฎOPEN → route/preview checks/scoped lint/type. ไฟล์territories/page.tsx, create/page.tsx, [id]/page.tsx, customers/create/page.tsx, scripts/test-route-pages.mjs/test-territory-fields.mjs และdocs/Task228. ตรวจรับเพิ่มเขตเข้าฟอร์มเดิม/เปิดตัวอย่างเขตได้; เพิ่มลูกค้าเห็น5หมวดพับได้และช่องข้อมูลครบ บันทึกและอัปโหลดปิดไว้ ไม่มีAPIของหน้าpreview. ไม่ทำDB/Auth/งานuser225.
+ผล TASK-228: IMPLEMENTED / WAITING_FOR_UAT (UI TEXT PREVIEW). เพิ่มเขตredirectเข้าฟอร์มanchorเดิม รายการ3เขตเปิดรายละเอียดตัวอย่างได้ ไม่มีAPI ทั้ง3routes. หน้าสร้างลูกค้า5กล่องพับสไตล์สินค้า ข้อมูลตามSpecs9 มีช่องทั่วไป/ติดต่อ/ที่อยู่/เขตชำระเงิน/เอกสารพร้อมวันหมดอายุ. ช่อง/บันทึก/อัปโหลดปิดไว้ ไม่กำหนดOPENหรือทำDB/Auth. type-check/scoped lint/diff/offlinepreview/route77ผ่าน. คำถามข้อมูลจริงยังไม่มีคำตอบจึงรักษาtextตามคำสั่งล่าสุด ไม่ทำuser225ต่อ ไม่มีcommit/push.
+
+⚠️ ต้องทดสอบโดยคุณ: ตั้งค่า→เขตขาย เปิดดูรายละเอียดตัวอย่างทั้ง3เขตและกลับรายการได้; /customers/territories/create ต้องพาเข้าฟอร์มบนรายการ. ลูกค้า→เพิ่มลูกค้า ควรเห็น5หมวดพับได้เหมือนเพิ่มสินค้า จอใหญ่2คอลัมน์/มือถือ1คอลัมน์ ช่องข้อมูลครบ แต่บันทึก/อัปโหลดยังปิด ไม่มีข้อมูลจริงถูกบันทึก. ตรวจภาพจริงในเว็บและแจ้งปรับfieldsต่อได้; sessionนี้ไม่มีbrowserให้ตรวจภาพ.

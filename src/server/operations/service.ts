@@ -1018,7 +1018,7 @@ export async function orderWrite(actor: Actor, raw: unknown, orderId?: string) {
   });
 }
 const orderSelect = Prisma.sql`o.id,o.code,o.name,o.status,o.customer_id AS "customerId",COALESCE(c.name,'-') AS "customerName",COALESCE(t.name,'-') AS "territoryName",COALESCE(m.name,'-') AS "managerName",COALESCE(s.name,'-') AS "salesName",COALESCE(creator.name,o.owner) AS "createdByName",o.created_by_id AS "createdById",COALESCE(approver.name,'-') AS "approvedByName",COALESCE(finisher.name,'-') AS "completedByName",o.return_reason AS "returnReason",o.notes,COALESCE(o.amount,0)::text AS amount,o.created_at AS "createdAt",o.updated_at AS "updatedAt",o.workflow_managed AS "workflowManaged"`;
-const orderFrom = Prisma.sql`sales_orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN sales_territories t ON t.id=o.territory_id LEFT JOIN users m ON m.id=t.manager_id LEFT JOIN users s ON s.id=t.sales_id LEFT JOIN users creator ON creator.id=o.created_by_id LEFT JOIN users approver ON approver.id=o.approved_by_id LEFT JOIN users finisher ON finisher.id=o.completed_by_id`;
+const orderFrom = Prisma.sql`sales_orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN sales_territories t ON t.id=o.territory_id LEFT JOIN users m ON m.id=t.manager_id LEFT JOIN LATERAL (SELECT string_agg(u.name,', ' ORDER BY u.name,u.id) AS name FROM sales_territory_sales member JOIN users u ON u.id=member.user_id WHERE member.territory_id=t.id) s ON true LEFT JOIN users creator ON creator.id=o.created_by_id LEFT JOIN users approver ON approver.id=o.approved_by_id LEFT JOIN users finisher ON finisher.id=o.completed_by_id`;
 export async function orderRead(actor: Actor, params: URLSearchParams, orderId?: string) {
   return getPrismaClient().$transaction(
     async (tx) => {

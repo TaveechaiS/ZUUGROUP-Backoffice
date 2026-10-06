@@ -1,5 +1,303 @@
 # งานที่กำลังทำ
 
+## TASK-271 — สถานะลูกค้าป้ายเดียว + ตัวกรองเดียว — 2026-10-07
+
+- IMPLEMENTED / WAITING_FOR_UAT: ดู tasks/TASK-271-single-status.md.
+
+## TASK-267–270 — รอบปิดลูกค้า/เขต (Admin) — 2026-10-07
+
+- 267–270 ทั้งหมด IMPLEMENTED/WAITING_FOR_UAT (7 ต.ค. 2569). เดิม: 267 เตือนใบอนุญาต30วัน+จังหวัดซ้ำ+ชื่อเขต, 268 แก้ไขลูกค้า/สถานะ/ลบกู้คืน/ผู้สร้างผู้แก้, 269 แก้ไขลบเขต/ลูกค้าในเขต/ตั้งผู้จัดการSales, 270 ที่อยู่ไทย. ไม่ทำสิทธิ์มองเห็นของ Sales (เจ้าของพักไว้). ทำตามลำดับ ดู tasks/TASK-267..270.
+
+## TASK-266 — ตัวกรองสถานะลูกค้า — 2026-10-07
+
+- IMPLEMENTED / WAITING_FOR_UAT: API licenseStatus + filters.licenseStatuses, select สถานะในหน้า. ดู tasks/TASK-266-customer-status-filter.md.
+
+## TASK-265 — สีสถานะ + ย้ายคอลัมน์สถานะลูกค้าไปท้าย — 2026-10-07
+
+- IMPLEMENTED / WAITING_FOR_UAT: StatusBadge กลางเพิ่ม ผ่าน/ต้องแก้เอกสาร/ไม่ผ่าน; คอลัมน์สถานะท้ายตาราง. ดู tasks/TASK-265-customer-status-column.md.
+
+## TASK-264 — ลูกค้าตัวอย่าง 15 ราย + เขต ออก/ตก/ใต้ — 2026-10-07
+
+- DONE / WAITING_FOR_UAT: สร้างเขต ออก/ตก/ใต้ + ลูกค้าตัวอย่าง 15 ราย (PHA-0001–0005, CLN-0001–0003, HOS-0001–0003, WSL-0001–0002, GOV-0001–0002) ผ่านโค้ดจริงพร้อม audit; รันซ้ำไม่ซ้ำ. ดู tasks/TASK-264-customer-demo-data.md. Scope scripts/seed-customer-demo.mjs + ข้อมูล DB เท่านั้น ไม่แก้โค้ดแอป.
+
+## TASK-263 — ลูกค้า DB/API/Postman/เชื่อมหน้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: DB+bucket ลง Supabase, API /api/customers/**, หน้า list/create/detail เชื่อมจริง, Postman local 9 คำขอ. test-customer-full 10 checks + regression ผ่าน, tsc/eslint/build ผ่าน; ยังไม่มี browser UAT. ดู TASK-263.
+- IN_PROGRESS / OWNER_APPROVED: เริ่มหลัง TASK-262. ดู tasks/TASK-263-customer-live.md สำหรับ scope/ลำดับ/ไฟล์.
+
+## TASK-262 — ข้อมูลพื้นฐานลูกค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: migration+seed ลง Supabase แล้ว (5/4/5 แถว, RLS, revoke), API /api/customer-options, หน้า /settings/customer-options + เมนู, Postman local 4 คำขอ. ทดสอบ DB rollback 10 checks ผ่าน, anonymous API 401/หน้า redirect login, type/lint ผ่าน.
+- IN_PROGRESS / OWNER_APPROVED: 5 รายการ codeGroup/creditStart/creditTerm/billingCycle/documentType, seed เฉพาะที่ตกลง. ดู tasks/TASK-262-customer-options.md.
+
+## TASK-261 — ถอนปุ่มเพิ่มและตัวกรองลูกค้าใหม่ — 2026-10-06
+
+- SUPERSEDED_BY_TASK-263: ตาราง/ตัวกรองยังคงรูปแบบเดิมแต่อ่านข้อมูลจริงจาก API แล้ว ตัวเลือกเขต/จังหวัดมาจาก DB.
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนปุ่มเพิ่มลูกค้า, การ์ดตัวกรองค้นหา/เขตขาย/จังหวัด, เพิ่มคอลัมน์จังหวัดต่อเครดิต/วงเงิน(Sortได้) ตามคำสั่งเพิ่มระหว่างงาน. scoped lint/type ผ่าน, /customers ตอบ200. ไม่API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: ถอนปุ่มเพิ่มลูกค้าขวาบน ตัวกรองการ์ดขาวแถวเดียว ค้นหา/เขตขาย/จังหวัด. Scope customers/page.tsx, ACTIVE/Specs/Plan/Task261. ไม่API/DB/แก้create.
+
+## TASK-260 — ตารางลูกค้า6คอลัมน์ตามแบบที่อนุมัติ — 2026-10-06
+
+- IN_PROGRESS / OWNER_APPROVED_UI_PREVIEW: เจ้าของOKข้อเสนอตาราง6คอลัมน์ code/บริษัทจังหวัด/ติดต่อเบอร์/สถานะใบอนุญาตวันหมด/เครดิตวงเงิน/เขต. Scope customers/page.tsx, local-backups/TASK-260-customers-list-before.tsx, ACTIVE/Specs/Plan/Task260. บันทึก → backupหน้าlivelegacyเดิมไม่ลบDB → tablelocaltext5ตัวอย่างแยกจากข้อมูลจริง/ค้นหาSort/Pagination/StatusBadge/NotFoundกลาง → lint/type/route. สถานะตัวอย่างยังไม่ระบุ ไม่เดากฎใบอนุญาต; staticไม่มีfakeLoading ตามguide เมื่อเชื่อมต้องLoadingกลาง. ไม่API/DB/เชื่อมIDตัวอย่างหรือแก้create.
+
+## TASK-259 — ถอนกรอบช่องติ๊กลูกค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: wrappercheckboxเหลือflex/minheight/gapไม่มีborderแล้ว scopedlintผ่าน ไม่API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: เอาborder/rounded/paddingกรอบภายนอกbinarycheckboxออก คงinputติ๊กและข้อความmapping. Scope customer-choice-preview.tsx/ACTIVE/Specs/Plan/Task259. บันทึก → ถอนคลาสกรอบwrapper → scopedlint. ไม่เปลี่ยนcombobox/required/ค่าหรือDB/API.
+
+## TASK-258 — ถอนประวัติลูกค้าจากเพิ่ม — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนdetailsประวัติcreateทั้งกล่องแล้ว scopedlintผ่าน ข้อกำหนดแสดงIDบันทึกไว้สำหรับขั้นถัดไป ไม่API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: ถอนกล่องประวัติข้อมูลลูกค้าจากcreate ย้ายไปแสดงIDในขั้นหน้าแสดง. Scope page.tsx/ACTIVE/Specs/Plan/Task258. บันทึก → ถอนdetailsประวัติ → scopedlint. ไม่API/DB/ทำหน้าIDล่วงหน้าหรือแก้ประวัติสินค้า257.
+
+## TASK-257 — ประวัติข้อมูลสินค้าในIDก่อนปุ่มท้าย — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: กล่องmetadataล่างสุดก่อนfooter ใช้historyfirst/latestlazyและcreatedAtจริง แสดงBE/AsiaBangkok/LoadingNotFounderrorretry อ่านใหม่revisionหลังsave. actualcomponentlazy/actors/BE/revision/empty/errorretryและproducteditprefill/save/cancel/stale/nonAdminregression/lint/type/diffผ่าน. ไม่มีbrowserQA/DB/APIwrite.
+
+- Scopeเพิ่ม scripts/test-product-edit-page.mjs เฉพาะstubcomponentใหม่ในharnessเพื่อทดสอบพฤติกรรมแก้ไขเดิม และปรับeffectloadตามpatternasyncเดิมให้lintผ่าน ไม่mockผลbackendในโค้ดจริง.
+
+- IN_PROGRESS / OWNER_APPROVED: เพิ่มกล่องประวัติข้อมูลสินค้า4metadataผู้สร้าง/วันที่สร้าง/ผู้แก้ไขล่าสุด/วันที่แก้ล่าสุดล่างสุดก่อนยกเลิกบันทึก. Scope products/[id]/page.tsx และproduct-record-history.tsx, ACTIVE/Specs/Plan/Task257. ตรวจhistoryAPIเดิม → fetchlazyfirstasc/latestdesc limit1/createdAt fallback/noinvent → Loading/NotFound/errorกลาง/BEAsiaBangkok → lint/type/producteditregression. คงตารางแก้ไขเดิม ไม่มีDB/APIwrite/schema.
+
+## TASK-256 — ถอนยอดหนี้และเครดิตคงเหลือจากสร้างลูกค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนdl2ค่าคำนวณแล้ว scopedlintผ่าน ไม่API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: ถอนสองค่าคำนวณและข้อความอธิบายจากcreate Scope page.tsx/ACTIVE/Specs/Plan/Task256. บันทึก → ถอนdlคำนวณเครดิต → scopedlint. คงช่องเครดิตกรอก ไม่API/DB.
+
+## TASK-255 — เปิดพิมพ์ช่องลูกค้าตัวอย่าง — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนdisabledfieldset/text/textareaและรวมgenericgridbranch คงcontactrequired6. Save/เพิ่มที่อยู่/mastercombodisabledและรหัสเต็มreadonlyคง. Scopedlint/type/route77ผ่าน ไม่API/DB.
+
+- IN_PROGRESS / OWNER_FIX_APPROVED: เจ้าของแจ้งช่องพิมพ์ไม่ได้ ให้เปิดtext/textareaทั่วไปและติดต่อ/จัดส่ง/ใบอนุญาต/เครดิตในpreview. Scope page.tsx, scripts/test-route-pages.mjsปรับguarddisabledpreviewเดิม, ACTIVE/Specs/Plan/Task255. ตรวจdisabled → ถอนfieldset/input/textarea disabledเฉพาะช่องกรอก → lint/type/route. Save/เพิ่มที่อยู่/masterchoicesยังdisabledและรหัสรวมreadonly. ไม่API/DB/requiredใหม่.
+
+## TASK-254 — เลขรันลูกค้าแสดงมาให้แก้ได้ — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: sequencepreview0001แสดงเริ่มต้น/editเดิมคง Scopedlintผ่าน ไม่เลขถัดไปจริง/API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED_UI_PREVIEW: เจ้าของให้เลขรันมาให้เลยแต่แก้ได้. รอบpreviewใส่0001ตัวอย่างเริ่มต้นตามตัวอย่างเจ้าของ คงmanualeditและไม่resetเลขเมื่อเปลี่ยนกลุ่ม. Scope customer-code-preview.tsx, ACTIVE/Specs/Plan/Task254. บันทึกautoเสนอเลข/แก้ได้ → previewdefault0001 → scopedlint. เลขถัดไปจริง/locking/duplicatecheckทำขั้นDB/API ไม่เดารันแยกกลุ่มหรือรวม.
+
+## TASK-253 — Checkboxสองตัวเลือกคงที่ลูกค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: 4binarychoicescheckboxมีคำอธิบายติ๊ก/ไม่ติ๊ก labelbillingตรงid ค่าfalsevalidไม่requiredHTML. actualcomponent4pairschecked/uncheckedและmastercombo/lint/typeผ่าน ไม่มีbrowserQA/API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: ตัวเลือก2ค่าคงที่เป็นcheckboxในCustomerChoicePreview: defaultshippingใช่/ไม่, VATจด/ไม่, HQ/สาขา, วิชาชีพแพทย์/เภสัชกร. ระบุความหมายติ๊ก/ไม่ติ๊กตรงๆ ไม่มีrequiredHTMLบังคับต้องติ๊กเพราะค่าfalsevalid. Scope customer-choice-preview.tsx, customer-billing-preview.tsx(id label), ACTIVE/Specs/Plan/Task253. บันทึก → binarycheckbox/localstate/labelARIA → lint/type/actualstatechecks. ไม่defaultbusinessDB/API/เปลี่ยนrole/บล็อก.
+
+## TASK-252 — ปฏิทินทุกช่องวันเดือนปีลูกค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: expiryและวันที่ตรวจสอบใช้datepreviewกลางทั้งคู่ Scopedlintผ่าน ไม่API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: ทุกช่องวันที่createใช้datepreviewเดียวกัน เพิ่มวันที่ตรวจสอบใบอนุญาตจากtextเป็นปฏิทิน; expiryเดิมคง. วันเริ่มนับเครดิตเป็นเงื่อนไขอ้างอิงไม่ใช่วันที่จึงคงcombobox ระยะเครดิตจำนวนวันคงเดิม. Scope page.tsx, ACTIVE/Specs/Plan/Task252. บันทึก → วันที่ตรวจสอบใช้datepicker → scopedlint. ไม่API/DB.
+
+## TASK-251 — เลือกวันหมดอายุใบอนุญาต — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: localdateinputเลือกแก้ล้างได้ ใช้iconปฏิทินnativebrowser แสดงวันที่เลือกIntlBE/AsiaBangkok. Scopedlint/typeผ่าน ไม่มีbrowserQA/API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: ช่องวันหมดอายุใบอนุญาตเลือกปฏิทินได้ด้วยnative date/iconของbrowser แสดงวันเลือกเป็นพ.ศ.ในช่องpreview. Scope customers/create/page.tsx, customer-date-preview.tsx, ACTIVE/Specs/Plan/Task251. บันทึก → localclientdateinputแสดงIntlthTHBuddhist/AsiaBangkok → scopedlint/type. ไม่requiredใหม่/บล็อกยา/API/DB.
+
+## TASK-250 — ช่องลูกค้าสองคอลัมน์เท่ากัน — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: fieldsetsgrid-cols1/sm2ทั้งทั่วไปและbilling textarea smcolspan2 ไม่ใช้flexbasisเดิม. Scopedlint/diffผ่าน ไม่มีbrowserQA/API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: ช่องกรอกcreateสองคอลัมน์เท่ากันบนsmขึ้นไป มือถือหนึ่งคอลัมน์; textareaรายละเอียด/ที่อยู่ยาวเต็มแถว. Scope customers/create/page.tsx และcustomer-billing-preview.tsx, ACTIVE/Specs/Plan/Task250. บันทึก → เปลี่ยนflexbasisเป็นgrid-cols2/minmaxและtextarea col-span2 → scopedlint/diff. ช่องรหัสgrid2เดิม/เอกสารพื้นที่previewเต็มคงเดิม ไม่fields/required/API/DB.
+
+## TASK-249 — ย้ายเขตขายไปข้อมูลทั่วไป — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: เขตขายต่อชื่อบริษัทในข้อมูลทั่วไป กล่องเขตSalesและช่องSalesถอนแล้ว. Scopedlint/diffผ่าน ไม่API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: ลบกล่องเขตขายและฝ่ายขายรวมช่องSales ย้ายเขตขายต่อชื่อสถานประกอบการในข้อมูลทั่วไป. Scope customers/create/page.tsx, ACTIVE/Specs/Plan/Task249. บันทึก → ย้ายfield/ถอนsection → scopedlint/diff. คงcomboboxเขตdisabledรอเชื่อม ไม่มีrequiredใหม่/API/DBหรือเปิดงาน225.
+
+## TASK-248 — ป้ายและกล่องรหัสลูกค้าตัวอย่าง — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนป้ายกลุ่มรหัส/ซ่อนlabelเลขรันรหัสเต็ม คงaccessibilityและหัวรหัส. กล่องรหัสรวมด้านล่างmt4สีblue50placeholderรหัสลูกค้าเต็ม. Scopedlintผ่าน ไม่API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: ถอนป้ายที่มองเห็นกลุ่มรหัส/เลขรัน/รหัสเต็ม คงlabelเพื่อaccessibility; กล่องรหัสรวมreadonlyด้านล่างใช้placeholderรหัสลูกค้าเต็ม แสดงตัวอย่างตามเลือก/เลข. Scope customer-code-preview.tsx, ACTIVE/Specs/Plan/Task248. บันทึก → labelsr-only/placeholder → scopedlint. ไม่API/DB/เปลี่ยนformat.
+
+## TASK-247 — Comboboxลูกค้าและไอคอนV — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: localcomboboxVAT/HQ/defaultshipping/profession/เครดิตเลือกได้; ภูมิศาสตร์/license/master/เขตSales/creditstartdisabledpreviewมีV. sharedSearchComboboxSVGกลางและsummarydownclosed/upopen. scopedlint0warnings/type/route77/diff/actualkeyboardfocusArrowEnterEscape+tax13regressionผ่าน. ไม่มีbrowserQA/API/DB/masterdata/save.
+
+- IN_PROGRESS / OWNER_APPROVED: ปรับช่องเลือกเป็นcomboboxและSVG Vกลาง. Scope customers/create/page.tsx, customer-billing-preview.tsx, customer-choice-preview.tsx, components/ui/chevron-down.tsx, search-combobox.tsx เฉพาะicon, ACTIVE/Specs/Plan/Task247. ลำดับบันทึกเลือกfixedvsรอข้อมูล → localcomboVAT/HQ/defaultshipping/profession/creditterm → disabledcombopreviewprovince/district/subdistrict/license/result/verifier/territory/Sales/creditstart → iconVกลาง/accordiondownclosedupopen → lint/type/route/statechecks. ไม่ชุดภูมิศาสตร์ปลอม/API/DB/กฎOPEN/แก้taxvalidation.
+
+## TASK-246 — ข้อมูลภาษีบังคับและValidateเลข13หลัก — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: billingclient8ช่องดาวแดง/required/aria-required เลขสาขาคงoptional. TaxIdonBlur/แก้ไขerrorตรวจตัวเลข13ตรง ไม่ตัดเลขให้ผ่านเอง. actualcomponentcallbackchecksว่าง/12/14/อักษร/13/แก้แล้วerrorหายผ่าน พร้อมscopedlint/type/route77/diff. ไม่มีbrowserQA/API/DB/save.
+
+- IN_PROGRESS / OWNER_APPROVED: หมวดภาษี8ช่องตามเจ้าของrequiredดาวแดง: taxId/VAT/HQbranch/billingaddress/subdistrict/district/province/postcode. เลขสาขายังไม่เพิ่มrequiredเอง. Scope customers/create/page.tsx, customer-billing-preview.tsx, ACTIVE/Specs/Plan/Task246. บันทึก → isolatedclientหมวดภาษีกรอกlocalได้ → ตรวจtaxIdเฉพาะตัวเลขASCIIครบ13หลังblur/แก้ไขมีerror พร้อมaria → scopedlint/type/route. ไม่checksum/กฎVAT/ใบกำกับเพิ่มเอง ไม่API/DB/save.
+
+## TASK-245 — ปรับข้อมูลลูกค้าและเอกสารอัปโหลด — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอน3fields/ประวัติราคา หมวดเขตขายและฝ่ายขาย; ติดต่อ6ช่องดาวแดง/aria-required. เอกสาร5หมวดเลือกหลายภาพ/PDFpreview/ชื่อขนาด/เพิ่มลบ/validation10MB/คืนURLในbrowser. scopedlint/type/route77/diffผ่าน ไม่มีbrowserQA/storage/API/DB/save.
+
+- IN_PROGRESS / OWNER_APPROVED: ถอนสถานะ/เหตุผลระงับ/PriceTierและข้อความประวัติราคา; ข้อมูลติดต่อ6ช่องrequiredดาวแดง; เอกสารแนบใช้filepickerหลายไฟล์พร้อมthumbnail/ลบแบบสินค้า เฉพาะlocalpreviewภาพ/PDFตามข้อกำหนดเดิม. Scope customers/create/page.tsx, customer-attachments-preview.tsx, ACTIVE/Specs/Plan/Task245. บันทึก → fields/ดาว → localattachmentเลือก/preview/remove/revokeURLs → lint/type/route. ไม่storage/API/DB/save คงกล่องพับและงาน239ช่องอื่นยังรอ.
+
+## TASK-244 — ถอนประเภทลูกค้าจากหน้าสร้าง — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนfieldประเภทจากcreateแล้ว คงprefix/เลขรัน. Scopedlintผ่าน บันทึกประเภทตามรหัสสำหรับหน้าIDขั้นถัดไป ไม่DB/API.
+
+- IN_PROGRESS / OWNER_APPROVED: ถอนช่องประเภทลูกค้าออกจากcreate เพราะระบุด้วยกลุ่มรหัสและจะแสดงตอนดูIDแทน. Scope customers/create/page.tsx, ACTIVE/Specs/Plan/Task244. บันทึกข้อยืนยัน → ถอนfieldประเภท → scopedlint. คงกลุ่มรหัส/เลขรันเดิมและpreview ไม่เพิ่มสิทธิ์ยา/ราคาอัตโนมัติหรือข้ามไปทำหน้าID/DB/APIในขั้นนี้.
+
+## TASK-243 — รหัสลูกค้า combobox และเลขรันแก้ได้ — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: แยกclientรหัสใช้SearchCombobox local5กลุ่ม + เลขรันแก้ได้เฉพาะตัวเลข/เติม0อย่างน้อย4หลัก + รหัสรวมreadonly. กล่องทั่วไปเปิดอื่นพับ คงformpreviewdisabledส่วนอื่น/save. Scopedlint/type/route77/diffผ่าน. ไม่มีAPI/DB/เลขถัดไปจริง/duplicatecheck/browserQA. UATตามTask243.
+
+- IN_PROGRESS / OWNER_APPROVED_UI_PREVIEW: Prefix PHA/CLN/HOS/WSL/GOVตามเจ้าของ เลือกcombobox1ช่องกับเลขรัน1ช่องแก้ได้ แสดงprefix-เลขรันอย่างน้อย4หลักตามตัวอย่าง. Scope customers/create/page.tsx และcustomer-code-preview.tsx, ACTIVE/Specs/Plan/Task243. บันทึกข้อยืนยันแทนรหัสP-YY-MM → sharedSearchCombobox local+sequence+รหัสรวมแยกจากfieldsetdisabled → scopedlint/type/route. ไม่มีDB/API/เลขถัดไปจริง/ตรวจซ้ำหรือautoเปลี่ยนประเภท/ราคา/สิทธิ์. OPENขอบเขตเลขรันและเลขเกิน4หลักรอขั้นbackend; ไม่ตีความใช้เลขเริ่มต้น1จริง.
+
+## TASK-242 — ยืนยันพับทุกหมวดลูกค้าหลังปรับหน้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: เปิดเฉพาะindex0และเปลี่ยนkeyทุกกล่องเพื่อremountระหว่างrefresh; ประวัติพับ. Scopedlintผ่าน ไม่มีbrowserQA/API/DB.
+
+- IN_PROGRESS / OWNER_REQUEST: เจ้าของย้ำพับข้อมูลติดต่อ/ภาษี/จัดส่งและทุกกล่องยกเว้นแรก. Scope customers/create/page.tsx, ACTIVE/Specs/Plan/Task242. ตรวจopenเดิม → เปลี่ยนkeyกล่องเพื่อremountDOMที่อาจรักษาopenจากFastRefresh → scopedlint. คงเปิดเองได้ ไม่collapseทุกrender/API/DB.
+
+## TASK-241 — ดาวแดงเฉพาะชื่อช่องลูกค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนlegendแล้ว ดาวแดงอยู่ข้างชื่อช่องrequiredเดิม. Scopedlint/diffผ่าน ไม่มีbrowserQA/API/DB.
+
+- IN_PROGRESS / OWNER_CORRECTION: ถอนข้อความlegend “* ข้อมูลที่ต้องกรอก” ด้านบน คงดาวแดงข้างชื่อช่องrequired. Scope customers/create/page.tsx, ACTIVE/Specs/Plan/Task241. ลำดับบันทึก → ถอนlegend → scopedlint/diff. คงดาวชื่อสถานประกอบการ/สถานะและกล่องพับ ไม่กำหนดrequiredใหม่ที่รอ239 ไม่DB/API.
+
+## TASK-240 — พับกล่องลูกค้ายกเว้นกล่องแรก — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: openเฉพาะindex0 ข้อมูลทั่วไป; อีก7หมวดfieldsและประวัติไม่มีopenเริ่มต้น. ScopedESLint/diffผ่าน คงnative detailsเปิดปิดได้. ไม่มีbrowserQA/API/DB.
+
+- IN_PROGRESS / OWNER_APPROVED: หน้าcustomers/createเปิดเริ่มต้นเฉพาะข้อมูลทั่วไป ทุกหมวดอื่นรวมประวัติพับไว้และเปิดเองได้. Scope customers/create/page.tsx, Specs/Plan/Task240/ACTIVE. ลำดับบันทึก → openเฉพาะindex0/ถอนopenประวัติ → scopedlint/diff. คงfields/ดาวและpreviewเดิม; ไม่ตัดสินrequiredที่รอTASK239 ไม่DB/API.
+
+## TASK-239 — ดาวช่องบังคับหน้าสร้างลูกค้า — 2026-10-06
+
+- PARTIAL_UI_IMPLEMENTED / WAITING_FOR_FIELD_SELECTION: ใส่required flag/ดาวแดง/legend/aria-requiredแล้ว ชื่อสถานประกอบการและสถานะตามrequiredเดิม. scoped lint/typeผ่าน. ช่องใหม่ยังรอคำตอบasyncเรื่องrequiredชุดข้อมูลหลัก/ชื่อสถานะ/ทุกช่อง; ไม่เดาOPENเขต/กลุ่มหรือเงื่อนไขใบอนุญาต/เครดิต/VAT. คงdisabledpreviewและไม่API/DB.
+
+- IN_PROGRESS / FIELD_REQUIREMENTS_CLARIFICATION: เจ้าของให้ใส่ * ช่องต้องกรอก. Scope customers/create/page.tsx, Specs/Plan/Task239 และACTIVE. ลำดับตรวจข้อบังคับเดิม/OPEN → ยืนยันชุดช่องใหม่ → บันทึกrequired/conditional → ดาวแดงและคำอธิบาย → lint/type. Specsระบุบังคับเขต/กลุ่มยังOPEN, modules.jsonมีlegacy requiredไม่ใช้ตัดสินbusinessใหม่. ชื่อและสถานะเดิมเป็นrequired; รหัสยังรอสรุปวิธีสร้าง. ไม่แก้API/DB/validationจริงหรือพ้นtextpreview.
+
+## TASK-238 — ปรับหน้าสร้างลูกค้าตามข้อมูลที่ยืนยัน — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: หน้าสร้างลูกค้า9กล่องพับ text preview ครบข้อมูลทั่วไป/ติดต่อ/ภาษีออกบิล/จัดส่ง/ใบอนุญาตและวิชาชีพ/เขตและราคา/เครดิต/เอกสาร/ประวัติ. เพิ่มที่อยู่และบันทึกdisabled, ยอดหนี้วงเงินคงเหลือ/ประวัติเป็นข้อความอัตโนมัติไม่กรอก. ESLintเฉพาะไฟล์/type-check/route77/diffผ่าน. ไม่มีbrowserตรวจภาพจริง ไม่มีDB/API/upload/commit/push. UATตามTask238.
+
+- IN_PROGRESS / OWNER_APPROVED_UI_PREVIEW: เจ้าของตอบ “ok ปรับเลย” อนุมัติรายการ TASK-237 และข้อเสนอเพิ่มเติมสำหรับหน้าสร้างลูกค้า. Scope customers/create/page.tsx, Specs/Plan/Task238 และ ACTIVE. ลำดับบันทึกข้อยืนยัน → ปรับกล่องพับตามสินค้าเป็นหมวดข้อมูลทั่วไป/ภาษี/ติดต่อ/ที่อยู่ออกบิล/จัดส่ง/ใบอนุญาตและผู้ประกอบวิชาชีพ/เขตและราคา/เครดิต/เอกสาร/ประวัติ → scoped lint/type/route checks. คงข้อความตัวอย่าง disabled ไม่มีfetch/save/upload/DB/API; ประวัติเป็นข้อมูลอัตโนมัติไม่กรอก. ยังไม่กำหนดรหัส/สิทธิ์ยา/จุดบล็อก/สูตรเครดิตหรือcommissionที่OPEN. ไม่ทำTASK225ต่อและไม่แก้เขตที่ปิดรอบ.
+
+## TASK-237 — ทบทวนข้อมูลลูกค้าตามรายการเจ้าของ — 2026-10-06
+
+- REQUIREMENTS_REVIEW / DOCUMENTATION_ONLY: เจ้าของให้ข้อมูลลูกค้ารหัส/ชื่อสถานประกอบการ/ภาษี13หลัก/ประเภทที่สัมพันธ์สิทธิ์ซื้อและราคา/ติดต่อ/ที่อยู่ออกบิลและจัดส่งหลายสาขา/ใบอนุญาตและหมดอายุบล็อกสั่งยา/ผู้ประกอบวิชาชีพ/PriceTier/CreditTerm/CreditLimit/Salesเพื่อcommission/เอกสารแนบ แล้วถามข้อมูลขาดหรือไม่. Scope ACTIVE/Specs/Plan/Task237เท่านั้น. เทียบSpecs9/เขต → ตรวจแหล่งกรมสรรพากร/อย.เฉพาะส่วนที่เกี่ยว → บันทึกข้อมูลยืนยันและข้อเสนอแยกจากOPEN → ตอบรายการขาด. ไม่แก้UI/API/DB/ทำworkflowบล็อกหรือคอมมิชชัน. เขตปิดรอบเดิม.
+
+## TASK-236 — ปิดงานหน้าเขตขายรอบนี้ — 2026-10-06
+
+- OWNER_CLOSED_CURRENT_ROUND / DOCUMENTED: เจ้าของให้ปิดหน้าเขตขายและจะกลับมาอัปเดตข้อมูลภายหลัง. Scope ACTIVE/Specs/Plan/HANDOFF/Task236 เท่านั้น. อ่านสถานะ → บันทึกปิดรอบ/ผลตรวจ/จุดรอ → ยืนยันเจ้าของ. คงฟอร์มชื่อเขต/หมายเหตุ, UUIDภายในไม่มีรหัสแสดง, ตารางชื่อ/Manager/จำนวนSalesคลิกทั้งแถว, API/DBจริง/Postman4requests/LoadingNotFoundกลาง. ยังไม่มีผลUATยืนยันจากเจ้าของ ไม่ตีความเป็นผ่านUATหรืออนุมัติcommit/push/deploy. ไม่ทำงานเขตต่อหรือเปิดงานcustomer/users225โดยอัตโนมัติ.
+
+## TASK-235 — Loading/NotFound ทุกหน้าข้อมูล — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: เติมLoading/NotFoundกลางเขต/product-optionsและempty/404ที่ขาดในหน้าข้อมูลอื่น; rootnot-foundสำหรับSSR, rootloadingเดิม. AGENTS15/guideเป็นมาตรฐานถาวร. UIstatesloading-empty-error/404vs403/503/route77/producteditregression/scoped lint/type/build/diffผ่าน. ไม่API/DB/commit/push; UATตามTask235 ไม่มีbrowserตรวจภาพ.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เจ้าของให้ตารางเขตและทุกหน้าข้อมูลใช้LoadingComponent/NotFoundComponentกลางเป็นมาตรฐาน. Scope AGENTS/Specs/Plan/guide, territories2pages, settings/product-options, products list/detail/stock/listwarehouse/receipt, users list, audit, dashboard, orders list/detail, genericrecords detailที่มีAPI404/LinkedRecordPanel, rootnot-found และUIstatechecks. ลำดับบันทึกมาตรฐาน/สำรวจ → เติมloading/emptyเฉพาะdata statesที่ขาดและAPI404โดยไม่กลบerror → root404/SSRใช้rootloadingเดิม → UIloading-empty-error/route/type/lint/build. คงฟอร์ม/API/DB/กฎธุรกิจและงาน225ที่พัก ไม่สร้างloading/emptyในหน้าตัวอย่างที่ไม่มีfetch.
+
+## TASK-234 — แนวทางทำงานประจำของเจ้าของ — 2026-10-06
+
+- DOCUMENTED / OWNER_WORKFLOW_CONFIRMED: ทุกงานใช้ลำดับ หาตัวอย่างและปรับ → หน้าเพิ่ม/สร้างข้อมูลเพื่อเห็นfields → หน้าแสดงข้อมูล → DB → API/Postman → เชื่อมหน้า → ทดสอบยิงข้อมูล → เช็คโค้ด. Scope ACTIVE/Specs/Plan/Task234 เท่านั้น. อ่าน → บันทึกworkflowถาวร → ยืนยันลำดับเจ้าของ. ช่วงออกแบบใช้textก่อน ยังไม่ข้ามไปDB/API/เชื่อมจนถึงขั้นที่ตกลงไว้; businessOPENต้องสรุปก่อนimplementationตามAGENTSเดิม. ไม่แก้code/DB/APIในรอบนี้.
+
+## TASK-233 — เชื่อมเขตขายจริง DB/API/Postman — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: เชื่อมเพิ่มname/notesจริง UUIDserver/codelegacyภายใน ไม่แสดงcode; ตาราง3คอลัมน์/ค้นหาSort/Pagination/configสิทธิ์และIDdetailอ่านจริง. DBเดิมtable/index/RLSพร้อม ไม่seed/migrationซ้ำ; อ่านactive/writeAdmin. Postmanlocal+Cloudเดิมเพิ่มfolderเขต4requestsพร้อมauth/tests/examples อ่านกลับตรงกันและส่วนเดิมไม่เปลี่ยน. DBrollback19checks/legacy17concurrency cleanup/UIpayload-lock-draft-auth/route77/scoped lint/type/buildผ่าน; HTTPจริงanonymousGETlist/options/detailและPOST401. DBreadback0เขต/0สมาชิก/0testrows; advisorsno-policyINFOเป็นserver-only RLS+revokeclientsเดิม. ไม่commit/push/deploy ไม่ทำusers/customer225หรือapproval. UATตามTask233.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เจ้าของอนุมัติDB/API/Postman/เชื่อมเว็บเขตขาย และตอบใช้IDภายในไม่แสดงรหัส. Scope territories list/create/detail, records validation/service/handler, Postman collection local+Cloudเดิม/README/API contracts, scripts live rollback/API/UI tests และ Specs/Plan/Task233. ลำดับcontract/docs → ตรวจDBเดิม/RLS/index (มีtable/memberพร้อมและ0เขต ไม่seed) → createชื่อ/หมายเหตุ UUIDserver/codelegacyภายใน/statusdefault → authอ่านlogin/writeAdmin/validation/audit → liveform/listpagingsearchsort/IDdetail → localPostmanfolder4requests+Cloud/readback → rollbackDB/auth/UI/type/lint/build. คงสมาชิกเดิม/legacy API ไม่ทำusers/customer225/approvalworkflow ไม่commit/push/deploy.
+
+## TASK-232 — ถอนรายการจากเพิ่มเขต — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนรายการ ฟอร์มเต็มพื้นที่ scoped lint/diffผ่าน ไม่API/DB/commit/push.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: ถอนช่องรายการด้านซ้ายส่วนเพิ่มเขต ฟอร์มชื่อ/หมายเหตุเต็มพื้นที่. Scope territories/page.tsx/Specs/Plan/Task232. บันทึก → ถอนselector/gridสองคอลัมน์ → scoped lint/diff. คงตาราง/rownavigation/textpreview ไม่API/DB.
+
+## TASK-231 — ตารางเขตกดทั้งแถว — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนจัดการ ตาราง4คอลัมน์ คลิกทั้งแถว/Enter/SpaceเปิดIDตัวอย่าง. offline navigation/scoped lint/typeผ่าน ไม่API/DB/commit/push.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: ถอนคอลัมน์จัดการจากตารางเขต คลิกทุกตำแหน่งของแถวเพื่อเปิดหน้าID รองรับEnter/Space. Scope territories/page.tsx, test-territory-fields และ Specs/Plan/Task231. ลำดับบันทึก → rownavigation/4คอลัมน์ → offline navigation/scoped lint/type. คงtextpreviewไม่มีAPI/DB.
+
+## TASK-230 — เพิ่มเขตเฉพาะชื่อและหมายเหตุ — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ถอนช่องกรอกรหัส ชื่อเต็มความกว้าง/หมายเหตุคงเดิม. scoped ESLint/type-check/diffผ่าน; คงtextpreview ไม่API/DB/commit/push.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: ฟอร์มเพิ่มเขตเหลือชื่อเขต/หมายเหตุ ไม่กรอกรหัส ตามข้อยืนยันล่าสุดแทน TASK223 เรื่องกรอกรหัส. Scope territories/page.tsx และ Specs/Plan/Task230 เท่านั้น. ลำดับบันทึก → ถอนช่องรหัส/ปรับชื่อเต็มความกว้าง → scoped lint/type/diff. คงรหัสตัวอย่างในตาราง/รายละเอียด ยังไม่กำหนดวิธีสร้างรหัสจริง ไม่API/DB/งานผู้ใช้ลูกค้า.
+
+## TASK-229 — ยืนยันหน้าที่ของเขต — 2026-10-06
+
+- DOCUMENTATION_ONLY / OWNER_RULE_CONFIRMED: เขตเป็นกลุ่มพื้นที่ รวมผู้จัดการได้ไม่เกิน1คน ฝ่ายขายหลายคน ลูกค้าหลายราย; คงข้อยืนยันSalesหนึ่งคนต่อหนึ่งเขตเดิม. ผู้จัดการของเขตใช้เป็นฐานจัดผู้อนุมัติเอกสารในอนาคต ยังไม่กำหนดworkflow/สิทธิ์หรือระบบอนุมัติอัตโนมัติ. Scope ACTIVE/Specs/Plan/Task229 เท่านั้น. อ่านข้อกำหนด → บันทึกความสัมพันธ์/จุดที่ยังรอรายละเอียด → อธิบายเจ้าของ. ไม่แก้code/API/DB/UI หรือทำงาน225ต่อ.
+
+## TASK-228 — จบตัวอย่างเขตแล้วเริ่มหน้าสร้างลูกค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT (UI TEXT PREVIEW): เพิ่มเขตเข้าฟอร์มanchor รายการ3เขตเปิดรายละเอียดตัวอย่างได้ ไม่มีAPIทุกrouteเขต. สร้างลูกค้า5กล่องพับตามสินค้า มีfieldsตามSpecs9 คงtext/disabledไม่บันทึกหรืออัปโหลด. type/scoped lint/diff/offlinepreview/route77ผ่าน. รอเจ้าของตรวจหน้าจอ/fieldsและคำตอบข้อมูลจริง ไม่DB/Auth/commit/push; task225พัก.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เจ้าของให้เก็บเพิ่ม/แสดงเขตก่อน แล้วทำหน้าสร้างลูกค้าเหมือนสินค้าเพื่อพิจารณาข้อมูลจากใหญ่ไปย่อย. ยึดข้อความตัวอย่างจาก TASK-227; ถามแยกว่าจะเชื่อมข้อมูลจริงหรือไม่ ยังไม่ถือว่าอนุมัติ backend. Scope territories list/create/detail เฉพาะ preview และ customers/create/page.tsx, route/territory preview tests, Specs/Plan/Task228. ลำดับเอกสาร → ให้ createเขตเข้าฟอร์มตัวอย่างเดียวกับรายการ/detailตัวอย่างไม่มีAPI → สร้างลูกค้ากล่องพับตามproductcreateด้วยfieldsในSpecs9/เดิม → type/lint/offline route/preview checks. ลูกค้าแสดงข้อมูลทั่วไป/ติดต่อ/ที่อยู่/เขตและชำระเงิน/เอกสาร; codeเป็นplaceholderไม่กำหนดรูปแบบปี/ลำดับOPEN; ไม่เดาapproval/กลุ่ม/ราคา/สิทธิ์หรือDBschema. ไม่ทำTASK225ผู้ใช้ต่อ.
+
+## TASK-227 — เขตขายใช้ข้อความตัวอย่างก่อน — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: หน้าใช้ข้อความตัวอย่าง3แถว คงlayoutตามข้อมูลพื้นฐานสินค้า. ไม่มีservice/http/API/effects/CRUD/detailnavigation; controlsdisabled. Type-check/scoped ESLint/offline renderผ่าน. ไม่DBwrite/commit/push; TASK-225ยังพักตามเดิม.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เจ้าของแก้ขอบเขต TASK-226 ให้ทำรูปแบบอย่างเดียว ใช้ text ตัวอย่าง ยังไม่เชื่อม/จัดการข้อมูล. Scope territories/page.tsx, test-territory-fields เฉพาะหน้า preview และ Specs/Plan/Task227. ลำดับบันทึก → ถอน API/effects/create/edit/restore/detail navigation จากหน้ารายการ → ข้อความตารางตัวอย่าง/ช่องกรอกและปุ่ม disabled คง layout → type/lint/offline render ตรวจไม่มี data transport. ไม่แก้/ลบข้อมูลฐานข้อมูลหรือทำงาน TASK-225 ต่อ.
+
+## TASK-226 — รูปแบบเขตขายตามข้อมูลพื้นฐานสินค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: หน้าเขตใช้ layout/คลาสหน้า product-options แล้ว: รายการ/ลบแล้ว, ฟอร์มเพิ่ม/แก้ในหน้า, ค้นหา, ตาราง5คอลัมน์รวมจัดการ, Pagination. คงรายละเอียด/restore/countและไม่ส่งสมาชิกหรือข้อมูลซ่อนตอนแก้; editยืนยัน/version, mutation lock, Adminเท่านั้นที่เห็นฟอร์ม. Type-check/scoped ESLint/actual UI+payload tests/route77ผ่าน; diffเฉพาะงาน226ผ่าน. ไม่มีbrowserตรวจภาพจริงและไม่มีDBwrite/commit/pushในงานนี้. งาน225ยังพัก.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เปลี่ยนหน้ารายการเขตขายเป็น layout เดียวกับ settings/product-options: selector รายการ/ลบแล้ว และฟอร์มเพิ่ม/แก้รหัสชื่อหมายเหตุด้านบน, ค้นหา/ตาราง/จัดการ/Pagination ด้านล่าง. คงข้อมูลเขต ผู้จัดการ จำนวน Sales ไม่มีสถานะ/เลือกคนในฟอร์ม. Scope territories/page.tsx, scripts/test-territory-fields.mjs และเอกสาร Specs/Plan/Task226. ลำดับบันทึก → ใช้คลาส/องค์ประกอบหน้าอ้างอิง → ต่อ CRUD เดิมพร้อม version/confirmation/locks/restore/สิทธิ์ → type/lint/UI payload checks. ไม่แก้ user/customer Combobox/API/DB ของ TASK-225.
+
+- TASK-225: PAUSED_BY_OWNER 2026-10-06 — เจ้าของแจ้งว่ายังไม่ต้องทำ เป็นแนวทางไว้ใช้ภายหลัง. มีไฟล์ที่แก้บางส่วนและทดสอบระหว่างทางก่อนหยุด; ยังไม่ส่งมอบ/commit/push. ไม่ทำงานต่อในรอบ TASK-226.
+
+## TASK-225 — เลือกเขตจากลูกค้าและผู้ใช้งาน — 2026-10-06
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: แนวทางล่าสุดแทนการเลือกคนใน TASK-224: เพิ่ม/แก้เขตเฉพาะข้อมูลเขต; เพิ่ม/แก้ลูกค้าและผู้ใช้งานเลือกเขตด้วย Combobox. คงหลาย Sales ต่อเขต/หนึ่ง Sales ต่อหนึ่งเขต และ Manager หนึ่งคนต่อเขตตามกฎเดิม. Scope ฟอร์มเขต/ลูกค้า/ผู้ใช้, Shell routes, users API/validation/service/types, assignment transaction และ Specs/Plan/Task225/tests. ลำดับบันทึกเอกสาร → ถอน picker คนโดยรักษาข้อมูลเดิม → Combobox เขตในฟอร์มผู้ใช้ (Sales/Manager ตามบทบาทเดิม) และเปิดฟอร์มลูกค้าที่มี picker อยู่แล้ว → transaction/recheck/audit/ป้องกันเปลี่ยนบทบาทขณะผูกเขต → type/lint/ทดสอบ. ไม่เพิ่ม Role/กฎ OPEN หรือถอด migration ที่เก็บข้อมูลสมาชิก.
+
+
+## TASK-224 — หลายSalesต่อเขต หนึ่งSalesต่อหนึ่งเขต — 2026-10-06
+
+- IN_PROGRESS / OWNER_RULE_APPROVED: เจ้าของอนุมัติเขตมีSalesหลายคนไม่จำกัด แต่Salesคนหนึ่งอยู่เขตเดียว. เปลี่ยนข้อจำกัด1SalesของSpecsเดิม; Manager1ต่อเขตคงเดิม. Scope additive prisma schema/migration, records service/validation/types, prisma singletonrefresh, operationsชื่อSalesprojection, territories create/detail/list, formpicker, scriptsmigration-tests และ ACTIVE/Specs/Plan/Task224. เอกสาร → membershipuniqueuser/RLS/backfilllegacyพร้อมbackupreadback → APIarrays/locks/atomic/audit/count-sort/customer-orderprojection → UIเลือกหลายคน/ลบคนจากdraft/prefill/detail → testsrollback/concurrency/validation/UI/auth/lint/type/build. คงURL/ข้อมูลธุรกิจอื่น/กฎOPENที่ไม่เกี่ยว ไม่สร้างผู้ใช้จริงหรือseed.
+
+
+## TASK-223 — ลดข้อมูลหน้าเขตขาย — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ตารางเหลือรหัส/ชื่อ/Manager/จำนวนSales (ตีความนับเฉพาะSalesตามคอลัมน์เดิม ยังไม่มีคำตอบเปลี่ยนนิยาม). ถอนสถานะ/พื้นที่/ผู้บันทึกทั้งlist/create/detail และลูกค้าจากตาราง. รหัสrequired/แสดง; รายชื่อคนและลูกค้ายังอยู่หน้าID. Createใช้statusเดิมใช้งานอยู่; editไม่ส่งstatus/area/ownerจึงไม่ล้างข้อมูลเก่า. SortsalesCountก่อนpaging/allowlist. UI/payload/validator/route77/SQLsortก่อนpaging/unknownsortreject/ESLint/diffผ่าน; TypeScriptติดgeneratedtypesเดิม. ไม่DBwrite/schema/เปลี่ยนจำนวนคนต่อRole. UATตามTask223.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เจ้าของให้รหัสเขตกรอกและแสดง; ถอนสถานะ/พื้นที่ดูแล/ผู้ดูแลผู้บันทึกจากUIเขต และถอนลูกค้า/พื้นที่จากตาราง; Salesเปลี่ยนจากชื่อเป็นจำนวนคน โดยชื่อรายคนอยู่หน้าID. Scope territories/list-create-detail, record service sortสำหรับcountถ้าต้องใช้, route test exceptionตามfieldsที่ถอน, scripts/test-territory-fields.mjs, ACTIVE/Specs/Plan/Task223. ถามcountเฉพาะSalesหรือรวมManagerแล้ว รอคำตอบ ขณะนี้ทำส่วนลดfieldsอิสระได้. คงข้อมูลเก่า/API fields; createใช้statusค่าเริ่มต้นเดิมใช้งานอยู่, editส่งเฉพาะfieldsที่ยังแสดงไม่ล้างstatus/area/owner. ไม่schema/DBwrite/เปลี่ยน1คนต่อRole/กฎOPEN. เอกสาร → fields/list → countตามคำตอบ → render/payload/sort/lint/type/diff.
+
+
+## TASK-222 — เขตขายในตั้งค่าระบบ — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: เขตขายอยู่Sideรองตั้งค่าแล้ว ไม่มีเมนูหลักเขต. Shellแสดงรายการ/เพิ่ม/รายละเอียดและTopbarตั้งค่า คงURLเดิม. ตาราง7คอลัมน์ไทย/ManagerSalesชื่อจริง/mobile/StatusBadge/sort/paging; รายละเอียดแสดงผู้รับผิดชอบ; อ่านต้องlogin สร้าง/แก้Adminเดิม. Scoped ESLint/route77/diff และ actual-component VM (active3routes/Shellchildren/columns/scope/names/pageSize20/canWrite) ผ่าน. TypeScriptยังติด generated route types/Prisma details-codeGroupIdเดิม. ไม่มีbrowserให้ตรวจภาพ ไม่มีDBwrite/API/schema/กฎOPENใหม่. UATตามTask222.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เจ้าของให้ลองทำตามข้อเสนอหน้าแยกเขตขายใต้ตั้งค่าระบบ. Scope navigation.ts, settings-secondary-sidebar.tsx, admin-shell.tsx, customers/territories/page.tsx และรายละเอียด/เพิ่มปรับชื่อไทย/แสดงManagerSales, layoutเขต requireActiveUser, ACTIVE/Specs/Plan/Task222. คงURL/API/กฎเดิม ไม่แก้DB/กฎOPEN. ลำดับเอกสาร → ย้ายทางเข้าเมนูและShellchildren → ตารางเขตเฉพาะ/search/status/sort/paging/เพิ่ม/รายละเอียด → ตรวจrole/layout/route/lint/typeและpreview. แยกจากรอบสินค้า/สต็อกที่ปิดแล้ว.
+
+
+## TASK-221 — ปิดงานรอบหน้าสินค้าและสต็อก — 2026-10-06
+
+- OWNER_CLOSED_CURRENT_ROUND / DOCUMENTED: เจ้าของให้ปิดงานหน้าสินค้าและสต็อกรอบนี้ และจะกลับมาอัปเดตข้อมูลภายหลัง. Scope เฉพาะ ACTIVE/Specs/Plan/HANDOFF/Task221; บันทึกปิดรอบและ backlog จากผลตรวจจริง ไม่แก้โค้ด/DB หรือปิด UAT ที่ยังไม่มีผลยืนยัน. ลำดับตรวจสถานะ → บันทึกสรุปและรายการค้าง → diff. สถานะเก่าด้านล่างเป็นประวัติ ให้ใช้บันทึกปิดรอบนี้เป็นสถานะล่าสุด.
+
+
+## TASK-220 — ย้ายสต็อกต่อจากสินค้า — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: ย้าย /products/stock ต่อ /products แล้ว. Scoped ESLint/diff ผ่าน ตรวจลำดับ main menu ทั้ง4Role และ entryสต็อกไม่ซ้ำผ่าน. รอเจ้าของตรวจ desktop/mobile ตาม Task220.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เจ้าของให้ย้ายเมนูหลักสต็อกไปต่อจากสินค้า. Scope เฉพาะลำดับรายการ /products/stock ใน src/config/navigation.ts และ ACTIVE/Specs/Plan/Task220. ลำดับเอกสาร → ย้าย entry ให้ถัดจาก /products → scoped ESLint/ตรวจลำดับและเมนูไม่ซ้ำ/diff. คง URL/label/สิทธิ์/Side รอง และงานก่อนหน้า.
+
+
+## TASK-219 — เปลี่ยนคำสต็อกสินค้าเป็นสต็อก — 2026-10-06
+
+- COMPLETED: เปลี่ยนชื่อเมนู/Topbar/รายงาน/เพิ่ม/ประวัติ/กลับ/aria-label และคำอธิบายเป็นสต็อกครบแล้ว. Scoped ESLint และ diff ผ่าน ค้นใน src ไม่พบสต็อกสินค้า. เปลี่ยนข้อความเท่านั้น.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เปลี่ยนข้อความสต็อกสินค้าเป็นสต็อกทุกจุดใน src รวมเมนู/Topbar/รายงาน/เพิ่ม/ประวัติ/กลับ/aria-label และคำอธิบาย navigation. Scope navigation.ts, admin-shell.tsx, stock-secondary-sidebar.tsx, products/stock/page.tsx, products/stock/receipts/[id]/page.tsx และ ACTIVE/Specs/Plan/Task219. ลำดับเอกสาร → เปลี่ยนข้อความ9จุด → scoped ESLint/ค้นชื่อเก่า/diff. เปลี่ยนข้อความเท่านั้น คง URL/behavior/API/DB และงานก่อนหน้า.
+
+
+## TASK-218 — เปลี่ยนชื่อหมวดเป็นสินค้า — 2026-10-06
+
+- COMPLETED: เปลี่ยนชื่อเมนูหลัก/Topbar/aria-label เป็นสินค้าแล้ว. Scoped ESLint และ diff ผ่าน ค้นใน src ไม่พบชื่อสินค้าและสต็อกเดิม. เปลี่ยนข้อความเท่านั้น ไม่เปลี่ยน behavior/API/DB.
+
+- IN_PROGRESS / OWNER_REQUEST_APPROVED: เจ้าของให้เปลี่ยนสินค้าและสต็อกเป็นสินค้า. Scope navigation.ts (ชื่อเมนูหลัก), admin-shell.tsx (Topbar หมวดสินค้า), product-secondary-sidebar.tsx (aria-label) และ ACTIVE/Specs/Plan/Task218. ลำดับเอกสาร → เปลี่ยนข้อความทั้ง3จุด → scoped ESLint/ค้นชื่อเก่า/diff. ไม่เปลี่ยน URL/เมนูสต็อก/behavior/API/DB. ไม่แก้ไฟล์ของ Task217.
+
+
+## TASK-217 — แก้ pg concurrent query warning — 2026-10-06
+
+- IMPLEMENTED / WAITING_FOR_UAT: คิว query ต่อ transaction ที่ adapter พร้อม drain ก่อน release และ global client refresh แล้ว. ทำซ้ำก่อนแก้พบ warning; หลังแก้อ่าน relation/concurrent count-list ใน DB READ ONLY 3รอบไม่พบ warning. Offline queue/order/rejection/recovery/independent transactions และ productsstock14/editpage ผ่าน. Scoped ESLint ผ่าน. TypeScript ยังติด generated route types และ generated Prisma details/codeGroupId ที่พบก่อนงานนี้; ไม่มี error ในไฟล์ adapter ใหม่. ไม่เปลี่ยน DB/schema/ข้อมูลธุรกิจ. UAT ตาม Task217.
+
+- IN_PROGRESS / OWNER_ERROR_REPORT: ทำซ้ำคำเตือนด้วย product relation read ใน READ ONLY transaction แล้ว trace มาจาก PgTransaction.performIO. Scope เฉพาะ src/server/db/serialized-pg.ts (ใหม่), prisma.ts, scripts/test-serialized-pg.mjs และ ACTIVE/Specs/Plan/Task217. เอกสาร → คิว queryRaw/executeRaw ต่อ transaction และรอก่อน release → เปลี่ยน factory/refresh global client → offline concurrency/error/independent transactions และ DB read-only reproduction → ESLint/type/diff. ไม่แก้ข้อมูลธุรกิจ/schema/หน้าสินค้า/roles.
+
+
 ## TASK-216 Checkpoint — 2026-10-06
 
 - CHECKPOINT_READY: เอกสาร Checkpoint/HANDOFF/Specs/Plan/Task216พร้อม; TypeScript/ESLintไฟล์โค้ดเปลี่ยนทั้งหมด/diffผ่าน. เก็บงาน TASK154–215 เป็น local commit บน AI; hashจริงตรวจ Git log หลัง commit. คง WAITING_FOR_UAT ไม่ push/deploy/แก้DB. ไม่รวม secrets/backups/src generated/.next; next-env.d.ts เป็น ambient definition ที่ tracked และเปลี่ยนตาม production build.

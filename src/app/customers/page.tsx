@@ -1,485 +1,310 @@
 'use client';
-import PaginationControls from '@/components/ui/pagination-controls';
-import type { RecordListResponse } from '@/types/api/records';
 
-import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Get, Update } from '@/service/http';
-import SortableTable, {
-  useTableSort,
-  withTableSort,
-  TableSortControls,
-} from '@/components/ui/sortable-table';
-import { SearchIcon } from '@/components/icons/status-icons';
+import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sortable-table';
+import PaginationControls from '@/components/ui/pagination-controls';
+import StatusBadge from '@/components/ui/status-badge';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
-import SuccessAlertComponent from '@/components/ui/success-alert-component';
-import StatusBadge from '@/components/ui/status-badge';
+import { SearchIcon } from '@/components/icons/status-icons';
+import { Get } from '@/service/http';
+import { CUSTOMER_LIST_STATUSES, customerListStatus } from '@/config/customers';
+import type { CustomerListResponse } from '@/types/api/customers';
 
-import type { RecordConfig, RecordRow, RecordFilters } from '@/types/api/records';
+const columns = [
+  'code',
+  'name',
+  'contactName',
+  'creditDays',
+  'province',
+  'territoryName',
+  'status',
+];
+const money = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 2 });
+const cellClass = 'px-5 py-4 align-top';
+const ALL = '';
 
-const LOCAL_PAGE = {
-  key: 'customers',
-  model: 'Customer',
-  table: 'customers',
-  page: '/customers',
-  fields: [
-    {
-      key: 'code',
-      label: 'รหัส / เลขอ้างอิง',
-      type: 'text',
-      required: true,
-    },
-    {
-      key: 'name',
-      label: 'ชื่อ / หัวข้อ',
-      type: 'text',
-      required: true,
-    },
-    {
-      key: 'status',
-      label: 'สถานะ',
-      type: 'text',
-      required: true,
-    },
-    {
-      key: 'category',
-      label: 'กลุ่มลูกค้า',
-      type: 'text',
-      required: false,
-    },
-    {
-      key: 'province',
-      label: 'จังหวัด',
-      type: 'text',
-      required: false,
-    },
-    {
-      key: 'owner',
-      label: 'ผู้ดูแล / ผู้บันทึก',
-      type: 'text',
-      required: false,
-    },
-    {
-      key: 'paymentTerms',
-      label: 'เงื่อนไขชำระเงิน',
-      type: 'text',
-      required: false,
-    },
-    {
-      key: 'territoryId',
-      label: 'เขตขาย',
-      type: 'relation',
-      relation: 'sales-territories',
-      required: true,
-    },
-    {
-      key: 'notes',
-      label: 'หมายเหตุ',
-      type: 'textarea',
-      required: false,
-    },
-  ],
-  display: ['category', 'province', 'owner', 'paymentTerms'],
-  title: 'ลูกค้า',
-  action: 'เพิ่มลูกค้า',
-  columns: ['ชื่อลูกค้า', 'กลุ่ม / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
-  tabs: ['ทั้งหมด'],
-  filters: ['ทุกหมวด'],
-  eyebrow: '',
-  description: '',
-};
-export default function Page() {
-  const href: string = '/customers';
-  const apiPath = '/api/customers';
-  const [config, setConfig] = useState<RecordConfig>({
-    ...LOCAL_PAGE,
-    canWrite: false,
-    metrics: [],
-  });
-
-  const [rows, setRows] = useState<RecordRow[]>([]);
-  const [selectedTab, setSelectedTab] = useState(config.tabs[0]);
+export default function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string | string[] }>;
+}) {
+  const router = useRouter();
+  const [tab, setTab] = useState<'active' | 'deleted'>(
+    use(searchParams).tab === 'deleted' ? 'deleted' : 'active',
+  );
+  const [status, setStatus] = useState(ALL);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState(config.filters[0]);
-  const [typeFilter, setTypeFilter] = useState('ทั้งหมด');
-  const [detailFilter, setDetailFilter] = useState('ทั้งหมด');
-  const [ownerFilter, setOwnerFilter] = useState('ทุกผู้รับผิดชอบ');
-  const [territoryFilter, setTerritoryFilter] = useState('ทุกเขต');
-  const [statusFilter, setStatusFilter] = useState('ทุกสถานะ');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [territoryId, setTerritoryId] = useState(ALL);
+  const [province, setProvince] = useState(ALL);
+  const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const sort = useTableSort(() => setCurrentPage(1));
-  const [notice, setNotice] = useState('');
-
-  const [options, setOptions] = useState<RecordFilters>({});
-  const [total, setTotal] = useState(0);
+  const [refresh, setRefresh] = useState(0);
+  const [result, setResult] = useState<CustomerListResponse | null>(null);
+  const [filters, setFilters] = useState<CustomerListResponse['filters']>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [retry, setRetry] = useState(0);
-  const metadataRetry = useRef<number | null>(null);
+  const sort = useTableSort(() => setOffset(0));
+
   useEffect(() => {
     const controller = new AbortController();
-    const timer = window.setTimeout(() => {
+    const timer = setTimeout(() => {
       setLoading(true);
       setError('');
       const params = new URLSearchParams({
-        offset: String((currentPage - 1) * pageSize),
+        include: 'filters,config',
         limit: String(pageSize),
-        search,
-        tab: selectedTab,
-        filter,
+        offset: String(offset),
       });
-      params.set('deleted', String(selectedTab === 'ลบแล้ว'));
-      if (typeFilter !== 'ทั้งหมด' && LOCAL_PAGE.display[0])
-        params.set(LOCAL_PAGE.display[0], typeFilter);
-      if (detailFilter !== 'ทั้งหมด' && LOCAL_PAGE.display[1])
-        params.set(LOCAL_PAGE.display[1], detailFilter);
-      if (ownerFilter !== 'ทุกผู้รับผิดชอบ' && LOCAL_PAGE.display[2])
-        params.set(LOCAL_PAGE.display[2], ownerFilter);
-      if (statusFilter !== 'ทุกสถานะ') params.set('status', statusFilter);
-      if (territoryFilter !== 'ทุกเขต') params.set('territoryName', territoryFilter);
-      if (metadataRetry.current !== retry) params.set('include', 'filters,config');
-      Get<RecordListResponse>(
-        withTableSort(apiPath + '?' + params, { key: sort.key, direction: sort.direction }),
+      if (search.trim()) params.set('search', search.trim());
+      if (territoryId) params.set('territoryId', territoryId);
+      if (province) params.set('province', province);
+      if (status) params.set('status', status);
+      if (tab === 'deleted') params.set('deleted', 'true');
+      Get<CustomerListResponse>(
+        withTableSort('/api/customers?' + params, { key: sort.key, direction: sort.direction }),
         controller.signal,
       )
-        .then((r) => {
+        .then((data) => {
           if (controller.signal.aborted) return;
-          if (r.filters) setOptions(r.filters);
-          if (r.config)
-            setConfig({ ...LOCAL_PAGE, canWrite: r.config.canWrite, metrics: r.config.metrics });
-          if (r.filters && r.config) metadataRetry.current = retry;
-          setRows(r.data);
-          setTotal(r.pagination.total);
-          const lastPage = Math.max(1, Math.ceil(r.pagination.total / pageSize));
-          if (currentPage > lastPage) {
-            setCurrentPage(lastPage);
-            setRows([]);
-            return;
-          }
-          setLoading(false);
+          setResult(data);
+          setFilters(data.filters);
+          if (offset && !data.data.length) setOffset(0);
         })
-        .catch((e) => {
-          if (!controller.signal.aborted) {
-            setError(e.message);
-            setRows([]);
-            setLoading(false);
-          }
+        .catch((e: Error) => {
+          if (!controller.signal.aborted) setError(e.message);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoading(false);
         });
-    }, 200);
+    }, 250);
     return () => {
-      window.clearTimeout(timer);
+      clearTimeout(timer);
       controller.abort();
     };
   }, [
-    apiPath,
-    currentPage,
-    pageSize,
     search,
-    selectedTab,
-    filter,
-    typeFilter,
-    detailFilter,
-    ownerFilter,
-    territoryFilter,
-    statusFilter,
-    retry,
-    ,
+    territoryId,
+    province,
+    status,
+    tab,
+    offset,
+    pageSize,
+    refresh,
     sort.key,
     sort.direction,
   ]);
-  const pageCount = Math.max(1, Math.ceil(total / pageSize));
-  const pagedRows = loading ? [] : rows;
-  const statuses = options.status ?? [];
-  const types = options[LOCAL_PAGE.display[0] ?? ''] ?? [];
-  const details = options[LOCAL_PAGE.display[1] ?? ''] ?? [];
-  const owners = options[LOCAL_PAGE.display[2] ?? ''] ?? [];
-  const isCustomerList = href === '/customers' || href === '/customers/list';
-  const detailHref = selectedTab === 'ลบแล้ว' ? null : config.page;
-  const [restoreBusy, setRestoreBusy] = useState('');
-  const restoreLock = useRef(false);
-  async function restore(row: RecordRow) {
-    if (restoreLock.current || notice) return;
-    restoreLock.current = true;
-    setRestoreBusy(row.id);
-    setError('');
-    try {
-      await Update('/api/' + config.key + '/' + row.id, { action: 'restore' });
-      setNotice('กู้คืนรายการแล้ว');
-      setCurrentPage(1);
-      setRetry((n) => n + 1);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'กู้คืนไม่สำเร็จ');
-    } finally {
-      restoreLock.current = false;
-      setRestoreBusy('');
-    }
-  }
-  const tableSortColumns = (
-    isCustomerList
-      ? [
-          'name',
-          LOCAL_PAGE.display[0],
-          'code',
-          LOCAL_PAGE.display[1],
-          'salesName',
-          LOCAL_PAGE.display[3],
-          'status',
-        ]
-      : [
-          'name',
-          LOCAL_PAGE.display[0],
-          'code',
-          LOCAL_PAGE.display[1],
-          LOCAL_PAGE.display[2] === 'managerId'
-            ? 'managerName'
-            : LOCAL_PAGE.display[2] === 'salesId'
-              ? 'salesName'
-              : LOCAL_PAGE.display[2],
-          ['customer-groups', 'sales-territories'].includes(LOCAL_PAGE.key)
-            ? 'memberCount'
-            : LOCAL_PAGE.display[3],
-          'status',
-        ]
-  ).map((key) => (key === 'managerId' ? 'managerName' : key === 'salesId' ? 'salesName' : key));
 
-  const tableHeaders = isCustomerList
-    ? ['ชื่อลูกค้า/บริษัท', 'ประเภท', 'รหัสลูกค้า', 'จังหวัด', 'ผู้ดูแล', 'เงื่อนไข', 'สถานะ']
-    : [
-        config.columns[0],
-        'ประเภท / หมวด',
-        'เลขอ้างอิง',
-        'รายละเอียด',
-        config.columns[2],
-        'ค่า / จำนวน',
-        'สถานะ',
-      ];
+  function resetFilters() {
+    setSearch('');
+    setTerritoryId(ALL);
+    setProvince(ALL);
+    setStatus(ALL);
+    setOffset(0);
+  }
+  const rows = result?.data ?? [];
+  const canWrite = result?.config?.canWrite ?? false;
+  const open = (id: string) =>
+    router.push(`/customers/${id}${tab === 'deleted' ? '?deleted=true' : ''}`);
 
   return (
-    <section className="flex flex-1 flex-col gap-0 p-6 pb-7" aria-label={config.title}>
-      {error && (
+    <section aria-label="ลูกค้า" className="min-w-0 w-full px-4 py-6 md:px-6 md:py-8">
+      <div className="mb-6">
+        <h1 className="text-xl poppins-semibold text-[#26364b]">ลูกค้า</h1>
+      </div>
+      {canWrite && (
         <div
-          role="alert"
-          className="mb-3 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          role="tablist"
+          aria-label="มุมมองลูกค้า"
+          className="mb-4 flex gap-x-4 border-b border-[#e4e9f0]"
         >
+          {(
+            [
+              ['active', 'รายชื่อลูกค้า'],
+              ['deleted', 'ลบแล้ว'],
+            ] as const
+          ).map(([value, text]) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={tab === value}
+              onClick={() => {
+                setTab(value);
+                setOffset(0);
+              }}
+              className={`-mb-px min-h-10 border-b-2 px-1 pb-3 text-sm transition ${tab === value ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
+            >
+              {text}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="mb-6 grid grid-cols-1 items-end gap-5 rounded-xl border border-[#e4e7ec] bg-white p-6 shadow-xs sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
+        <label className="min-w-0">
+          <span className="mb-2 block text-xs text-[#344256]">ค้นหาลูกค้า</span>
+          <div className="relative">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setOffset(0);
+              }}
+              placeholder="รหัส ชื่อ ผู้ติดต่อ เบอร์โทร จังหวัด หรือเขตขาย"
+              className="h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white pl-10 pr-3 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#9ba7b6] focus:border-[#1a58a7]"
+            />
+          </div>
+        </label>
+        <FilterSelect
+          label="เขตขาย"
+          value={territoryId}
+          options={(filters?.territories ?? []).map((item) => ({
+            value: item.id,
+            label: item.name,
+          }))}
+          onChange={(value) => {
+            setTerritoryId(value);
+            setOffset(0);
+          }}
+        />
+        <FilterSelect
+          label="จังหวัด"
+          value={province}
+          options={(filters?.provinces ?? []).map((item) => ({ value: item, label: item }))}
+          onChange={(value) => {
+            setProvince(value);
+            setOffset(0);
+          }}
+        />
+        <FilterSelect
+          label="สถานะ"
+          value={status}
+          options={CUSTOMER_LIST_STATUSES.map((item) => ({ value: item, label: item }))}
+          onChange={(value) => {
+            setStatus(value);
+            setOffset(0);
+          }}
+        />
+      </div>
+      {error && (
+        <div role="alert" className="mb-4 flex gap-3 text-sm poppins-regular text-red-600">
           {error}
-          <button type="button" onClick={() => setRetry((n) => n + 1)} className="ml-3 underline">
+          <button type="button" onClick={() => setRefresh((v) => v + 1)} className="text-[#1a58a7]">
             ลองใหม่
           </button>
         </div>
       )}
-      <div className="mb-3 flex justify-end">
-        <Link
-          href="/customers/territories"
-          className="rounded-lg border border-blue-100 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
-        >
-          เขตและทีมขาย
-        </Link>
-      </div>
-      <SuccessAlertComponent
-        title={notice}
-        isOpen={Boolean(notice)}
-        onClose={() => setNotice('')}
-      />
-
       <div
-        className="mb-4 flex flex-wrap items-center gap-x-4 border-b border-[#e4e9f0]"
-        role="tablist"
-        aria-label={`หมวด ${config.title}`}
-      >
-        {[...config.tabs, ...(config.canWrite ? ['ลบแล้ว'] : [])].map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            role="tab"
-            aria-selected={selectedTab === tab}
-            onClick={() => {
-              setSelectedTab(tab);
-              setCurrentPage(1);
-            }}
-            className={`-mb-px min-h-10 border-b-2 px-1 pb-4 text-sm transition ${selectedTab === tab ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      <div
-        className={`grid grid-cols-2 items-end gap-5 rounded-xl border bg-white p-6 shadow-xs sm:grid-cols-3 xl:grid-cols-[repeat(6,minmax(0,1fr))_auto] ${isCustomerList ? 'border-[#e4e7ec]' : 'border-[#e4e9f0]'}`}
-      >
-        <label className="relative col-span-2 min-w-0 sm:col-span-1">
-          <span className="mb-2 block text-xs leading-4 text-[#344256]">ค้นหา</span>
-          <SearchIcon className="pointer-events-none absolute bottom-3 left-2 h-3 w-3 text-[#8b98a9]" />
-          <input
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="ค้นหา..."
-            className="h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white pl-8 pr-3 text-sm text-[#344256] outline-none placeholder:text-[#9ba7b6] focus:border-[#1a58a7]"
-          />
-        </label>
-        <RecordFilter
-          label={isCustomerList ? 'กลุ่มลูกค้า' : 'หมวด'}
-          value={filter}
-          options={config.filters}
-          onChange={(value) => {
-            setFilter(value);
-            setCurrentPage(1);
-          }}
-        />
-        <RecordFilter
-          label={isCustomerList ? 'ประเภท' : 'ชนิด'}
-          value={typeFilter}
-          options={['ทั้งหมด', ...types]}
-          onChange={(value) => {
-            setTypeFilter(value);
-            setCurrentPage(1);
-          }}
-        />
-        <RecordFilter
-          label={isCustomerList ? 'จังหวัด' : 'รายละเอียด'}
-          value={detailFilter}
-          options={['ทั้งหมด', ...details]}
-          onChange={(value) => {
-            setDetailFilter(value);
-            setCurrentPage(1);
-          }}
-        />
-        <RecordFilter
-          label={isCustomerList ? 'ผู้ดูแล' : 'ผู้รับผิดชอบ'}
-          value={ownerFilter}
-          options={['ทุกผู้รับผิดชอบ', ...owners]}
-          onChange={(value) => {
-            setOwnerFilter(value);
-            setCurrentPage(1);
-          }}
-        />
-        <RecordFilter
-          label="สถานะ"
-          value={statusFilter}
-          options={['ทุกสถานะ', ...statuses]}
-          onChange={(value) => {
-            setStatusFilter(value);
-            setCurrentPage(1);
-          }}
-        />
-        {config.canWrite && (
-          <Link
-            href={`${config.page}/create`}
-            className="col-span-2 inline-flex h-10 items-center justify-center gap-1 whitespace-nowrap rounded-md bg-[#1a58a7] px-4 text-sm poppins-semibold text-white! transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7] sm:col-span-1"
-          >
-            <span className="text-sm leading-none" aria-hidden="true">
-              +
-            </span>
-            {config.action}
-          </Link>
-        )}
-      </div>
-
-      <div className="mt-3 max-w-xs">
-        <RecordFilter
-          label="เขตขาย"
-          value={territoryFilter}
-          options={['ทุกเขต', ...(options.territoryName ?? [])]}
-          onChange={(value) => {
-            setTerritoryFilter(value);
-            setCurrentPage(1);
-          }}
-        />
-      </div>
-      <div
-        className="relative mt-6 min-h-44 overflow-hidden rounded-xl border border-[#e3e9f0] bg-white"
+        className="relative min-h-80 overflow-hidden rounded-lg border border-[#d9e3ee] bg-white"
         aria-busy={loading}
       >
-        <LoadingComponent
-          isVisible={loading && !error}
-          variant="content"
-          label="กำลังโหลดรายการ..."
-        />
-        {selectedTab === 'ลบแล้ว' && (
-          <div className="divide-y divide-[#e3e9f0]">
-            {pagedRows.map((row) => (
-              <div key={row.id} className="flex items-center justify-between gap-3 p-4">
-                <div>
-                  <p className="m-0 text-sm poppins-semibold">{row.name}</p>
-                  <p className="m-0 text-xs text-[#718096]">{row.code}</p>
-                  <div className="mt-2">
-                    <StatusBadge value="ลบแล้ว" />
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  disabled={Boolean(restoreBusy) || Boolean(notice)}
-                  onClick={() => restore(row)}
-                  className="rounded border border-[#d9e3ee] px-3 py-2 text-sm text-[#1a58a7]"
-                >
-                  {restoreBusy === row.id ? 'กำลังกู้คืน...' : 'กู้คืน'}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-        <TableSortControls
-          sort={sort}
-          columns={tableHeaders.map((label, index) => ({
-            label,
-            key: tableSortColumns[index] ?? null,
-          }))}
-        />
-        <div className={selectedTab === 'ลบแล้ว' ? 'hidden' : 'hidden overflow-x-auto md:block'}>
+        <div className="overflow-x-auto">
           <SortableTable
             sort={sort}
-            columns={tableSortColumns}
-            className="w-full min-w-[640px] table-fixed border-collapse text-left"
+            columns={columns}
+            className="w-full min-w-[1180px] border-collapse text-left text-sm poppins-regular text-[#344256]"
           >
-            <thead className="bg-[#f7f8fa] text-xs poppins-semibold text-[#2f3a4d]">
+            <thead className="border-b border-[#d9e3ee] bg-[#f7f9fc] text-[#65758b]">
               <tr>
-                {tableHeaders.map((column) => (
-                  <th
-                    key={column}
-                    scope="col"
-                    className="whitespace-normal px-[14px] py-3 text-left [overflow-wrap:anywhere]"
-                  >
-                    {column}
+                {[
+                  'รหัสลูกค้า',
+                  'ชื่อสถานประกอบการ / บริษัท',
+                  'ผู้ติดต่อหลัก',
+                  'เครดิต / วงเงิน',
+                  'จังหวัด',
+                  'เขตขาย',
+                  'สถานะ',
+                ].map((label) => (
+                  <th key={label} scope="col" className="px-5 py-3 poppins-medium">
+                    {label}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {pagedRows.map((item) => (
-                <RecordTableRow key={item.code} row={item} detailHref={detailHref} />
-              ))}
+              {!loading &&
+                !error &&
+                rows.map((customer) => (
+                  <tr
+                    key={customer.id}
+                    role="link"
+                    tabIndex={0}
+                    aria-label={`เปิดลูกค้า ${customer.code} ${customer.name}`}
+                    onClick={() => open(customer.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') open(customer.id);
+                    }}
+                    className="cursor-pointer border-b border-[#edf1f5] last:border-b-0 hover:bg-blue-50/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#1a58a7]"
+                  >
+                    <td className={`${cellClass} whitespace-nowrap poppins-medium text-[#1a58a7]`}>
+                      {customer.code}
+                    </td>
+                    <td className={cellClass}>
+                      <p className="poppins-medium">{customer.name}</p>
+                    </td>
+                    <td className={cellClass}>
+                      <p>{customer.contactName}</p>
+                      <p className="mt-1 whitespace-nowrap text-xs text-[#718096]">
+                        {customer.phone}
+                      </p>
+                    </td>
+                    <td className={`${cellClass} whitespace-nowrap`}>
+                      <p>
+                        {customer.creditDays === null
+                          ? '—'
+                          : customer.creditTermName ||
+                            (customer.creditDays ? `${customer.creditDays} วัน` : 'เงินสด')}
+                      </p>
+                      <p className="mt-1 text-xs text-[#718096]">
+                        วงเงิน:{' '}
+                        {customer.creditLimit === null
+                          ? '—'
+                          : `${money.format(Number(customer.creditLimit))} บาท`}
+                      </p>
+                    </td>
+                    <td className={`${cellClass} whitespace-nowrap`}>{customer.province || '—'}</td>
+                    <td className={`${cellClass} whitespace-nowrap`}>
+                      {customer.territoryName ?? '—'}
+                    </td>
+                    <td className={cellClass}>
+                      <StatusBadge value={customerListStatus(customer)} />
+                      {customer.deleteReason && (
+                        <p className="mt-2 text-xs text-[#718096]">
+                          เหตุผล: {customer.deleteReason}
+                        </p>
+                      )}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </SortableTable>
         </div>
-        <div
-          className={selectedTab === 'ลบแล้ว' ? 'hidden' : 'divide-y divide-[#e8ebef] md:hidden'}
-        >
-          {pagedRows.map((item) => (
-            <RecordMobileRow key={item.code} row={item} detailHref={detailHref} />
-          ))}
-        </div>
-        {!loading && !error && total === 0 && (
+        <LoadingComponent
+          isVisible={loading && !error}
+          variant="content"
+          label="กำลังโหลดลูกค้า..."
+        />
+        {!loading && !error && !rows.length && (
           <NotFoundComponent
-            title="ไม่พบรายการ"
-            description="ลองเปลี่ยนคำค้นหาหรือตัวกรอง แล้วกดลองอีกครั้ง"
-            onRefresh={() => setRetry((n) => n + 1)}
+            title="ไม่พบลูกค้า"
+            onRefresh={() => setRefresh((value) => value + 1)}
+            onBack={resetFilters}
+            backLabel="แสดงทั้งหมด"
           />
         )}
         <PaginationControls
-          page={currentPage}
-          pages={pageCount}
-          total={total}
-          count={pagedRows.length}
-          onChange={setCurrentPage}
+          page={Math.floor(offset / pageSize) + 1}
+          pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
+          total={result?.pagination.total ?? 0}
+          count={rows.length}
           pageSize={pageSize}
+          onChange={(page) => setOffset((page - 1) * pageSize)}
           onPageSizeChange={(size) => {
             setPageSize(size);
-            setCurrentPage(1);
+            setOffset(0);
           }}
           disabled={loading}
         />
@@ -488,106 +313,7 @@ export default function Page() {
   );
 }
 
-function RecordTableRow({ row, detailHref }: { row: RecordRow; detailHref: string | null }) {
-  const router = useRouter();
-  const type = displayText(row, LOCAL_PAGE.display[0]);
-  const detail = displayText(row, LOCAL_PAGE.display[1]);
-  const cells = [
-    row.name,
-    type,
-    row.code,
-    detail || '-',
-    displayText(row, LOCAL_PAGE.display[2]),
-    displayAmount(row),
-    row.status,
-  ];
-  const href = detailHref
-    ? `${detailHref}/${encodeURIComponent(detailHref === '/products' ? row.code : row.id)}`
-    : null;
-  return (
-    <tr
-      role={href ? 'link' : undefined}
-      tabIndex={href ? 0 : undefined}
-      aria-label={href ? `ดูรายละเอียด ${row.name}` : undefined}
-      onClick={href ? () => router.push(href) : undefined}
-      onKeyDown={
-        href
-          ? (event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                router.push(href);
-              }
-            }
-          : undefined
-      }
-      className={`border-t border-[#edf0f4] text-sm text-[#7b8795] ${href ? 'cursor-pointer hover:bg-[#fafbfc] focus-visible:bg-[#eff5fc] focus-visible:outline-2 focus-visible:outline-[#1a58a7]' : ''}`}
-    >
-      {cells.map((cell, index) => (
-        <td
-          key={index}
-          className={`whitespace-normal px-[14px] py-4 [overflow-wrap:anywhere] ${index === 0 ? 'poppins-semibold' : ''}`}
-          title={cell}
-        >
-          {index === cells.length - 1 ? <StatusBadge value={row.status} /> : cell}
-        </td>
-      ))}
-    </tr>
-  );
-}
-
-function RecordMobileRow({ row, detailHref }: { row: RecordRow; detailHref: string | null }) {
-  const router = useRouter();
-  const href = detailHref
-    ? `${detailHref}/${encodeURIComponent(detailHref === '/products' ? row.code : row.id)}`
-    : null;
-  return (
-    <article
-      role={href ? 'link' : undefined}
-      tabIndex={href ? 0 : undefined}
-      aria-label={href ? `ดูรายละเอียด ${row.name}` : undefined}
-      onClick={href ? () => router.push(href) : undefined}
-      onKeyDown={
-        href
-          ? (event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                router.push(href);
-              }
-            }
-          : undefined
-      }
-      className={`px-4 py-3.5 ${href ? 'cursor-pointer hover:bg-[#fafbfc] focus-visible:bg-[#eff5fc] focus-visible:outline-2 focus-visible:outline-[#1a58a7]' : ''}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="m-0 text-sm poppins-semibold text-[#26364b] [overflow-wrap:anywhere]">
-            {row.name}
-          </p>
-          <p className="mb-0 mt-1 text-xs text-[#8492a6] [overflow-wrap:anywhere]">
-            {row.code} ·{' '}
-            {[displayText(row, LOCAL_PAGE.display[0]), displayText(row, LOCAL_PAGE.display[1])]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <span className="text-xs text-[#718096]">สถานะ</span>
-          <StatusBadge value={row.status} />
-        </div>
-      </div>
-      <div className="mt-3 flex justify-between gap-3 text-xs">
-        <span className="min-w-0 whitespace-normal text-[#718096] [overflow-wrap:anywhere]">
-          {displayText(row, LOCAL_PAGE.display[2])}
-        </span>
-        <span className="min-w-0 text-right poppins-medium text-[#35465d] [overflow-wrap:anywhere]">
-          {displayAmount(row)}
-        </span>
-      </div>
-    </article>
-  );
-}
-
-function RecordFilter({
+function FilterSelect({
   label,
   value,
   options,
@@ -595,7 +321,7 @@ function RecordFilter({
 }: {
   label: string;
   value: string;
-  options: string[];
+  options: { value: string; label: string }[];
   onChange: (value: string) => void;
 }) {
   return (
@@ -604,58 +330,15 @@ function RecordFilter({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white px-3 text-sm text-[#6f7a8b] outline-none focus:border-[#1a58a7]"
+        className="mt-2 h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white px-3 text-sm poppins-regular text-[#6f7a8b] outline-none focus:border-[#1a58a7]"
       >
+        <option value={ALL}>ทั้งหมด</option>
         {options.map((option) => (
-          <option key={option}>{option}</option>
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
       </select>
     </label>
-  );
-}
-
-function displayText(row: RecordRow, key: string | null | undefined): string {
-  if (!key) return '';
-  const result = key
-    .split('.')
-    .reduce<unknown>(
-      (value, part) =>
-        value && typeof value === 'object' ? (value as Record<string, unknown>)[part] : undefined,
-      row,
-    );
-  return result == null ? '' : String(result);
-}
-function displayAmount(row: RecordRow): string {
-  if (row.memberCount !== undefined) return row.memberCount + ' ราย';
-  const key = LOCAL_PAGE.display[3];
-  const value = displayText(row, key);
-  return key === 'amount'
-    ? value === ''
-      ? '-'
-      : new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(Number(value))
-    : value;
-}
-
-export function ActivityRow({ item }: { item: RecordRow }) {
-  return (
-    <article className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-4">
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#eff5fc] text-xs poppins-semibold text-[#2465b4]">
-          {item.code.split('-')[0]}
-        </span>
-        <div className="min-w-0">
-          <p className="m-0 text-sm poppins-medium text-[#35465d]">{item.name}</p>
-          <p className="mb-0 mt-0.5 truncate text-sm text-[#8492a6]">
-            {[displayText(item, LOCAL_PAGE.display[0]), displayText(item, LOCAL_PAGE.display[1])]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
-        </div>
-      </div>
-      <div className="ml-12 flex items-center gap-3 md:ml-0">
-        <span className="text-sm text-[#718096]">{displayText(item, LOCAL_PAGE.display[2])}</span>
-        <StatusBadge value={item.status} />
-      </div>
-    </article>
   );
 }

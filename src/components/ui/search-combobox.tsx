@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useId, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import ChevronDown from './chevron-down';
 type Option = { id: string; code: string; name: string };
 type Props = {
   local?: boolean;
@@ -136,12 +137,7 @@ export default function SearchCombobox({
         }}
         className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white pl-3 pr-8 text-sm outline-none focus:border-[#1a58a7] aria-invalid:border-red-600"
       />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute right-3 top-2.5 text-sm text-[#718096]"
-      >
-        ⌄
-      </span>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#718096]" />
       {open && (
         <div className="absolute z-20 mt-1 w-full rounded-md border border-[#d9e3ee] bg-white shadow-lg">
           <ul

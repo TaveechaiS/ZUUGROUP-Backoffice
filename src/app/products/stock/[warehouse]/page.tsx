@@ -7,6 +7,7 @@ import { Get } from '@/service/http';
 import type { PageData, StockProductRow } from '@/types/api/operations';
 import StatusBadge from '@/components/ui/status-badge';
 import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import ListRequestState from '@/components/ui/list-request-state';
 import PaginationControls from '@/components/ui/pagination-controls';
 
@@ -275,7 +276,7 @@ function ProductStockList({
           </tbody>
         </SortableTable>
         {!loading && !error && !rows.length && (
-          <p className="p-8 text-center text-sm text-[#718096]">ไม่พบสินค้าตามเงื่อนไขนี้</p>
+          <NotFoundComponent title="ไม่พบสินค้าตามเงื่อนไขนี้" />
         )}
         <div className="border-t border-[#edf0f4] p-3">
           <PaginationControls

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { moduleFor } from '@/features/records/types';
 import { Get } from '@/service/http';
 import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import StatusBadge from '@/components/ui/status-badge';
 import type { Dashboard, DashboardResponse } from '@/types/api/reports';
 export default function Page() {
@@ -76,8 +77,16 @@ export default function Page() {
         ))}
       </div>
       <section className="rounded-xl border border-[#d9e3ee] bg-white">
-        <h2 className="m-0 border-b border-[#d9e3ee] p-5 text-base poppins-semibold">เอกสารล่าสุด</h2>
+        <h2 className="m-0 border-b border-[#d9e3ee] p-5 text-base poppins-semibold">
+          เอกสารล่าสุด
+        </h2>
         <div className="divide-y divide-[#e3e9f0]">
+          {!data.activity.length && (
+            <NotFoundComponent
+              title="ยังไม่มีเอกสารล่าสุด"
+              onRefresh={() => setRetry((value) => value + 1)}
+            />
+          )}
           {data.activity.map((row) => (
             <Link
               key={row.module + row.id}

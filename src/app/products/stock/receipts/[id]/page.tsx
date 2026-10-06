@@ -8,6 +8,7 @@ import { Get, Post, HttpError } from '@/service/http';
 import type { PageData, LotRow } from '@/types/api/operations';
 
 import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import ListRequestState from '@/components/ui/list-request-state';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
 
@@ -41,6 +42,7 @@ export default function Page() {
   const [saveError, setSaveError] = useState('');
   const [pending, setPending] = useState<Correction | null>(null);
   const [alert, setAlert] = useState<'cancel' | 'save' | null>(null);
+  const [missing, setMissing] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     const timer = setTimeout(() => {
@@ -63,8 +65,10 @@ export default function Page() {
           }
         })
         .catch((caught) => {
-          if (!controller.signal.aborted)
+          if (!controller.signal.aborted) {
+            setMissing(caught instanceof HttpError && caught.status === 404);
             setError(caught instanceof Error ? caught.message : 'โหลดรายละเอียดสินค้าไม่สำเร็จ');
+          }
         })
         .finally(() => {
           if (!controller.signal.aborted) setLoading(false);
@@ -167,6 +171,7 @@ export default function Page() {
   }
   const inputClass =
     'mt-2 min-h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular outline-none focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100 disabled:bg-[#f8f9fb]';
+  if (missing && !loading) return <NotFoundComponent />;
   return (
     <section className="min-w-0 space-y-6 px-4 py-6 text-[#344256] md:px-6 md:py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -177,7 +182,7 @@ export default function Page() {
           href="/products/stock"
           className="rounded-md border border-[#d9e3ee] px-4 py-2 text-sm poppins-medium text-[#1a58a7] hover:bg-blue-50"
         >
-          กลับรายงานสต็อกสินค้า
+          กลับรายงานสต็อก
         </Link>
       </div>
       <ListRequestState error={error} retry={() => setRetry((value) => value + 1)} />
@@ -353,9 +358,7 @@ export default function Page() {
             )}
           </>
         ) : (
-          <p className="rounded-lg border border-[#d9e3ee] p-6 text-sm text-[#65758b]">
-            ไม่พบข้อมูลสินค้าที่เติม
-          </p>
+          <NotFoundComponent title="ไม่พบข้อมูลสินค้าที่เติม" />
         ))
       )}
       <SuccessAlertComponent

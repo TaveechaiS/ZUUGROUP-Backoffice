@@ -1,4 +1,5 @@
 'use client';
+import UserTerritoryPicker from '@/components/ui/user-territory-picker';
 
 import { useRef, useState, type FormEvent } from 'react';
 import { useRouteData } from '@/components/ui/route-data';
@@ -20,6 +21,7 @@ export default function Page() {
   const [pendingProfile, setPendingProfile] = useState<Record<string, FormDataEntryValue> | null>(
     null,
   );
+  const [territoryId, setTerritoryId] = useState(initialUser.territoryId ?? '');
   const [user, setUser] = useState(initialUser);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -69,6 +71,7 @@ export default function Page() {
       name: String(data.name).trim(),
       email: String(data.email).trim().toLowerCase(),
       team: String(data.team).trim(),
+      territoryId: String(data.territoryId ?? current.territoryId ?? '') || null,
     }));
   }
 
@@ -293,9 +296,11 @@ export default function Page() {
                   className={fieldClass}
                 />
               </Field>
-              <Field label="ทีม / เขต">
+              <Field label="ทีม">
                 <input name="team" defaultValue={user.team} className={fieldClass} />
               </Field>
+              {(user.userRole?.roleId === 'SALES' || user.userRole?.roleId === 'MANAGER') &&
+                <fieldset disabled={busy || Boolean(message) || Boolean(pendingProfile)}><UserTerritoryPicker value={territoryId} onChange={setTerritoryId} initial={user.territory} /></fieldset>}
               <button
                 disabled={busy || Boolean(message)}
                 className="justify-self-end rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"

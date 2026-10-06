@@ -12,6 +12,8 @@ import type { ProductOption, ProductOptionsResponse } from '@/types/api/product-
 import StatusBadge from '@/components/ui/status-badge';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import SearchCombobox from '@/components/ui/search-combobox';
+import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 const inputClass =
   'h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm poppins-regular text-[#344256] outline-none focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
 const buttonClass =
@@ -264,7 +266,7 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
         </div>
       )}
       <div
-        className="min-w-0 overflow-x-auto rounded-lg border border-[#d9e3ee] lg:col-span-2"
+        className="relative min-h-80 min-w-0 overflow-x-auto rounded-lg border border-[#d9e3ee] lg:col-span-2"
         aria-busy={loading}
       >
         <SortableTable
@@ -320,13 +322,16 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
               ))}
           </tbody>
         </SortableTable>
-        {loading && (
-          <p role="status" className="p-4 text-sm poppins-regular text-[#65758b]">
-            กำลังโหลด...
-          </p>
-        )}
+        <LoadingComponent
+          isVisible={loading && !error}
+          variant="content"
+          label="กำลังโหลดข้อมูลพื้นฐานสินค้า..."
+        />
         {!loading && !error && !result?.data.length && (
-          <p className="p-4 text-sm poppins-regular text-[#65758b]">ไม่พบรายการ</p>
+          <NotFoundComponent
+            title="ไม่พบรายการ"
+            onRefresh={() => setRefresh((value) => value + 1)}
+          />
         )}
         <PaginationControls
           page={Math.floor(offset / pageSize) + 1}

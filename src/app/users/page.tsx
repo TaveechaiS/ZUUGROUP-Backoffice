@@ -12,6 +12,7 @@ import type { UsersListResponse } from '@/types/api/users';
 import { Get } from '@/service/http';
 import ListRequestState from '@/components/ui/list-request-state';
 import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 
 export default function Page() {
   const sort = useTableSort();
@@ -232,9 +233,9 @@ export default function Page() {
           </tbody>
         </SortableTable>
         {!loading && !error && total === 0 && (
-          <p className="py-12 text-center text-sm text-[#8492a6]">
-            {view === 'DELETED' ? 'ไม่มีผู้ใช้งานที่ลบแล้ว' : 'ไม่พบผู้ใช้งาน'}
-          </p>
+          <NotFoundComponent
+            title={view === 'DELETED' ? 'ไม่มีผู้ใช้งานที่ลบแล้ว' : 'ไม่พบผู้ใช้งาน'}
+          />
         )}
         <PaginationControls
           page={page}

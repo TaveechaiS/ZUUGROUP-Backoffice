@@ -16,7 +16,10 @@
 
 14. ทุกหน้าที่แสดงป้ายสถานะ รวมถึงสถานะใหม่ในอนาคต ต้องใช้ `src/components/ui/status-badge.tsx` ตาม [มาตรฐานป้ายสถานะ](docs/STATUS-BADGE-GUIDE.md): พื้นหลังระดับ `50`, ตัวหนังสือระดับ `600`, มุมมนและจุดสีด้านหน้า. เพิ่มการจับคู่สีใน component กลาง ห้ามเขียน pill/style สถานะแยกในแต่ละหน้า; คงข้อความและค่าธุรกิจจริง. คอลัมน์ที่แสดงสถานะต้องมีหัวชื่อ `สถานะ` และใช้ `scope="col"`; ตรวจทั้ง desktop และ mobile.
 
+15. ทุกหน้าที่แสดงข้อมูลต้องใช้ `src/components/ui/loading-component.tsx` ระหว่างโหลด และ `src/components/ui/not-found-component.tsx` เมื่อโหลดสำเร็จแต่ไม่มีข้อมูลหรือ API ตอบ 404 ตาม `docs/DATA-STATES-GUIDE.md`. ห้ามทำข้อความ/ภาพ loading หรือ empty แยกเอง; อย่าแสดง NotFound ขณะโหลดหรือแทนข้อผิดพลาด 401/403/500/503. ตารางใช้ content Loading ใน parent relative/min-height; SSR ใช้ loading/not-found กลางที่สืบทอดได้. ใช้กับหน้าใหม่ด้วย ไม่สร้าง loading ปลอมให้หน้าตัวอย่างที่ไม่มี fetch.
+
 <!-- BEGIN:nextjs-agent-rules -->
+
 
 # This is NOT the Next.js you know
 

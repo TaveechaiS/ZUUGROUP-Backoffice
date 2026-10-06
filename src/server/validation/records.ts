@@ -30,12 +30,33 @@ export function integer(
 export function cleanBody(m: RecordModule, body: unknown, partial: boolean) {
   if (!body || typeof body !== 'object' || Array.isArray(body))
     throw new RecordError(400, 'กรุณาส่ง JSON object');
-  const input = body as Record<string, unknown>;
-  const allowed = new Set([...m.fields.map((f) => f.key), 'expectedUpdatedAt']);
+  const input = { ...body } as Record<string, unknown>;
+  if (m.key === 'sales-territories' && !partial && !('status' in input))
+    input.status = 'ใช้งานอยู่';
+  const allowed = new Set([
+    ...m.fields.map((f) => f.key),
+    'expectedUpdatedAt',
+    ...(m.key === 'sales-territories' ? ['salesIds'] : []),
+  ]);
   if (Object.keys(input).some((k) => !allowed.has(k)))
     throw new RecordError(400, 'มีฟิลด์ที่ไม่รองรับ');
   const values: Record<string, string | null> = {};
+  let salesIds: string[] | undefined;
+  if (m.key === 'sales-territories' && 'salesIds' in input) {
+    if ('salesId' in input)
+      throw new RecordError(400, 'ส่ง salesIds หรือ salesId อย่างใดอย่างหนึ่ง');
+    if (
+      !Array.isArray(input.salesIds) ||
+      input.salesIds.some((id) => typeof id !== 'string' || !uuid(id))
+    )
+      throw new RecordError(400, 'รายชื่อฝ่ายขายต้องเป็นรายการ ID ที่ถูกต้อง');
+    salesIds = input.salesIds.map((id: string) => id.toLowerCase());
+    if (new Set(salesIds).size !== salesIds.length)
+      throw new RecordError(400, 'เลือกฝ่ายขายซ้ำกัน');
+  }
   for (const f of m.fields) {
+    if (m.key === 'sales-territories' && !partial && f.key === 'code' && !('code' in input))
+      continue;
     if (!(f.key in input) && partial) continue;
     const raw = input[f.key] ?? '';
     if (typeof raw !== 'string' && typeof raw !== 'number')
@@ -58,6 +79,9 @@ export function cleanBody(m: RecordModule, body: unknown, partial: boolean) {
     }
     values[f.key] = (f.type === 'number' || f.relation) && !v ? null : v;
   }
+  if (salesIds) values.salesId = salesIds[0] ?? null;
+  if (m.key === 'sales-territories' && values.salesId)
+    values.salesId = values.salesId.toLowerCase();
   if (!Object.keys(values).length) throw new RecordError(400, 'ไม่มีข้อมูลที่แก้ไข');
   if (
     'expectedUpdatedAt' in input &&
@@ -65,7 +89,7 @@ export function cleanBody(m: RecordModule, body: unknown, partial: boolean) {
       Number.isNaN(Date.parse(input.expectedUpdatedAt)))
   )
     throw new RecordError(400, 'expectedUpdatedAt ไม่ถูกต้อง');
-  return { values, expected: input.expectedUpdatedAt as string | undefined };
+  return { values, salesIds, expected: input.expectedUpdatedAt as string | undefined };
 }
 
 export function recordReason(body: unknown) {

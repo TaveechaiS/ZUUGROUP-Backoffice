@@ -8,6 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import type { RecordModule, RecordConfig, RecordField, RecordRow } from '@/types/api/records';
 import { Delete, Get, Post, Update } from '@/service/http';
 import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 import StatusBadge from '@/components/ui/status-badge';
@@ -92,6 +93,7 @@ export default function Page() {
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(''),
     [afterClosePath, setAfterClosePath] = useState('');
+  const [missing, setMissing] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
@@ -103,10 +105,14 @@ export default function Page() {
     ])
       .then(([r, c]) => {
         setRow(r.data);
+        setMissing(false);
         setConfig(c.data);
       })
       .catch((e) => {
-        if (!controller.signal.aborted) setError(e.message);
+        if (!controller.signal.aborted) {
+          setError(e.message);
+          setMissing(e?.status === 404);
+        }
       });
     return () => controller.abort();
   }, [moduleKey, id]);
@@ -128,7 +134,9 @@ export default function Page() {
     }
   }
   if (!row || !config)
-    return error ? (
+    return missing ? (
+      <NotFoundComponent />
+    ) : error ? (
       <section role="alert" className="p-6">
         {error}
         <Link href={entity.page} className="ml-3 text-[#1a58a7]">

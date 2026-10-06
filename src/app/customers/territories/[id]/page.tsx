@@ -1,744 +1,479 @@
 'use client';
-import PaginationControls from '@/components/ui/pagination-controls';
-import type { RecordListResponse } from '@/types/api/records';
-import type { RecordOptionsResponse, RecordFiltersResponse } from '@/types/api/records';
-import type { RecordDetailResponse, RecordConfigResponse } from '@/types/api/records';
-
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import type { RecordModule, RecordConfig, RecordField, RecordRow } from '@/types/api/records';
-import { Delete, Get, Post, Update } from '@/service/http';
+import { useRouter } from 'next/navigation';
+import { Delete, Get, HttpError, Update } from '@/service/http';
+import type {
+  RecordConfigResponse,
+  RecordDetailResponse,
+  RecordOptionsResponse,
+  RecordRow,
+} from '@/types/api/records';
+import type { CustomerListResponse } from '@/types/api/customers';
 import LoadingComponent from '@/components/ui/loading-component';
-import SuccessAlertComponent from '@/components/ui/success-alert-component';
-import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import StatusBadge from '@/components/ui/status-badge';
 import SearchCombobox from '@/components/ui/search-combobox';
-export default function Page() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
-  const moduleKey = 'sales-territories';
-  const entity = {
-    key: 'sales-territories',
-    model: 'SalesTerritory',
-    table: 'sales_territories',
-    page: '/customers/territories',
-    fields: [
-      {
-        key: 'managerId',
-        label: 'ผู้จัดการ (Manager)',
-        type: 'relation',
-        relation: 'users',
-        required: false,
-      },
-      {
-        key: 'salesId',
-        label: 'ฝ่ายขาย (Sales)',
-        type: 'relation',
-        relation: 'users',
-        required: false,
-      },
-      {
-        key: 'code',
-        label: 'รหัส / เลขอ้างอิง',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'name',
-        label: 'ชื่อ / หัวข้อ',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'status',
-        label: 'สถานะ',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'area',
-        label: 'พื้นที่ดูแล',
-        type: 'textarea',
-        required: false,
-      },
-      {
-        key: 'owner',
-        label: 'ผู้ดูแล / ผู้บันทึก',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'notes',
-        label: 'หมายเหตุ',
-        type: 'textarea',
-        required: false,
-      },
-    ],
-    display: ['area', null, 'owner', null],
-    title: 'เขตและผู้แทนขาย',
-    action: 'เพิ่มเขต',
-    columns: ['เขต / ผู้แทน', 'พื้นที่ดูแล', 'ลูกค้า', 'สถานะ'],
-    tabs: ['ทั้งหมด'],
-    filters: ['ทุกหมวด'],
-    eyebrow: '',
-    description: '',
-  };
+import PaginationControls from '@/components/ui/pagination-controls';
+import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sortable-table';
+import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+import SuccessAlertComponent from '@/components/ui/success-alert-component';
+
+type Person = { id: string; name: string };
+const inputClass =
+  'mt-2 block w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
+
+export default function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ deleted?: string | string[] }>;
+}) {
+  const { id } = use(params);
+  const deletedView = use(searchParams).deleted === 'true';
+  return <TerritoryDetail key={id + deletedView} id={id} deletedView={deletedView} />;
+}
+
+function TerritoryDetail({ id, deletedView }: { id: string; deletedView: boolean }) {
   const router = useRouter();
-  const mutationLock = useRef(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [row, setRow] = useState<RecordRow | null>(null),
-    [config, setConfig] = useState<RecordConfig | null>(null),
-    [error, setError] = useState(''),
-    [edit, setEdit] = useState(false),
-    [reason, setReason] = useState(''),
-    [busy, setBusy] = useState(false),
-    [notice, setNotice] = useState(''),
-    [afterClosePath, setAfterClosePath] = useState('');
+  const lock = useRef(false);
+  const [item, setItem] = useState<RecordRow | null>(null);
+  const [canWrite, setCanWrite] = useState(false);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  const [missing, setMissing] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [reason, setReason] = useState('');
+  const [confirming, setConfirming] = useState(false);
+  const [message, setMessage] = useState('');
+  const [after, setAfter] = useState('');
+
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
       Get<RecordDetailResponse>(
-        '/api/' + moduleKey + '/' + encodeURIComponent(id),
+        '/api/sales-territories/' + encodeURIComponent(id) + (deletedView ? '?deleted=true' : ''),
         controller.signal,
       ),
-      Get<RecordConfigResponse>('/api/' + moduleKey + '?view=config', controller.signal),
+      Get<RecordConfigResponse>('/api/sales-territories?view=config', controller.signal),
     ])
-      .then(([r, c]) => {
-        setRow(r.data);
-        setConfig(c.data);
+      .then(([result, config]) => {
+        if (controller.signal.aborted) return;
+        setItem(result.data);
+        setCanWrite(config.data.canWrite);
+        setMissing(false);
       })
-      .catch((e) => {
-        if (!controller.signal.aborted) setError(e.message);
+      .catch((caught) => {
+        if (controller.signal.aborted) return;
+        setMissing(caught instanceof HttpError && caught.status === 404);
+        setError(caught instanceof Error ? caught.message : 'โหลดเขตขายไม่สำเร็จ');
       });
     return () => controller.abort();
-  }, [moduleKey, id]);
-  async function remove() {
-    if (mutationLock.current || notice) return;
-    mutationLock.current = true;
-    setBusy(true);
+  }, [id, retry, deletedView]);
+
+  function reload() {
+    setItem(null);
     setError('');
+    setMissing(false);
+    setRetry((value) => value + 1);
+  }
+
+  async function run(action: () => Promise<unknown>, done: string, next = '') {
+    if (lock.current) return;
+    lock.current = true;
+    setBusy(true);
+    setActionError('');
     try {
-      await Delete('/api/' + moduleKey + '/' + row!.id, { reason });
-      setNotice('ลบรายการแล้ว');
-      setAfterClosePath(entity.page);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'ลบไม่สำเร็จ');
+      await action();
+      setConfirming(false);
+      setEditing(false);
+      setAfter(next);
+      setMessage(done);
+    } catch (caught) {
+      setConfirming(false);
+      setActionError(caught instanceof Error ? caught.message : 'ดำเนินการไม่สำเร็จ');
     } finally {
-      setConfirmDelete(false);
-      mutationLock.current = false;
+      lock.current = false;
       setBusy(false);
     }
   }
-  if (!row || !config)
-    return error ? (
-      <section role="alert" className="p-6">
-        {error}
-        <Link href={entity.page} className="ml-3 text-[#1a58a7]">
-          กลับรายการ
-        </Link>
-      </section>
-    ) : (
-      <LoadingComponent isVisible />
-    );
-  if (edit)
-    return (
-      <EditForm
-        record={row}
-        onSaved={(r) => {
-          setRow(r);
-          setEdit(false);
-          setNotice('บันทึกข้อมูลแล้ว');
-        }}
-      />
-    );
-  const date = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: 'Asia/Bangkok',
-  });
+
+  const deleted = Boolean(item?.deletedAt);
+  const members = ((item?.salesMembers ?? []) as Person[]).map((person) => person.name);
+
   return (
-    <section className="flex flex-1 flex-col gap-5 p-6">
-      <ConfirmationDialog
-        isOpen={confirmDelete}
-        title={`ลบ${entity.title}นี้?`}
-        description={`${row.name} จะถูกซ่อนจากรายการปกติ สามารถกู้คืนได้ในแท็บลบแล้ว`}
-        busy={busy}
-        onCancel={() => setConfirmDelete(false)}
-        onConfirm={() => void remove()}
-      />
+    <section className="min-w-0 space-y-6 p-4 md:p-6">
+      <Link
+        href={deletedView ? '/customers/territories?tab=deleted' : '/customers/territories'}
+        className="text-sm text-[#1a58a7] hover:underline"
+      >
+        ← กลับเขตขาย
+      </Link>
+      {missing ? (
+        <NotFoundComponent title="ไม่พบเขตขาย" onRefresh={reload} />
+      ) : error ? (
+        <div role="alert" className="flex gap-3 text-sm text-red-600">
+          {error}
+          <button type="button" className="text-[#1a58a7]" onClick={reload}>
+            ลองใหม่
+          </button>
+        </div>
+      ) : !item ? (
+        <LoadingComponent isVisible label="กำลังโหลดเขตขาย..." />
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-lg poppins-semibold text-[#1a58a7]">{item.name}</h2>
+            {deleted && <StatusBadge value="ลบแล้ว" />}
+          </div>
+          {editing ? (
+            <TerritoryForm
+              item={item}
+              busy={busy}
+              onCancel={() => {
+                setEditing(false);
+                setActionError('');
+              }}
+              onSave={(body) =>
+                void run(
+                  () => Update('/api/sales-territories/' + item.id, body),
+                  'บันทึกเขตขายแล้ว',
+                )
+              }
+            />
+          ) : (
+            <>
+              <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
+                <h3 className="text-base poppins-semibold text-[#1a58a7]">ข้อมูลเขตขาย</h3>
+                <dl className="mt-4 grid gap-5 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-[#65758b]">ชื่อเขต</dt>
+                    <dd className="mt-2 poppins-medium text-[#344256]">{item.name}</dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="text-[#65758b]">หมายเหตุ</dt>
+                    <dd className="mt-2 whitespace-pre-wrap break-words text-[#344256]">
+                      {String(item.notes || '—')}
+                    </dd>
+                  </div>
+                  {deleted && (
+                    <div className="sm:col-span-2">
+                      <dt className="text-[#65758b]">เหตุผลการลบ</dt>
+                      <dd className="mt-2 whitespace-pre-wrap text-[#344256]">
+                        {String(item.deleteReason || '—')}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+              <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
+                <h3 className="text-base poppins-semibold text-[#1a58a7]">ผู้รับผิดชอบ</h3>
+                <div className="mt-4 grid gap-5 text-sm sm:grid-cols-2">
+                  <div>
+                    <p className="text-[#65758b]">ผู้จัดการ (Manager)</p>
+                    <p className="mt-2 text-[#344256]">{String(item.managerName || '—')}</p>
+                  </div>
+                  <div>
+                    <p className="text-[#65758b]">ฝ่ายขาย (Sales) · {members.length} คน</p>
+                    <ul className="mt-2 space-y-2 text-[#344256]">
+                      {members.map((name) => (
+                        <li key={name}>{name}</li>
+                      ))}
+                    </ul>
+                    {!members.length && <p className="mt-2 text-[#344256]">—</p>}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+          {!deleted && <TerritoryCustomers territoryId={item.id} />}
+          {actionError && (
+            <p role="alert" className="text-sm poppins-regular text-red-600">
+              {actionError}
+            </p>
+          )}
+          {canWrite && !deleted && !editing && (
+            <div className="rounded-lg border border-red-100 p-4 md:p-6">
+              <h3 className="text-base poppins-semibold text-red-600">ลบเขตขาย</h3>
+              <p className="mt-2 text-sm poppins-regular text-[#65758b]">
+                ลบได้เมื่อเขตไม่มีลูกค้า ผู้จัดการ และฝ่ายขายแล้ว กู้คืนได้ในแท็บ ลบแล้ว
+              </p>
+              <label className="mt-4 block text-sm poppins-medium text-[#344256]">
+                เหตุผลการลบ
+                <span aria-hidden="true" className="ml-1 text-red-600">
+                  *
+                </span>
+                <textarea
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                  maxLength={1000}
+                  rows={2}
+                  className={inputClass}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={busy || !reason.trim()}
+                onClick={() => setConfirming(true)}
+                className="mt-4 rounded-lg bg-red-600 px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
+              >
+                ลบเขตขาย
+              </button>
+            </div>
+          )}
+          <div className="flex flex-wrap justify-end gap-4">
+            {canWrite && deleted && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                  void run(
+                    () => Update('/api/sales-territories/' + item.id, { action: 'restore' }),
+                    'กู้คืนเขตขายแล้ว',
+                    '/customers/territories/' + item.id,
+                  )
+                }
+                className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
+              >
+                กู้คืน
+              </button>
+            )}
+            {canWrite && !deleted && !editing && (
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white"
+              >
+                แก้ไข
+              </button>
+            )}
+          </div>
+          <ConfirmationDialog
+            isOpen={confirming}
+            title={`ลบเขตขาย ${item.name}?`}
+            description={`เหตุผล: ${reason.trim()} — กู้คืนได้ภายหลัง`}
+            busy={busy}
+            onCancel={() => setConfirming(false)}
+            onConfirm={() =>
+              void run(
+                () => Delete('/api/sales-territories/' + item.id, { reason: reason.trim() }),
+                'ลบเขตขายแล้ว',
+                '/customers/territories',
+              )
+            }
+          />
+        </>
+      )}
       <SuccessAlertComponent
-        title={notice}
-        isOpen={Boolean(notice)}
+        isOpen={Boolean(message)}
+        title={message}
         onClose={() => {
-          setNotice('');
-          if (afterClosePath) {
-            const path = afterClosePath;
-            setAfterClosePath('');
-            router.push(path);
-            router.refresh();
-          }
+          setMessage('');
+          if (after) router.push(after);
+          else reload();
         }}
       />
-      <Link href={entity.page} className="text-sm text-[#1a58a7]">
-        ← {entity.title}
-      </Link>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="m-0 text-xl poppins-semibold">{row.name}</h1>
-          <p className="text-sm text-[#718096]">
-            {row.code} · แก้ไขล่าสุด {date.format(new Date(row.updatedAt))}
-          </p>
+    </section>
+  );
+}
+
+function TerritoryForm({
+  item,
+  busy,
+  onCancel,
+  onSave,
+}: {
+  item: RecordRow;
+  busy: boolean;
+  onCancel: () => void;
+  onSave: (body: Record<string, unknown>) => void;
+}) {
+  const [name, setName] = useState(item.name);
+  const [notes, setNotes] = useState(String(item.notes ?? ''));
+  const [manager, setManager] = useState<Person | null>(
+    item.managerId ? { id: String(item.managerId), name: String(item.managerName ?? '') } : null,
+  );
+  const [sales, setSales] = useState<Person[]>((item.salesMembers ?? []) as Person[]);
+  const [error, setError] = useState('');
+  return (
+    <form
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!name.trim()) {
+          setError('กรุณากรอกชื่อเขต');
+          return;
+        }
+        onSave({
+          name: name.trim(),
+          notes,
+          managerId: manager?.id ?? null,
+          salesIds: sales.map((person) => person.id),
+          expectedUpdatedAt: item.updatedAt,
+        });
+      }}
+      className="space-y-6 rounded-lg border border-[#d9e3ee] p-4 md:p-6"
+    >
+      <h3 className="text-base poppins-semibold text-[#1a58a7]">แก้ไขเขตขาย</h3>
+      <fieldset disabled={busy} className="grid gap-5 sm:grid-cols-2">
+        <label className="text-sm poppins-medium text-[#344256]">
+          ชื่อเขต
+          <span aria-hidden="true" className="ml-1 text-red-600">
+            *
+          </span>
+          <input
+            value={name}
+            maxLength={500}
+            onChange={(event) => setName(event.target.value)}
+            aria-invalid={Boolean(error)}
+            className={`${inputClass} h-11`}
+          />
+        </label>
+        <div className="text-sm poppins-medium text-[#344256]">
+          ผู้จัดการ (Manager)
+          <div className="mt-2 poppins-regular">
+            <RoleUserPicker
+              role="MANAGER"
+              label="ผู้จัดการ"
+              value={manager}
+              onChange={setManager}
+            />
+          </div>
         </div>
-        {config.canWrite && (
-          <button
-            onClick={() => setEdit(true)}
-            className="rounded bg-[#1a58a7] px-4 py-2 text-sm text-white"
-          >
-            แก้ไขข้อมูล
-          </button>
-        )}
-      </div>
+        <label className="text-sm poppins-medium text-[#344256] sm:col-span-2">
+          หมายเหตุ
+          <textarea
+            value={notes}
+            maxLength={4000}
+            rows={3}
+            onChange={(event) => setNotes(event.target.value)}
+            className={`${inputClass} min-h-24 resize-y`}
+          />
+        </label>
+        <div className="text-sm poppins-medium text-[#344256] sm:col-span-2">
+          ฝ่ายขาย (Sales) · {sales.length} คน
+          <ul className="mt-2 flex list-none flex-wrap gap-2 p-0">
+            {sales.map((person) => (
+              <li
+                key={person.id}
+                className="flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm poppins-regular text-[#1a58a7]"
+              >
+                {person.name}
+                <button
+                  type="button"
+                  aria-label={`นำ ${person.name} ออก`}
+                  onClick={() => setSales(sales.filter((entry) => entry.id !== person.id))}
+                  className="text-[#65758b] hover:text-red-600"
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-2 max-w-md poppins-regular">
+            <RoleUserPicker
+              key={sales.length}
+              role="SALES"
+              label="เพิ่มฝ่ายขาย"
+              value={null}
+              onChange={(person) => {
+                if (person && !sales.some((entry) => entry.id === person.id))
+                  setSales([...sales, person]);
+              }}
+            />
+          </div>
+        </div>
+      </fieldset>
       {error && (
-        <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">
+        <p role="alert" className="text-sm poppins-regular text-red-600">
           {error}
         </p>
       )}
-      <dl className="grid max-w-4xl gap-4 rounded-xl border border-[#d9e3ee] bg-white p-5 sm:grid-cols-2">
-        <div>
-          <dt className="text-xs text-[#718096]">รหัส / เลขอ้างอิง</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{row.code || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">ชื่อ / หัวข้อ</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{row.name || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">สถานะ</dt>
-          <dd className="m-0 mt-1 break-words text-sm">
-            <StatusBadge value={row.status || 'ยังไม่ระบุ'} />
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">พื้นที่ดูแล</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.area ?? '-') || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">ผู้ดูแล / ผู้บันทึก</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.owner ?? '-') || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">หมายเหตุ</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.notes ?? '-') || '-'}</dd>
-        </div>
-      </dl>
-      <LinkedRecordPanel moduleKey="sales-territories" record={row} />
-      {config.canWrite && (
-        <div className="max-w-4xl rounded-xl border border-red-200 p-5">
-          <h2 className="text-sm poppins-semibold text-red-700">ลบรายการ</h2>
-          <label className="block text-sm">
-            เหตุผล
-            <input
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              maxLength={1000}
-              className="mt-2 h-10 w-full rounded border border-[#d9e3ee] px-3"
-            />
-          </label>
-          <button
-            disabled={busy || Boolean(notice)}
-            onClick={() => setConfirmDelete(true)}
-            className="mt-4 rounded border border-red-300 px-4 py-2 text-sm text-red-700 disabled:opacity-50"
-          >
-            {busy ? 'กำลังลบ...' : 'ลบรายการ'}
-          </button>
-        </div>
-      )}
-    </section>
-  );
-}
-function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: RecordRow) => void }) {
-  const entity: RecordModule = {
-    key: 'sales-territories',
-    model: 'SalesTerritory',
-    table: 'sales_territories',
-    page: '/customers/territories',
-    fields: [
-      {
-        key: 'managerId',
-        label: 'ผู้จัดการ (Manager)',
-        type: 'relation',
-        relation: 'users',
-        required: false,
-      },
-      {
-        key: 'salesId',
-        label: 'ฝ่ายขาย (Sales)',
-        type: 'relation',
-        relation: 'users',
-        required: false,
-      },
-      {
-        key: 'code',
-        label: 'รหัส / เลขอ้างอิง',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'name',
-        label: 'ชื่อ / หัวข้อ',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'status',
-        label: 'สถานะ',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'area',
-        label: 'พื้นที่ดูแล',
-        type: 'textarea',
-        required: false,
-      },
-      {
-        key: 'owner',
-        label: 'ผู้ดูแล / ผู้บันทึก',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'notes',
-        label: 'หมายเหตุ',
-        type: 'textarea',
-        required: false,
-      },
-    ],
-    display: ['area', null, 'owner', null],
-    title: 'เขตและผู้แทนขาย',
-    action: 'เพิ่มเขต',
-    columns: ['เขต / ผู้แทน', 'พื้นที่ดูแล', 'ลูกค้า', 'สถานะ'],
-    tabs: ['ทั้งหมด'],
-    filters: ['ทุกหมวด'],
-    eyebrow: '',
-    description: '',
-  };
-  const router = useRouter();
-  const formId = useId();
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const mutationLock = useRef(false);
-  const [pendingEdit, setPendingEdit] = useState<Record<string, unknown> | null>(null);
-  const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      entity.fields.map((f) => [
-        f.key,
-        String(record?.[f.key] ?? (f.key === 'status' ? 'ใช้งานอยู่' : '')),
-      ]),
-    ),
-  );
-  const [error, setError] = useState(''),
-    [busy, setBusy] = useState(false),
-    [createdId, setCreatedId] = useState('');
-  function changeValue(key: string, value: string) {
-    setValues((current) => ({ ...current, [key]: value }));
-    setFieldErrors((current) => {
-      if (!current[key]) return current;
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
-  }
-  async function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (mutationLock.current || createdId || pendingEdit) return;
-    const errors: Record<string, string> = {};
-    for (const field of entity.fields) {
-      const value = values[field.key]?.trim() ?? '';
-      const control = event.currentTarget.elements.namedItem(field.key);
-      if (field.required && !value) {
-        errors[field.key] =
-          `${field.relation || field.key === 'status' ? 'กรุณาเลือก' : 'กรุณากรอก'}${field.label}`;
-      } else if (
-        !field.relation &&
-        field.key !== 'status' &&
-        (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement)
-      ) {
-        const validity = control.validity;
-        if (validity.badInput || validity.typeMismatch)
-          errors[field.key] = `กรุณากรอก${field.label}ให้ถูกต้อง`;
-        else if (validity.rangeUnderflow)
-          errors[field.key] =
-            `กรุณากรอก${field.label}ตั้งแต่ ${control.getAttribute('min')} ขึ้นไป`;
-        else if (validity.stepMismatch)
-          errors[field.key] = `กรุณากรอก${field.label}เป็นตัวเลขทศนิยมไม่เกิน 2 ตำแหน่ง`;
-        else if (validity.tooLong)
-          errors[field.key] = `กรุณากรอก${field.label}ไม่เกิน ${control.maxLength} ตัวอักษร`;
-        else if (!validity.valid) errors[field.key] = `กรุณากรอก${field.label}ให้ถูกต้อง`;
-      }
-    }
-    setFieldErrors(errors);
-    if (Object.keys(errors).length) {
-      setError('');
-      const first = event.currentTarget.elements.namedItem(Object.keys(errors)[0]);
-      if (first instanceof HTMLElement) first.focus();
-      return;
-    }
-    const body = { ...values, ...(record ? { expectedUpdatedAt: record.updatedAt } : {}) };
-    if (record) {
-      setPendingEdit(body);
-      return;
-    }
-    await persist(body);
-  }
-  async function persist(body: Record<string, unknown>) {
-    if (mutationLock.current || createdId) return;
-    mutationLock.current = true;
-    setBusy(true);
-    setError('');
-    try {
-      const url = '/api/' + entity.key + (record ? '/' + record.id : '');
-      const result = record
-        ? await Update<RecordDetailResponse>(url, body)
-        : await Post<RecordDetailResponse>(url, body);
-      if (onSaved) onSaved(result.data);
-      else setCreatedId(result.data.id);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'บันทึกไม่สำเร็จ');
-    } finally {
-      setPendingEdit(null);
-      mutationLock.current = false;
-      setBusy(false);
-    }
-  }
-  return (
-    <section className="flex flex-1 flex-col gap-5 p-6">
-      <ConfirmationDialog
-        isOpen={pendingEdit !== null}
-        variant="primary"
-        title={`บันทึกการแก้ไข${entity.title}?`}
-        description="ยืนยันบันทึกข้อมูลที่แก้ไข หากยกเลิกข้อมูลในฟอร์มจะยังอยู่"
-        confirmLabel="ยืนยันบันทึก"
-        busyLabel="กำลังบันทึก..."
-        busy={busy}
-        onCancel={() => setPendingEdit(null)}
-        onConfirm={() => {
-          if (pendingEdit) void persist(pendingEdit);
-        }}
-      />
-      <SuccessAlertComponent
-        title={`เพิ่ม${entity.title}แล้ว`}
-        isOpen={Boolean(createdId)}
-        onClose={() => {
-          if (!createdId) return;
-          const path = entity.page + '/' + createdId;
-          setCreatedId('');
-          router.push(path);
-          router.refresh();
-        }}
-      />
-      <Link href={entity.page} className="text-sm text-[#1a58a7]">
-        ← {entity.title}
-      </Link>
-      <h1 className="m-0 text-xl poppins-semibold">
-        {record ? 'แก้ไข' + entity.title : entity.action}
-      </h1>
-      <form
-        noValidate
-        onSubmit={save}
-        className="max-w-3xl rounded-xl border border-[#d9e3ee] bg-white p-5 shadow-xs"
-      >
-        {error && (
-          <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">
-            {error}
-          </p>
-        )}
-        <fieldset
-          disabled={busy || Boolean(createdId)}
-          className="grid min-w-0 gap-4 border-0 p-0 sm:grid-cols-2"
+      <div className="flex justify-end gap-4">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onCancel}
+          className="w-36 rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-sm poppins-medium text-[#344256] hover:bg-gray-50"
         >
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">
-              รหัส / เลขอ้างอิง <span className="text-red-600"> *</span>
-            </span>
-            <input
-              name="code"
-              type="text"
-              required
-              aria-invalid={Boolean(fieldErrors['code'])}
-              aria-describedby={fieldErrors['code'] ? `${formId}-code-error` : undefined}
-              maxLength={500}
-              value={values['code']}
-              onChange={(event) => changeValue('code', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['code'] && (
-              <p
-                id={`${formId}-code-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['code']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">
-              ชื่อ / หัวข้อ <span className="text-red-600"> *</span>
-            </span>
-            <input
-              name="name"
-              type="text"
-              required
-              aria-invalid={Boolean(fieldErrors['name'])}
-              aria-describedby={fieldErrors['name'] ? `${formId}-name-error` : undefined}
-              maxLength={500}
-              value={values['name']}
-              onChange={(event) => changeValue('name', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['name'] && (
-              <p
-                id={`${formId}-name-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['name']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">ผู้จัดการ (Manager)</span>
-            <RelationPicker
-              field={{
-                key: 'managerId',
-                label: 'ผู้จัดการ (Manager)',
-                type: 'relation',
-                relation: 'users',
-                required: false,
-              }}
-              value={values['managerId'] ?? ''}
-              onChange={(value) => changeValue('managerId', value)}
-              invalid={Boolean(fieldErrors['managerId'])}
-              errorId={fieldErrors['managerId'] ? formId + '-managerId-error' : undefined}
-            />
-            {fieldErrors['managerId'] && (
-              <p
-                id={formId + '-managerId-error'}
-                role="alert"
-                className="mt-1 text-xs text-red-600"
-              >
-                {fieldErrors['managerId']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">ฝ่ายขาย (Sales)</span>
-            <RelationPicker
-              field={{
-                key: 'salesId',
-                label: 'ฝ่ายขาย (Sales)',
-                type: 'relation',
-                relation: 'users',
-                required: false,
-              }}
-              value={values['salesId'] ?? ''}
-              onChange={(value) => changeValue('salesId', value)}
-              invalid={Boolean(fieldErrors['salesId'])}
-              errorId={fieldErrors['salesId'] ? formId + '-salesId-error' : undefined}
-            />
-            {fieldErrors['salesId'] && (
-              <p id={formId + '-salesId-error'} role="alert" className="mt-1 text-xs text-red-600">
-                {fieldErrors['salesId']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">
-              สถานะ <span className="text-red-600"> *</span>
-            </span>
-            <RelationPicker
-              field={{ key: 'status', label: 'สถานะ', type: 'text', required: true }}
-              statusModule={entity.key}
-              value={values['status']}
-              invalid={Boolean(fieldErrors['status'])}
-              errorId={fieldErrors['status'] ? `${formId}-status-error` : undefined}
-              onChange={(value) => changeValue('status', value)}
-            />
-            {fieldErrors['status'] && (
-              <p
-                id={`${formId}-status-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['status']}
-              </p>
-            )}
-          </label>
-          <label className="sm:col-span-2">
-            <span className="mb-2 block text-sm text-[#344256]">พื้นที่ดูแล</span>
-            <textarea
-              name="area"
-              aria-invalid={Boolean(fieldErrors['area'])}
-              aria-describedby={fieldErrors['area'] ? `${formId}-area-error` : undefined}
-              value={values['area']}
-              maxLength={4000}
-              onChange={(event) => changeValue('area', event.target.value)}
-              className="min-h-24 w-full rounded-md border border-[#d9e3ee] bg-white p-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['area'] && (
-              <p
-                id={`${formId}-area-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['area']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">ผู้ดูแล / ผู้บันทึก</span>
-            <input
-              name="owner"
-              type="text"
-              aria-invalid={Boolean(fieldErrors['owner'])}
-              aria-describedby={fieldErrors['owner'] ? `${formId}-owner-error` : undefined}
-              maxLength={500}
-              value={values['owner']}
-              onChange={(event) => changeValue('owner', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['owner'] && (
-              <p
-                id={`${formId}-owner-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['owner']}
-              </p>
-            )}
-          </label>
-          <label className="sm:col-span-2">
-            <span className="mb-2 block text-sm text-[#344256]">หมายเหตุ</span>
-            <textarea
-              name="notes"
-              aria-invalid={Boolean(fieldErrors['notes'])}
-              aria-describedby={fieldErrors['notes'] ? `${formId}-notes-error` : undefined}
-              value={values['notes']}
-              maxLength={4000}
-              onChange={(event) => changeValue('notes', event.target.value)}
-              className="min-h-24 w-full rounded-md border border-[#d9e3ee] bg-white p-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['notes'] && (
-              <p
-                id={`${formId}-notes-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['notes']}
-              </p>
-            )}
-          </label>
-        </fieldset>
-        <div className="mt-6 flex justify-end gap-3 border-t border-[#e3e9f0] pt-4">
-          <Link href={entity.page} className="rounded border border-[#d9e3ee] px-4 py-2 text-sm">
-            ยกเลิก
-          </Link>
-          <button
-            disabled={busy || Boolean(createdId)}
-            className="rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"
-          >
-            {busy ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
-          </button>
-        </div>
-      </form>
-    </section>
+          ยกเลิก
+        </button>
+        <button
+          type="submit"
+          disabled={busy}
+          className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
+        >
+          {busy ? 'กำลังบันทึก...' : 'บันทึก'}
+        </button>
+      </div>
+    </form>
   );
 }
-function RelationPicker({
-  field,
+
+// Active users of one role from /api/users?view=options (Admin only), searched 10 at a time.
+function RoleUserPicker({
+  role,
+  label,
   value,
   onChange,
-  invalid,
-  errorId,
-  statusModule,
 }: {
-  field: RecordField;
-  value: string;
-  onChange: (value: string) => void;
-  invalid: boolean;
-  errorId?: string;
-  statusModule?: string;
+  role: 'MANAGER' | 'SALES';
+  label: string;
+  value: Person | null;
+  onChange: (person: Person | null) => void;
 }) {
+  const [options, setOptions] = useState<{ id: string; code: string; name: string }[]>([]);
+  const [search, setSearch] = useState('');
+  const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [statuses, setStatuses] = useState<string[]>([]);
-  const [search, setSearch] = useState(''),
-    [offset, setOffset] = useState(0),
-    [remoteOptions, setOptions] = useState<{ id: string; code: string; name: string }[]>([]),
-    [more, setMore] = useState(false),
-    [error, setError] = useState('');
-  const options = statusModule
-    ? [...new Set([...statuses, value, 'ใช้งานอยู่'])]
-        .filter((status) => status && status.includes(search.trim()))
-        .map((status) => ({ id: status, code: status, name: '' }))
-    : remoteOptions;
+  const [error, setError] = useState('');
+  const [more, setMore] = useState(false);
   useEffect(() => {
-    if (!statusModule) return;
-    const controller = new AbortController();
-    Get<RecordFiltersResponse>(`/api/${statusModule}?view=filters`, controller.signal)
-      .then((result) => {
-        if (controller.signal.aborted) return;
-        setStatuses(result.data.status ?? []);
-        setLoading(false);
-        setError('');
-      })
-      .catch((caught) => {
-        if (!controller.signal.aborted) {
-          setError(caught instanceof Error ? caught.message : 'โหลดสถานะไม่สำเร็จ');
-          setLoading(false);
-        }
-      });
-    return () => controller.abort();
-  }, [statusModule]);
-  useEffect(() => {
-    if (statusModule) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      const params = new URLSearchParams({ search, offset: String(offset), limit: '10' });
-      if (field.relation === 'users')
-        params.set('roleId', field.key === 'managerId' ? 'MANAGER' : 'SALES');
-      Get<RecordOptionsResponse>(
-        '/api/' + field.relation + '?view=options&' + params,
-        controller.signal,
-      )
-        .then((r) => {
+      const params = new URLSearchParams({
+        view: 'options',
+        roleId: role,
+        search,
+        offset: String(offset),
+        limit: '10',
+      });
+      Get<RecordOptionsResponse>('/api/users?' + params, controller.signal)
+        .then((result) => {
           if (controller.signal.aborted) return;
-          setOptions(r.data);
-          setMore(r.pagination.hasMore);
+          setOptions(result.data);
+          setMore(result.pagination.hasMore);
           setError('');
           setLoading(false);
         })
-        .catch((e) => {
-          if (!controller.signal.aborted) {
-            setError(e.message);
-            setLoading(false);
-          }
+        .catch((caught) => {
+          if (controller.signal.aborted) return;
+          setError(caught instanceof Error ? caught.message : 'โหลดผู้ใช้งานไม่สำเร็จ');
+          setLoading(false);
         });
     }, 200);
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [field.relation, field.key, offset, search, statusModule]);
+  }, [role, search, offset]);
+  const shown =
+    value && !options.some((option) => option.id === value.id)
+      ? [{ id: value.id, code: value.name, name: '' }, ...options]
+      : options;
   return (
     <SearchCombobox
-      field={field}
-      value={value}
-      onChange={onChange}
-      invalid={invalid}
-      errorId={errorId}
-      statusModule={statusModule}
-      options={options}
+      field={{ key: `territory-${role.toLowerCase()}`, label, required: false }}
+      value={value?.id ?? ''}
+      onChange={(id) => {
+        const option = shown.find((entry) => entry.id === id);
+        onChange(option ? { id: option.id, name: option.name || option.code } : null);
+      }}
+      invalid={false}
+      options={shown}
       search={search}
       offset={offset}
       loading={loading}
@@ -752,115 +487,131 @@ function RelationPicker({
   );
 }
 
-function LinkedRecordPanel({ moduleKey, record }: { moduleKey: string; record: RecordRow }) {
-  const [rows, setRows] = useState<RecordRow[]>([]);
+function TerritoryCustomers({ territoryId }: { territoryId: string }) {
+  const router = useRouter();
   const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<CustomerListResponse | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  const sort = useTableSort(() => setOffset(0));
   useEffect(() => {
-    if (moduleKey !== 'sales-territories') return;
-    let active = true;
-    queueMicrotask(() => {
-      if (active) setBusy(true);
-    });
+    const controller = new AbortController();
     const params = new URLSearchParams({
-      territoryId: record.id,
-      offset: String(offset),
+      territoryId,
       limit: String(pageSize),
+      offset: String(offset),
     });
-    Get<RecordListResponse>(`/customers?${params}`)
-      .then((result) => {
-        if (!active) return;
-        setRows(result.data);
-        setTotal(result.pagination.total);
+    Get<CustomerListResponse>(
+      withTableSort('/api/customers?' + params, { key: sort.key, direction: sort.direction }),
+      controller.signal,
+    )
+      .then((data) => {
+        if (controller.signal.aborted) return;
+        setResult(data);
         setError('');
+        setLoading(false);
       })
-      .catch(() => {
-        if (active) setError('โหลดลูกค้าในเขตไม่สำเร็จ');
-      })
-      .finally(() => {
-        if (active) setBusy(false);
+      .catch((caught) => {
+        if (controller.signal.aborted) return;
+        setError(caught instanceof Error ? caught.message : 'โหลดลูกค้าไม่สำเร็จ');
+        setLoading(false);
       });
-    return () => {
-      active = false;
-    };
-  }, [moduleKey, record.id, offset, pageSize]);
-  const name = (key: string) => String(record[key] || '-');
+    return () => controller.abort();
+  }, [territoryId, offset, pageSize, retry, sort.key, sort.direction]);
+  const rows = result?.data ?? [];
   return (
-    <section className="mt-6 border-t border-gray-100 pt-5">
-      <h2 className="poppins-semibold mb-3 text-lg">ข้อมูลที่เชื่อมโยง</h2>
-      <dl className="grid gap-3 text-sm md:grid-cols-3">
-        {moduleKey === 'customers' && (
-          <div>
-            <dt className="text-gray-500">เขตขาย</dt>
-            <dd>
-              {record.territoryId ? (
-                <Link
-                  className="text-blue-600 underline"
-                  href={`/customers/territories/${record.territoryId}`}
-                >
-                  {name('territoryName')}
-                </Link>
-              ) : (
-                '-'
-              )}
-            </dd>
-          </div>
-        )}
-        <div>
-          <dt className="text-gray-500">ผู้จัดการ (Manager)</dt>
-          <dd>{name('managerName')}</dd>
-        </div>
-        <div>
-          <dt className="text-gray-500">ฝ่ายขาย (Sales)</dt>
-          <dd>{name('salesName')}</dd>
-        </div>
-      </dl>
-      {moduleKey === 'sales-territories' && (
-        <div className="mt-5">
-          <h3 className="poppins-medium mb-2">ลูกค้าในเขต ({total})</h3>
-          {error && (
-            <p role="alert" className="text-red-600">
-              {error}
-            </p>
-          )}
-          {busy ? (
-            <div className="relative min-h-32">
-              <LoadingComponent isVisible variant="content" padding="py-12" />
-            </div>
-          ) : rows.length ? (
-            <ul className="divide-y divide-gray-100">
-              {rows.map((row) => (
-                <li key={row.id}>
-                  <Link
-                    className="block py-3 text-blue-600 hover:bg-blue-50"
-                    href={`/customers/${row.id}`}
-                  >
-                    {row.name} · {row.code}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500">ยังไม่มีลูกค้าในเขตนี้</p>
-          )}
-          <PaginationControls
-            page={Math.floor(offset / pageSize) + 1}
-            pages={Math.max(1, Math.ceil(total / pageSize))}
-            total={total}
-            count={rows.length}
-            onChange={(page) => setOffset((page - 1) * pageSize)}
-            pageSize={pageSize}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setOffset(0);
+    <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
+      <h3 className="text-base poppins-semibold text-[#1a58a7]">
+        ลูกค้า · {result?.pagination.total ?? 0} ราย
+      </h3>
+      {error && (
+        <div role="alert" className="mt-4 flex gap-3 text-sm text-red-600">
+          {error}
+          <button
+            type="button"
+            className="text-[#1a58a7]"
+            onClick={() => {
+              setLoading(true);
+              setRetry((value) => value + 1);
             }}
-            disabled={busy}
-          />
+          >
+            ลองใหม่
+          </button>
         </div>
       )}
-    </section>
+      <div
+        className="relative mt-4 min-h-40 overflow-hidden rounded-lg border border-[#e3e9f0]"
+        aria-busy={loading}
+      >
+        <div className="overflow-x-auto">
+          <SortableTable
+            sort={sort}
+            columns={['code', 'name', 'province', 'status']}
+            className="w-full min-w-[640px] text-left text-sm poppins-regular text-[#344256]"
+          >
+            <thead className="bg-[#f7f9fc] text-[#65758b]">
+              <tr>
+                {['รหัสลูกค้า', 'ชื่อสถานประกอบการ / บริษัท', 'จังหวัด', 'สถานะ'].map((label) => (
+                  <th key={label} scope="col" className="px-4 py-3 poppins-medium">
+                    {label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {!loading &&
+                !error &&
+                rows.map((customer) => (
+                  <tr
+                    key={customer.id}
+                    role="link"
+                    tabIndex={0}
+                    aria-label={`เปิดลูกค้า ${customer.code} ${customer.name}`}
+                    onClick={() => router.push('/customers/' + customer.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') router.push('/customers/' + customer.id);
+                    }}
+                    className="cursor-pointer border-t border-[#edf1f5] hover:bg-blue-50/40"
+                  >
+                    <td className="whitespace-nowrap px-4 py-3 poppins-medium text-[#1a58a7]">
+                      {customer.code}
+                    </td>
+                    <td className="px-4 py-3">{customer.name}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{customer.province || '—'}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge value={customer.status} />
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </SortableTable>
+        </div>
+        <LoadingComponent
+          isVisible={loading && !error}
+          variant="content"
+          label="กำลังโหลดลูกค้า..."
+        />
+        {!loading && !error && !rows.length && <NotFoundComponent title="ยังไม่มีลูกค้าในเขตนี้" />}
+        <PaginationControls
+          page={Math.floor(offset / pageSize) + 1}
+          pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
+          total={result?.pagination.total ?? 0}
+          count={rows.length}
+          pageSize={pageSize}
+          onChange={(page) => {
+            setLoading(true);
+            setOffset((page - 1) * pageSize);
+          }}
+          onPageSizeChange={(size) => {
+            setLoading(true);
+            setPageSize(size);
+            setOffset(0);
+          }}
+          disabled={loading}
+        />
+      </div>
+    </div>
   );
 }

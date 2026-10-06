@@ -12,7 +12,6 @@ import UserSecondarySidebar from '@/components/layout/user-secondary-sidebar';
 import PromotionSecondarySidebar from '@/components/layout/promotion-secondary-sidebar';
 import ReportSecondarySidebar from '@/components/layout/report-secondary-sidebar';
 import SalesDocumentSecondarySidebar from '@/components/layout/sales-document-secondary-sidebar';
-import TerritorySecondarySidebar from '@/components/layout/territory-secondary-sidebar';
 import StockSecondarySidebar from '@/components/layout/stock-secondary-sidebar';
 import NavigationOnlyTabs from '@/components/layout/navigation-only-tabs';
 import SettingsSecondarySidebar from '@/components/layout/settings-secondary-sidebar';
@@ -39,7 +38,10 @@ export function AdminShell({
     '/products/stock/disposal',
   ].includes(currentPath);
   const page: AdminPage = getAdminPage(currentPath) ?? ADMIN_PAGES[0];
-  const settingsSection = currentPath === '/settings' || currentPath.startsWith('/settings/');
+  const settingsSection =
+    currentPath === '/settings' ||
+    currentPath.startsWith('/settings/') ||
+    page.parentHref === '/settings';
   const stockSection = page.href === '/products/stock' || page.parentHref === '/products/stock';
   const productSection =
     !stockSection &&
@@ -106,15 +108,15 @@ export function AdminShell({
             <div className="min-w-0 flex-1">
               <h1 className="m-0 break-words text-lg leading-[1.35] poppins-bold text-[#111827] md:text-xl">
                 {stockSection
-                  ? 'สต็อกสินค้า'
+                  ? 'สต็อก'
                   : productSection
-                    ? 'สินค้าและสต็อก'
+                    ? 'สินค้า'
                     : customerSection
                       ? 'ลูกค้า'
                       : userSection
                         ? 'ผู้ใช้งาน'
                         : territorySection
-                          ? 'เขต'
+                          ? 'ตั้งค่าระบบ'
                           : promotionSection
                             ? 'โปรโมชัน & ของแถม'
                             : salesReportSection
@@ -198,7 +200,6 @@ export function AdminShell({
             {stockSection && <StockSecondarySidebar />}
             {customerSection && <CustomerSecondarySidebar roleId={account?.roleId ?? ''} />}
             {userSection && account?.roleId === 'ADMIN' && <UserSecondarySidebar />}
-            {territorySection && <TerritorySecondarySidebar roleId={account?.roleId ?? ''} />}
             {promotionSection && <PromotionSecondarySidebar roleId={account?.roleId ?? ''} />}
             {quoteSection && (
               <SalesDocumentSecondarySidebar parentHref="/quotes" roleId={account?.roleId ?? ''} />
@@ -208,18 +209,32 @@ export function AdminShell({
             )}
             {salesReportSection && <ReportSecondarySidebar parentHref="/reports/sales" />}
             {inventoryReportSection && <ReportSecondarySidebar parentHref="/reports/inventory" />}
-            {currentPath.startsWith('/settings') && account?.roleId === 'ADMIN' && (
-              <SettingsSecondarySidebar />
-            )}
+            {settingsSection && account?.roleId === 'ADMIN' && <SettingsSecondarySidebar />}
             <div className="flex min-w-0 flex-1 flex-col">
               {showProductTable ||
               currentPath === '/products/stock' ||
               currentPath.startsWith('/products/stock/receipts/') ||
               (currentPath === '/products/stock/create' && account?.roleId === 'ADMIN') ||
               (currentPath === '/settings' && account?.roleId === 'ADMIN') ||
+              territorySection ||
+              (customerSection &&
+                (currentPath === '/customers' ||
+                  currentPath === '/customers/list' ||
+                  currentPath === '/customers/create' ||
+                  currentPath === '/customers/list/create' ||
+                  (/^\/customers\/[^/]+$/.test(currentPath) &&
+                    !['groups', 'documents', 'dashboard'].includes(currentPath.split('/')[2])) ||
+                  (/^\/customers\/[^/]+\/edit$/.test(currentPath) &&
+                    !['territories', 'groups', 'documents', 'dashboard', 'list'].includes(
+                      currentPath.split('/')[2],
+                    ) &&
+                    account?.roleId === 'ADMIN'))) ||
+              (userSection && account?.roleId === 'ADMIN') ||
               showProductDetail ||
               (currentPath === '/products/create' && account?.roleId === 'ADMIN') ||
-              (currentPath === '/settings/product-options' && account?.roleId === 'ADMIN') ? (
+              ((currentPath === '/settings/product-options' ||
+                currentPath === '/settings/customer-options') &&
+                account?.roleId === 'ADMIN') ? (
                 children
               ) : (
                 <NavigationOnlyTabs

@@ -1,932 +1,427 @@
 'use client';
-import PaginationControls from '@/components/ui/pagination-controls';
-import type { RecordListResponse } from '@/types/api/records';
-import type { RecordOptionsResponse, RecordFiltersResponse } from '@/types/api/records';
-import type { RecordDetailResponse, RecordConfigResponse } from '@/types/api/records';
 
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import type { RecordModule, RecordConfig, RecordField, RecordRow } from '@/types/api/records';
-import { Delete, Get, Post, Update } from '@/service/http';
+import { useRouter } from 'next/navigation';
+import ChevronDown from '@/components/ui/chevron-down';
 import LoadingComponent from '@/components/ui/loading-component';
-import SuccessAlertComponent from '@/components/ui/success-alert-component';
-import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import StatusBadge from '@/components/ui/status-badge';
-import SearchCombobox from '@/components/ui/search-combobox';
-export default function Page() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
-  const moduleKey = 'customers';
-  const entity = {
-    key: 'customers',
-    model: 'Customer',
-    table: 'customers',
-    page: '/customers',
-    fields: [
-      {
-        key: 'code',
-        label: 'รหัส / เลขอ้างอิง',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'name',
-        label: 'ชื่อ / หัวข้อ',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'status',
-        label: 'สถานะ',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'category',
-        label: 'กลุ่มลูกค้า',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'province',
-        label: 'จังหวัด',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'owner',
-        label: 'ผู้ดูแล / ผู้บันทึก',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'paymentTerms',
-        label: 'เงื่อนไขชำระเงิน',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'territoryId',
-        label: 'เขตขาย',
-        type: 'relation',
-        relation: 'sales-territories',
-        required: true,
-      },
-      {
-        key: 'notes',
-        label: 'หมายเหตุ',
-        type: 'textarea',
-        required: false,
-      },
-    ],
-    display: ['category', 'province', 'owner', 'paymentTerms'],
-    title: 'ลูกค้า',
-    action: 'เพิ่มลูกค้า',
-    columns: ['ชื่อลูกค้า', 'กลุ่ม / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
-    tabs: ['ทั้งหมด'],
-    filters: ['ทุกหมวด'],
-    eyebrow: '',
-    description: '',
-  };
-  const router = useRouter();
-  const mutationLock = useRef(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [row, setRow] = useState<RecordRow | null>(null),
-    [config, setConfig] = useState<RecordConfig | null>(null),
-    [error, setError] = useState(''),
-    [edit, setEdit] = useState(false),
-    [reason, setReason] = useState(''),
-    [busy, setBusy] = useState(false),
-    [notice, setNotice] = useState(''),
-    [afterClosePath, setAfterClosePath] = useState('');
-  useEffect(() => {
-    const controller = new AbortController();
-    Promise.all([
-      Get<RecordDetailResponse>(
-        '/api/' + moduleKey + '/' + encodeURIComponent(id),
-        controller.signal,
-      ),
-      Get<RecordConfigResponse>('/api/' + moduleKey + '?view=config', controller.signal),
-    ])
-      .then(([r, c]) => {
-        setRow(r.data);
-        setConfig(c.data);
-      })
-      .catch((e) => {
-        if (!controller.signal.aborted) setError(e.message);
-      });
-    return () => controller.abort();
-  }, [moduleKey, id]);
-  async function remove() {
-    if (mutationLock.current || notice) return;
-    mutationLock.current = true;
-    setBusy(true);
-    setError('');
-    try {
-      await Delete('/api/' + moduleKey + '/' + row!.id, { reason });
-      setNotice('ลบรายการแล้ว');
-      setAfterClosePath(entity.page);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'ลบไม่สำเร็จ');
-    } finally {
-      setConfirmDelete(false);
-      mutationLock.current = false;
-      setBusy(false);
-    }
-  }
-  if (!row || !config)
-    return error ? (
-      <section role="alert" className="p-6">
-        {error}
-        <Link href={entity.page} className="ml-3 text-[#1a58a7]">
-          กลับรายการ
-        </Link>
-      </section>
-    ) : (
-      <LoadingComponent isVisible />
-    );
-  if (edit)
-    return (
-      <EditForm
-        record={row}
-        onSaved={(r) => {
-          setRow(r);
-          setEdit(false);
-          setNotice('บันทึกข้อมูลแล้ว');
-        }}
-      />
-    );
-  const date = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: 'Asia/Bangkok',
-  });
-  return (
-    <section className="flex flex-1 flex-col gap-5 p-6">
-      <ConfirmationDialog
-        isOpen={confirmDelete}
-        title={`ลบ${entity.title}นี้?`}
-        description={`${row.name} จะถูกซ่อนจากรายการปกติ สามารถกู้คืนได้ในแท็บลบแล้ว`}
-        busy={busy}
-        onCancel={() => setConfirmDelete(false)}
-        onConfirm={() => void remove()}
-      />
-      <SuccessAlertComponent
-        title={notice}
-        isOpen={Boolean(notice)}
-        onClose={() => {
-          setNotice('');
-          if (afterClosePath) {
-            const path = afterClosePath;
-            setAfterClosePath('');
-            router.push(path);
-            router.refresh();
-          }
-        }}
-      />
-      <Link href={entity.page} className="text-sm text-[#1a58a7]">
-        ← {entity.title}
-      </Link>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="m-0 text-xl poppins-semibold">{row.name}</h1>
-          <p className="text-sm text-[#718096]">
-            {row.code} · แก้ไขล่าสุด {date.format(new Date(row.updatedAt))}
-          </p>
-        </div>
-        {config.canWrite && (
-          <button
-            onClick={() => setEdit(true)}
-            className="rounded bg-[#1a58a7] px-4 py-2 text-sm text-white"
-          >
-            แก้ไขข้อมูล
-          </button>
-        )}
-      </div>
-      {error && (
-        <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </p>
-      )}
-      <dl className="grid max-w-4xl gap-4 rounded-xl border border-[#d9e3ee] bg-white p-5 sm:grid-cols-2">
-        <div>
-          <dt className="text-xs text-[#718096]">รหัส / เลขอ้างอิง</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{row.code || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">ชื่อ / หัวข้อ</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{row.name || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">สถานะ</dt>
-          <dd className="m-0 mt-1 break-words text-sm">
-            <StatusBadge value={row.status || 'ยังไม่ระบุ'} />
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">กลุ่มลูกค้า</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.category ?? '-') || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">จังหวัด</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.province ?? '-') || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">ผู้ดูแล / ผู้บันทึก</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.owner ?? '-') || '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">เงื่อนไขชำระเงิน</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.paymentTerms ?? '-') || '-'}</dd>
-        </div>
+import { Delete, Get, HttpError, Update } from '@/service/http';
+import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+import SuccessAlertComponent from '@/components/ui/success-alert-component';
+import {
+  CUSTOMER_TEXT_FIELDS,
+  SHIPPING_FIELDS,
+  customerListStatus,
+  licenseExpiry,
+} from '@/config/customers';
+import type { CustomerDetailResponse } from '@/types/api/customers';
 
-        <div>
-          <dt className="text-xs text-[#718096]">เขตขาย</dt>
-          <dd className="m-0 mt-1 break-words text-sm">
-            <RelationName moduleKey="sales-territories" id={String(row.territoryId ?? '')} />
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[#718096]">หมายเหตุ</dt>
-          <dd className="m-0 mt-1 break-words text-sm">{String(row.notes ?? '-') || '-'}</dd>
-        </div>
-      </dl>
-      <LinkedRecordPanel moduleKey="customers" record={row} />
-      {config.canWrite && (
-        <div className="max-w-4xl rounded-xl border border-red-200 p-5">
-          <h2 className="text-sm poppins-semibold text-red-700">ลบรายการ</h2>
-          <label className="block text-sm">
-            เหตุผล
-            <input
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              maxLength={1000}
-              className="mt-2 h-10 w-full rounded border border-[#d9e3ee] px-3"
-            />
-          </label>
-          <button
-            disabled={busy || Boolean(notice)}
-            onClick={() => setConfirmDelete(true)}
-            className="mt-4 rounded border border-red-300 px-4 py-2 text-sm text-red-700 disabled:opacity-50"
-          >
-            {busy ? 'กำลังลบ...' : 'ลบรายการ'}
-          </button>
-        </div>
-      )}
-    </section>
-  );
-}
-function RelationName({ moduleKey, id }: { moduleKey: string; id: string }) {
-  const [name, setName] = useState('');
+type Customer = CustomerDetailResponse['data'];
+type TextKey = keyof typeof CUSTOMER_TEXT_FIELDS;
+
+const date = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
+  dateStyle: 'medium',
+  timeZone: 'Asia/Bangkok',
+});
+const dateTime = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'Asia/Bangkok',
+});
+const money = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 2 });
+const showDate = (value: string) => (value ? date.format(new Date(`${value}T12:00:00+07:00`)) : '');
+
+const sections: { title: string; keys: TextKey[] }[] = [
+  {
+    title: 'ข้อมูลติดต่อ',
+    keys: [
+      'contactName',
+      'phone',
+      'email',
+      'accountingContactName',
+      'accountingPhone',
+      'accountingEmail',
+    ],
+  },
+  {
+    title: 'ข้อมูลภาษีและที่อยู่ออกบิล',
+    keys: [
+      'taxId',
+      'vatStatus',
+      'branchType',
+      'branchNumber',
+      'billingAddress',
+      'billingSubdistrict',
+      'billingDistrict',
+      'billingProvince',
+      'billingPostcode',
+    ],
+  },
+  {
+    title: 'ใบอนุญาตและผู้ประกอบวิชาชีพ',
+    keys: [
+      'licenseType',
+      'licenseNumber',
+      'licenseLocation',
+      'licenseExpiresAt',
+      'licenseStatus',
+      'licenseVerifiedBy',
+      'licenseVerifiedAt',
+      'profession',
+      'professionalName',
+      'professionalLicenseNumber',
+    ],
+  },
+];
+
+export default function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ deleted?: string | string[] }>;
+}) {
+  const { id } = use(params);
+  const deletedView = use(searchParams).deleted === 'true';
+  const router = useRouter();
+  const lock = useRef(false);
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [canWrite, setCanWrite] = useState(false);
+  const [reason, setReason] = useState('');
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [missing, setMissing] = useState(false);
+  const [error, setError] = useState('');
+  const [refresh, setRefresh] = useState(0);
+  function retry() {
+    setLoading(true);
+    setError('');
+    setMissing(false);
+    setRefresh((v) => v + 1);
+  }
+
   useEffect(() => {
-    if (!id) return;
     const controller = new AbortController();
-    Get<{ data: { title?: string; name?: string } }>(
-      '/api/' + moduleKey + '/' + id,
+    Get<CustomerDetailResponse>(
+      '/api/customers/' + encodeURIComponent(id) + (deletedView ? '?deleted=true' : ''),
       controller.signal,
     )
-      .then((r) => setName(r.data.name ?? '-'))
-      .catch(() => {});
+      .then((result) => {
+        if (controller.signal.aborted) return;
+        setCustomer(result.data);
+        setCanWrite(result.config.canWrite);
+      })
+      .catch((e: Error) => {
+        if (controller.signal.aborted) return;
+        if (e instanceof HttpError && e.status === 404) setMissing(true);
+        else setError(e.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
     return () => controller.abort();
-  }, [moduleKey, id]);
-  return id ? name || 'รายการที่เชื่อมไว้' : '-';
-}
+  }, [id, refresh, deletedView]);
 
-function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: RecordRow) => void }) {
-  const entity: RecordModule = {
-    key: 'customers',
-    model: 'Customer',
-    table: 'customers',
-    page: '/customers',
-    fields: [
-      {
-        key: 'code',
-        label: 'รหัส / เลขอ้างอิง',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'name',
-        label: 'ชื่อ / หัวข้อ',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'status',
-        label: 'สถานะ',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'category',
-        label: 'กลุ่มลูกค้า',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'province',
-        label: 'จังหวัด',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'owner',
-        label: 'ผู้ดูแล / ผู้บันทึก',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'paymentTerms',
-        label: 'เงื่อนไขชำระเงิน',
-        type: 'text',
-        required: false,
-      },
-      {
-        key: 'territoryId',
-        label: 'เขตขาย',
-        type: 'relation',
-        relation: 'sales-territories',
-        required: true,
-      },
-      {
-        key: 'notes',
-        label: 'หมายเหตุ',
-        type: 'textarea',
-        required: false,
-      },
-    ],
-    display: ['category', 'province', 'owner', 'paymentTerms'],
-    title: 'ลูกค้า',
-    action: 'เพิ่มลูกค้า',
-    columns: ['ชื่อลูกค้า', 'กลุ่ม / จังหวัด', 'ผู้ดูแล', 'สถานะ'],
-    tabs: ['ทั้งหมด'],
-    filters: ['ทุกหมวด'],
-    eyebrow: '',
-    description: '',
-  };
-  const router = useRouter();
-  const formId = useId();
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const mutationLock = useRef(false);
-  const [pendingEdit, setPendingEdit] = useState<Record<string, unknown> | null>(null);
-  const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      entity.fields.map((f) => [
-        f.key,
-        String(record?.[f.key] ?? (f.key === 'status' ? 'ใช้งานอยู่' : '')),
-      ]),
-    ),
-  );
-  const [error, setError] = useState(''),
-    [busy, setBusy] = useState(false),
-    [createdId, setCreatedId] = useState('');
-  function changeValue(key: string, value: string) {
-    setValues((current) => ({ ...current, [key]: value }));
-    setFieldErrors((current) => {
-      if (!current[key]) return current;
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
-  }
-  async function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (mutationLock.current || createdId || pendingEdit) return;
-    const errors: Record<string, string> = {};
-    for (const field of entity.fields) {
-      const value = values[field.key]?.trim() ?? '';
-      const control = event.currentTarget.elements.namedItem(field.key);
-      if (field.required && !value) {
-        errors[field.key] =
-          `${field.relation || field.key === 'status' ? 'กรุณาเลือก' : 'กรุณากรอก'}${field.label}`;
-      } else if (
-        !field.relation &&
-        field.key !== 'status' &&
-        (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement)
-      ) {
-        const validity = control.validity;
-        if (validity.badInput || validity.typeMismatch)
-          errors[field.key] = `กรุณากรอก${field.label}ให้ถูกต้อง`;
-        else if (validity.rangeUnderflow)
-          errors[field.key] =
-            `กรุณากรอก${field.label}ตั้งแต่ ${control.getAttribute('min')} ขึ้นไป`;
-        else if (validity.stepMismatch)
-          errors[field.key] = `กรุณากรอก${field.label}เป็นตัวเลขทศนิยมไม่เกิน 2 ตำแหน่ง`;
-        else if (validity.tooLong)
-          errors[field.key] = `กรุณากรอก${field.label}ไม่เกิน ${control.maxLength} ตัวอักษร`;
-        else if (!validity.valid) errors[field.key] = `กรุณากรอก${field.label}ให้ถูกต้อง`;
-      }
-    }
-    setFieldErrors(errors);
-    if (Object.keys(errors).length) {
-      setError('');
-      const first = event.currentTarget.elements.namedItem(Object.keys(errors)[0]);
-      if (first instanceof HTMLElement) first.focus();
-      return;
-    }
-    const body = { ...values, ...(record ? { expectedUpdatedAt: record.updatedAt } : {}) };
-    if (record) {
-      setPendingEdit(body);
-      return;
-    }
-    await persist(body);
-  }
-  async function persist(body: Record<string, unknown>) {
-    if (mutationLock.current || createdId) return;
-    mutationLock.current = true;
+  async function run(action: 'delete' | 'restore') {
+    if (lock.current || !customer) return;
+    lock.current = true;
     setBusy(true);
-    setError('');
+    setActionError('');
     try {
-      const url = '/api/' + entity.key + (record ? '/' + record.id : '');
-      const result = record
-        ? await Update<RecordDetailResponse>(url, body)
-        : await Post<RecordDetailResponse>(url, body);
-      if (onSaved) onSaved(result.data);
-      else setCreatedId(result.data.id);
+      if (action === 'delete')
+        await Delete('/api/customers/' + customer.id, { reason: reason.trim() });
+      else await Update('/api/customers/' + customer.id, { action: 'restore' });
+      setConfirming(false);
+      setMessage(
+        action === 'delete'
+          ? `ลบลูกค้า ${customer.code} แล้ว`
+          : `กู้คืนลูกค้า ${customer.code} แล้ว`,
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'บันทึกไม่สำเร็จ');
+      setActionError(e instanceof Error ? e.message : 'ดำเนินการไม่สำเร็จ');
+      setConfirming(false);
     } finally {
-      setPendingEdit(null);
-      mutationLock.current = false;
+      lock.current = false;
       setBusy(false);
     }
   }
+
+  if (loading)
+    return (
+      <section className="relative min-h-80 w-full">
+        <LoadingComponent isVisible variant="content" label="กำลังโหลดข้อมูลลูกค้า..." />
+      </section>
+    );
+  if (missing || (!customer && !error))
+    return (
+      <NotFoundComponent title="ไม่พบลูกค้า" onRefresh={retry} onBack={() => history.back()} />
+    );
+  if (error || !customer)
+    return (
+      <div role="alert" className="flex gap-3 p-6 text-sm poppins-regular text-red-600">
+        {error}
+        <button type="button" onClick={retry} className="text-[#1a58a7]">
+          ลองใหม่
+        </button>
+      </div>
+    );
+
+  const fields = customer.details.fields;
+  const expiry = licenseExpiry(customer.licenseExpiresAt);
+  const text = (key: TextKey) =>
+    (key === 'licenseExpiresAt' || key === 'licenseVerifiedAt'
+      ? showDate(fields[key])
+      : fields[key]) || '—';
+
   return (
-    <section className="flex flex-1 flex-col gap-5 p-6">
-      <ConfirmationDialog
-        isOpen={pendingEdit !== null}
-        variant="primary"
-        title={`บันทึกการแก้ไข${entity.title}?`}
-        description="ยืนยันบันทึกข้อมูลที่แก้ไข หากยกเลิกข้อมูลในฟอร์มจะยังอยู่"
-        confirmLabel="ยืนยันบันทึก"
-        busyLabel="กำลังบันทึก..."
-        busy={busy}
-        onCancel={() => setPendingEdit(null)}
-        onConfirm={() => {
-          if (pendingEdit) void persist(pendingEdit);
-        }}
-      />
-      <SuccessAlertComponent
-        title={`เพิ่ม${entity.title}แล้ว`}
-        isOpen={Boolean(createdId)}
-        onClose={() => {
-          if (!createdId) return;
-          const path = entity.page + '/' + createdId;
-          setCreatedId('');
-          router.push(path);
-          router.refresh();
-        }}
-      />
-      <Link href={entity.page} className="text-sm text-[#1a58a7]">
-        ← {entity.title}
-      </Link>
-      <h1 className="m-0 text-xl poppins-semibold">
-        {record ? 'แก้ไข' + entity.title : entity.action}
-      </h1>
-      <form
-        noValidate
-        onSubmit={save}
-        className="max-w-3xl rounded-xl border border-[#d9e3ee] bg-white p-5 shadow-xs"
-      >
-        {error && (
-          <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">
-            {error}
+    <section
+      aria-label={`ลูกค้า ${customer.code}`}
+      className="min-w-0 w-full px-4 py-6 md:px-6 md:py-8"
+    >
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm poppins-medium text-[#1a58a7]">{customer.code}</p>
+          <h1 className="mt-1 text-xl poppins-semibold break-words text-[#26364b]">
+            {customer.name}
+          </h1>
+          <p className="mt-2 text-sm poppins-regular text-[#718096]">
+            {customer.codeGroup?.name ?? '—'}
           </p>
-        )}
-        <fieldset
-          disabled={busy || Boolean(createdId)}
-          className="grid min-w-0 gap-4 border-0 p-0 sm:grid-cols-2"
-        >
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">
-              รหัส / เลขอ้างอิง <span className="text-red-600"> *</span>
-            </span>
-            <input
-              name="code"
-              type="text"
-              required
-              aria-invalid={Boolean(fieldErrors['code'])}
-              aria-describedby={fieldErrors['code'] ? `${formId}-code-error` : undefined}
-              maxLength={500}
-              value={values['code']}
-              onChange={(event) => changeValue('code', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['code'] && (
-              <p
-                id={`${formId}-code-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['code']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">
-              ชื่อ / หัวข้อ <span className="text-red-600"> *</span>
-            </span>
-            <input
-              name="name"
-              type="text"
-              required
-              aria-invalid={Boolean(fieldErrors['name'])}
-              aria-describedby={fieldErrors['name'] ? `${formId}-name-error` : undefined}
-              maxLength={500}
-              value={values['name']}
-              onChange={(event) => changeValue('name', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['name'] && (
-              <p
-                id={`${formId}-name-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['name']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">
-              สถานะ <span className="text-red-600"> *</span>
-            </span>
-            <RelationPicker
-              field={{ key: 'status', label: 'สถานะ', type: 'text', required: true }}
-              statusModule={entity.key}
-              value={values['status']}
-              invalid={Boolean(fieldErrors['status'])}
-              errorId={fieldErrors['status'] ? `${formId}-status-error` : undefined}
-              onChange={(value) => changeValue('status', value)}
-            />
-            {fieldErrors['status'] && (
-              <p
-                id={`${formId}-status-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['status']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">กลุ่มลูกค้า</span>
-            <input
-              name="category"
-              type="text"
-              aria-invalid={Boolean(fieldErrors['category'])}
-              aria-describedby={fieldErrors['category'] ? `${formId}-category-error` : undefined}
-              maxLength={500}
-              value={values['category']}
-              onChange={(event) => changeValue('category', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['category'] && (
-              <p
-                id={`${formId}-category-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['category']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">จังหวัด</span>
-            <input
-              name="province"
-              type="text"
-              aria-invalid={Boolean(fieldErrors['province'])}
-              aria-describedby={fieldErrors['province'] ? `${formId}-province-error` : undefined}
-              maxLength={500}
-              value={values['province']}
-              onChange={(event) => changeValue('province', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['province'] && (
-              <p
-                id={`${formId}-province-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['province']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">ผู้ดูแล / ผู้บันทึก</span>
-            <input
-              name="owner"
-              type="text"
-              aria-invalid={Boolean(fieldErrors['owner'])}
-              aria-describedby={fieldErrors['owner'] ? `${formId}-owner-error` : undefined}
-              maxLength={500}
-              value={values['owner']}
-              onChange={(event) => changeValue('owner', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['owner'] && (
-              <p
-                id={`${formId}-owner-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['owner']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">เงื่อนไขชำระเงิน</span>
-            <input
-              name="paymentTerms"
-              type="text"
-              aria-invalid={Boolean(fieldErrors['paymentTerms'])}
-              aria-describedby={
-                fieldErrors['paymentTerms'] ? `${formId}-paymentTerms-error` : undefined
-              }
-              maxLength={500}
-              value={values['paymentTerms']}
-              onChange={(event) => changeValue('paymentTerms', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['paymentTerms'] && (
-              <p
-                id={`${formId}-paymentTerms-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['paymentTerms']}
-              </p>
-            )}
-          </label>
-
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">เขตขาย</span>
-            <RelationPicker
-              field={{
-                key: 'territoryId',
-                label: 'เขตขาย',
-                type: 'relation',
-                relation: 'sales-territories',
-                required: true,
-              }}
-              value={values['territoryId']}
-              invalid={Boolean(fieldErrors['territoryId'])}
-              errorId={fieldErrors['territoryId'] ? `${formId}-territoryId-error` : undefined}
-              onChange={(value) => changeValue('territoryId', value)}
-            />
-            {fieldErrors['territoryId'] && (
-              <p
-                id={`${formId}-territoryId-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['territoryId']}
-              </p>
-            )}
-          </label>
-          <label className="sm:col-span-2">
-            <span className="mb-2 block text-sm text-[#344256]">หมายเหตุ</span>
-            <textarea
-              name="notes"
-              aria-invalid={Boolean(fieldErrors['notes'])}
-              aria-describedby={fieldErrors['notes'] ? `${formId}-notes-error` : undefined}
-              value={values['notes']}
-              maxLength={4000}
-              onChange={(event) => changeValue('notes', event.target.value)}
-              className="min-h-24 w-full rounded-md border border-[#d9e3ee] bg-white p-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['notes'] && (
-              <p
-                id={`${formId}-notes-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['notes']}
-              </p>
-            )}
-          </label>
-        </fieldset>
-        <div className="mt-6 flex justify-end gap-3 border-t border-[#e3e9f0] pt-4">
-          <Link href={entity.page} className="rounded border border-[#d9e3ee] px-4 py-2 text-sm">
-            ยกเลิก
-          </Link>
-          <button
-            disabled={busy || Boolean(createdId)}
-            className="rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"
-          >
-            {busy ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
-          </button>
         </div>
-      </form>
-    </section>
-  );
-}
-function RelationPicker({
-  field,
-  value,
-  onChange,
-  invalid,
-  errorId,
-  statusModule,
-}: {
-  field: RecordField;
-  value: string;
-  onChange: (value: string) => void;
-  invalid: boolean;
-  errorId?: string;
-  statusModule?: string;
-}) {
-  const [loading, setLoading] = useState(true);
-  const [statuses, setStatuses] = useState<string[]>([]);
-  const [search, setSearch] = useState(''),
-    [offset, setOffset] = useState(0),
-    [remoteOptions, setOptions] = useState<{ id: string; code: string; name: string }[]>([]),
-    [more, setMore] = useState(false),
-    [error, setError] = useState('');
-  const options = statusModule
-    ? [...new Set([...statuses, value, 'ใช้งานอยู่'])]
-        .filter((status) => status && status.includes(search.trim()))
-        .map((status) => ({ id: status, code: status, name: '' }))
-    : remoteOptions;
-  useEffect(() => {
-    if (!statusModule) return;
-    const controller = new AbortController();
-    Get<RecordFiltersResponse>(`/api/${statusModule}?view=filters`, controller.signal)
-      .then((result) => {
-        if (controller.signal.aborted) return;
-        setStatuses(result.data.status ?? []);
-        setLoading(false);
-        setError('');
-      })
-      .catch((caught) => {
-        if (!controller.signal.aborted) {
-          setError(caught instanceof Error ? caught.message : 'โหลดสถานะไม่สำเร็จ');
-          setLoading(false);
-        }
-      });
-    return () => controller.abort();
-  }, [statusModule]);
-  useEffect(() => {
-    if (statusModule) return;
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      const params = new URLSearchParams({ search, offset: String(offset), limit: '10' });
-      Get<RecordOptionsResponse>(
-        '/api/' + field.relation + '?view=options&' + params,
-        controller.signal,
-      )
-        .then((r) => {
-          if (controller.signal.aborted) return;
-          setOptions(r.data);
-          setMore(r.pagination.hasMore);
-          setError('');
-          setLoading(false);
-        })
-        .catch((e) => {
-          if (!controller.signal.aborted) {
-            setError(e.message);
-            setLoading(false);
-          }
-        });
-    }, 200);
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [field.relation, offset, search, statusModule]);
-  return (
-    <SearchCombobox
-      field={field}
-      value={value}
-      onChange={onChange}
-      invalid={invalid}
-      errorId={errorId}
-      statusModule={statusModule}
-      options={options}
-      search={search}
-      offset={offset}
-      loading={loading}
-      error={error}
-      more={more}
-      setSearch={setSearch}
-      setOffset={setOffset}
-      setLoading={setLoading}
-      setError={setError}
-    />
-  );
-}
-
-function LinkedRecordPanel({ moduleKey, record }: { moduleKey: string; record: RecordRow }) {
-  const [rows, setRows] = useState<RecordRow[]>([]);
-  const [offset, setOffset] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    if (moduleKey !== 'sales-territories') return;
-    let active = true;
-    queueMicrotask(() => {
-      if (active) setBusy(true);
-    });
-    const params = new URLSearchParams({
-      territoryId: record.id,
-      offset: String(offset),
-      limit: String(pageSize),
-    });
-    Get<RecordListResponse>(`/customers?${params}`)
-      .then((result) => {
-        if (!active) return;
-        setRows(result.data);
-        setTotal(result.pagination.total);
-        setError('');
-      })
-      .catch(() => {
-        if (active) setError('โหลดลูกค้าในเขตไม่สำเร็จ');
-      })
-      .finally(() => {
-        if (active) setBusy(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [moduleKey, record.id, offset, pageSize]);
-  const name = (key: string) => String(record[key] || '-');
-  return (
-    <section className="mt-6 border-t border-gray-100 pt-5">
-      <h2 className="poppins-semibold mb-3 text-lg">ข้อมูลที่เชื่อมโยง</h2>
-      <dl className="grid gap-3 text-sm md:grid-cols-3">
-        {moduleKey === 'customers' && (
-          <div>
-            <dt className="text-gray-500">เขตขาย</dt>
-            <dd>
-              {record.territoryId ? (
-                <Link
-                  className="text-blue-600 underline"
-                  href={`/customers/territories/${record.territoryId}`}
-                >
-                  {name('territoryName')}
-                </Link>
-              ) : (
-                '-'
-              )}
-            </dd>
-          </div>
-        )}
-        <div>
-          <dt className="text-gray-500">ผู้จัดการ (Manager)</dt>
-          <dd>{name('managerName')}</dd>
-        </div>
-        <div>
-          <dt className="text-gray-500">ฝ่ายขาย (Sales)</dt>
-          <dd>{name('salesName')}</dd>
-        </div>
-      </dl>
-      {moduleKey === 'sales-territories' && (
-        <div className="mt-5">
-          <h3 className="poppins-medium mb-2">ลูกค้าในเขต ({total})</h3>
-          {error && (
-            <p role="alert" className="text-red-600">
-              {error}
-            </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge value={customerListStatus(customer)} />
+          {expiry && !customer.deletedAt && customer.status === 'ใช้งาน' && (
+            <span
+              className={`text-sm poppins-medium ${expiry.days < 0 ? 'text-red-600' : 'text-orange-600'}`}
+            >
+              {expiry.detail}
+            </span>
           )}
-          {busy ? (
-            <div className="relative min-h-32">
-              <LoadingComponent isVisible variant="content" padding="py-12" />
+        </div>
+      </div>
+      <div className="space-y-6">
+        <Box title="ข้อมูลทั่วไป" open>
+          <Grid>
+            <Item label="รหัสลูกค้า" value={customer.code} />
+            <Item label="ประเภทลูกค้า (กลุ่มรหัส)" value={customer.codeGroup?.name ?? '—'} />
+            <Item label={CUSTOMER_TEXT_FIELDS.name.label} value={customer.name} />
+            <Item label="สถานะลูกค้า" value={customer.status} />
+            <Item label="เขตขาย" value={customer.territoryName ?? '—'} />
+            <Item label={CUSTOMER_TEXT_FIELDS.notes.label} value={fields.notes || '—'} wide />
+          </Grid>
+        </Box>
+        {sections.map((section) => (
+          <Box key={section.title} title={section.title}>
+            <Grid>
+              {section.keys.map((key) => (
+                <Item
+                  key={key}
+                  label={CUSTOMER_TEXT_FIELDS[key].label}
+                  value={text(key)}
+                  wide={key === 'billingAddress'}
+                />
+              ))}
+            </Grid>
+          </Box>
+        ))}
+        <Box title="ที่อยู่จัดส่งสินค้า">
+          {customer.details.shippingAddresses.length ? (
+            <div className="space-y-4">
+              {customer.details.shippingAddresses.map((address, index) => (
+                <div key={address.id} className="rounded-md border border-[#e4e9f0] p-4">
+                  <p className="mb-3 text-sm poppins-semibold text-[#344256]">
+                    ที่อยู่จัดส่งแห่งที่ {index + 1}
+                    {address.isDefault && (
+                      <span className="ml-2 text-xs poppins-medium text-[#1a58a7]">(เริ่มต้น)</span>
+                    )}
+                  </p>
+                  <Grid>
+                    {Object.entries(SHIPPING_FIELDS).map(([key, field]) => (
+                      <Item
+                        key={key}
+                        label={field.label}
+                        value={address[key as keyof typeof SHIPPING_FIELDS] || '—'}
+                        wide={key === 'address'}
+                      />
+                    ))}
+                  </Grid>
+                </div>
+              ))}
             </div>
-          ) : rows.length ? (
-            <ul className="divide-y divide-gray-100">
-              {rows.map((row) => (
-                <li key={row.id}>
-                  <Link
-                    className="block py-3 text-blue-600 hover:bg-blue-50"
-                    href={`/customers/${row.id}`}
+          ) : (
+            <p className="text-sm poppins-regular text-[#65758b]">ยังไม่มีที่อยู่จัดส่ง</p>
+          )}
+        </Box>
+        <Box title="เครดิตและการวางบิล">
+          <Grid>
+            <Item label="ระยะเวลาเครดิต (Credit Term)" value={customer.creditTerm?.name ?? '—'} />
+            <Item
+              label={CUSTOMER_TEXT_FIELDS.creditLimit.label}
+              value={
+                customer.creditLimit === null
+                  ? '—'
+                  : `${money.format(Number(customer.creditLimit))} บาท`
+              }
+            />
+            <Item
+              label={CUSTOMER_TEXT_FIELDS.billingCycle.label}
+              value={fields.billingCycle || '—'}
+            />
+            <Item label="วันเริ่มนับเครดิต" value={customer.creditStart?.name ?? '—'} />
+          </Grid>
+        </Box>
+        <Box title="เอกสารแนบ">
+          {customer.details.files.length ? (
+            <ul className="m-0 list-none space-y-2 p-0">
+              {customer.details.files.map((file) => (
+                <li key={file.id} className="text-sm poppins-regular text-[#344256]">
+                  <span className="text-[#65758b]">{file.documentTypeName}: </span>
+                  <a
+                    href={`/api/customers/files/${file.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="break-words text-[#1a58a7] underline-offset-2 hover:underline"
                   >
-                    {row.name} · {row.code}
-                  </Link>
+                    {file.name}
+                  </a>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500">ยังไม่มีลูกค้าในเขตนี้</p>
+            <p className="text-sm poppins-regular text-[#65758b]">ยังไม่มีเอกสารแนบ</p>
           )}
-          <PaginationControls
-            page={Math.floor(offset / pageSize) + 1}
-            pages={Math.max(1, Math.ceil(total / pageSize))}
-            total={total}
-            count={rows.length}
-            onChange={(page) => setOffset((page - 1) * pageSize)}
-            pageSize={pageSize}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setOffset(0);
-            }}
-            disabled={busy}
-          />
+        </Box>
+        <Box title="ประวัติข้อมูล">
+          <Grid>
+            <Item label="ผู้สร้าง" value={customer.history.createdBy ?? '—'} />
+            <Item label="วันที่สร้าง" value={dateTime.format(new Date(customer.createdAt))} />
+            <Item label="ผู้แก้ไขล่าสุด" value={customer.history.updatedBy ?? '—'} />
+            <Item
+              label="วันที่แก้ไขล่าสุด"
+              value={dateTime.format(new Date(customer.history.updatedAt ?? customer.updatedAt))}
+            />
+            {customer.deletedAt && (
+              <Item label="เหตุผลการลบ" value={customer.deleteReason ?? '—'} wide />
+            )}
+          </Grid>
+        </Box>
+      </div>
+      {canWrite && !customer.deletedAt && (
+        <div className="mt-6 rounded-lg border border-red-100 p-4 md:p-6">
+          <h2 className="text-base poppins-semibold text-red-600">ลบลูกค้า</h2>
+          <p className="mt-2 text-sm poppins-regular text-[#65758b]">
+            ลูกค้าจะถูกซ่อนจากรายการและเลือกใช้ในเอกสารใหม่ไม่ได้ Admin กู้คืนได้ในแท็บ ลบแล้ว
+          </p>
+          <label className="mt-4 block text-sm poppins-medium text-[#344256]">
+            เหตุผลการลบ
+            <span aria-hidden="true" className="ml-1 text-red-600">
+              *
+            </span>
+            <textarea
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              maxLength={500}
+              rows={2}
+              className="mt-2 block w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none focus:border-[#1a58a7]"
+            />
+          </label>
+          <button
+            type="button"
+            disabled={busy || !reason.trim()}
+            onClick={() => setConfirming(true)}
+            className="mt-4 rounded-lg bg-red-600 px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
+          >
+            ลบลูกค้า
+          </button>
         </div>
       )}
+      {actionError && (
+        <p role="alert" className="mt-4 text-sm poppins-regular text-red-600">
+          {actionError}
+        </p>
+      )}
+      <ConfirmationDialog
+        isOpen={confirming}
+        title={`ลบลูกค้า ${customer.code}?`}
+        description={`เหตุผล: ${reason.trim()} — กู้คืนได้ภายหลัง`}
+        busy={busy}
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => void run('delete')}
+      />
+      <SuccessAlertComponent
+        isOpen={Boolean(message)}
+        title={message}
+        onClose={() => {
+          setMessage('');
+          router.push(customer.deletedAt ? `/customers/${customer.id}` : '/customers');
+        }}
+      />
+      <div className="mt-6 flex flex-wrap justify-end gap-4">
+        {canWrite && customer.deletedAt && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void run('restore')}
+            className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
+          >
+            กู้คืน
+          </button>
+        )}
+        {canWrite && !customer.deletedAt && (
+          <Link
+            href={`/customers/${customer.id}/edit`}
+            className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-center text-sm poppins-medium text-white!"
+          >
+            แก้ไข
+          </Link>
+        )}
+        <Link
+          href={customer.deletedAt ? '/customers?tab=deleted' : '/customers'}
+          className="w-36 rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-center text-sm poppins-medium text-[#344256] hover:bg-gray-50"
+        >
+          กลับ
+        </Link>
+      </div>
     </section>
+  );
+}
+
+function Box({
+  title,
+  open = false,
+  children,
+}: {
+  title: string;
+  open?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <details open={open} className="group rounded-lg border border-[#d9e3ee] p-4 md:p-6">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1a58a7] [&::-webkit-details-marker]:hidden">
+        <h2 className="text-base poppins-semibold text-[#1a58a7]">{title}</h2>
+        <ChevronDown className="shrink-0 text-[#1A58A7] transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" />
+      </summary>
+      <div className="mt-4">{children}</div>
+    </details>
+  );
+}
+
+function Grid({ children }: { children: React.ReactNode }) {
+  return <dl className="m-0 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">{children}</dl>;
+}
+
+function Item({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) {
+  return (
+    <div className={`min-w-0 ${wide ? 'sm:col-span-2' : ''}`}>
+      <dt className="text-xs poppins-medium text-[#65758b]">{label}</dt>
+      <dd className="m-0 mt-1 whitespace-pre-line break-words text-sm poppins-regular text-[#344256]">
+        {value}
+      </dd>
+    </div>
   );
 }

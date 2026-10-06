@@ -9,6 +9,8 @@ import { ROLE_IDS } from '@/server/validation/users';
 export { ROLE_IDS, isRoleId, passwordIsValid } from '@/server/validation/users';
 import type { UserRow, UsersListResponse } from '@/types/api/users';
 const userInclude = {
+  managedTerritories: { select: { id: true, code: true, name: true } },
+  territorySalesMemberships: { include: { territory: { select: { id: true, code: true, name: true } } } },
   userRole: { include: { role: true } },
   deletedByUser: { select: { name: true, employeeCode: true } },
 } as const;
@@ -19,6 +21,8 @@ function toUserRow(user: {
   name: string;
   email: string;
   team: string | null;
+  managedTerritories: { id: string; code: string; name: string }[];
+  territorySalesMemberships: { territory: { id: string; code: string; name: string } }[];
   status: 'ACTIVE' | 'SUSPENDED';
   lastLoginAt: Date | null;
   userRole: { roleId: string; role: { name: string } } | null;
@@ -35,6 +39,8 @@ function toUserRow(user: {
       ? { roleId: user.userRole.roleId, role: { name: user.userRole.role.name } }
       : null,
     team: user.team ?? '',
+    territory: user.territorySalesMemberships[0]?.territory ?? user.managedTerritories[0] ?? null,
+    territoryId: user.territorySalesMemberships[0]?.territory.id ?? user.managedTerritories[0]?.id ?? null,
     status: user.status,
     lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
     deletedAt: user.deletedAt?.toISOString() ?? null,

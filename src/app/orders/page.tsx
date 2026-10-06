@@ -8,6 +8,7 @@ import { Get, Post, Update } from '@/service/http';
 import type { OperationOptions, OrderRow, PageData } from '@/types/api/operations';
 import StatusBadge from '@/components/ui/status-badge';
 import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
@@ -330,10 +331,10 @@ export default function Page() {
                     </td>
                   </tr>
                 ))}
-                {!loading && !rows.length && (
+                {!loading && !error && !rows.length && (
                   <tr>
                     <td colSpan={5} className="p-10 text-center text-gray-500">
-                      ไม่พบคำสั่งซื้อ
+                      <NotFoundComponent title="ไม่พบคำสั่งซื้อ" />
                     </td>
                   </tr>
                 )}

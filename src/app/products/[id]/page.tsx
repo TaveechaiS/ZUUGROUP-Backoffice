@@ -20,12 +20,14 @@ import type { Pagination } from '@/types/api';
 import type { LotRow, PageData } from '@/types/api/operations';
 import PaginationControls from '@/components/ui/pagination-controls';
 import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import ListRequestState from '@/components/ui/list-request-state';
 import { useRouteData } from '@/components/ui/route-data';
 
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 import StatusBadge from '@/components/ui/status-badge';
+import ProductRecordHistory from './product-record-history';
 
 const requiredFields = new Set([
   'รหัสสินค้าภายในบริษัท',
@@ -100,7 +102,7 @@ export default function Page() {
     files: { id: string; kind: string; file: File }[];
   } | null>(null);
   const [historyRevision, setHistoryRevision] = useState(0);
-  if (!product) return <p className="p-6 text-sm text-[#65758b]">ไม่พบข้อมูลสินค้า</p>;
+  if (!product) return <NotFoundComponent title="ไม่พบข้อมูลสินค้า" />;
   const values: Record<string, string | undefined> = {
     รหัสสินค้าภายในบริษัท: product.code,
     ชื่อสินค้าเต็ม: product.name,
@@ -692,6 +694,11 @@ export default function Page() {
           {progress || 'กำลังดำเนินการ...'}
         </p>
       )}
+      <ProductRecordHistory
+        productId={product.id}
+        createdAt={product.createdAt}
+        revision={historyRevision}
+      />
       {isAdmin && (
         <div className="flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
           {editing ? (
@@ -992,7 +999,7 @@ function ProductHistory({ productId, revision }: { productId: string; revision: 
                     {!response?.data.length && (
                       <tr>
                         <td colSpan={3} className="p-5 text-center text-[#65758b]">
-                          ยังไม่มีประวัติการแก้ไข
+                          <NotFoundComponent title="ยังไม่มีประวัติการแก้ไข" />
                         </td>
                       </tr>
                     )}
@@ -1378,11 +1385,13 @@ function LotHistory({
                   </tbody>
                 </SortableTable>
                 {!rows.length && (
-                  <p className="p-8 text-center text-[#65758b]">
-                    {currentOnly
-                      ? 'ไม่มีล็อตสินค้าคงเหลือในคลังที่เลือก'
-                      : 'ยังไม่มีประวัติล็อตสินค้า'}
-                  </p>
+                  <NotFoundComponent
+                    title={
+                      currentOnly
+                        ? 'ไม่มีล็อตสินค้าคงเหลือในคลังที่เลือก'
+                        : 'ยังไม่มีประวัติล็อตสินค้า'
+                    }
+                  />
                 )}
                 <PaginationControls
                   page={page}

@@ -52,6 +52,9 @@ export type RecordRow = {
   value?: string | null;
   dosageForm?: { name: string };
   memberCount?: number;
+  salesIds?: string[];
+  salesMembers?: { id: string; name: string }[];
+  salesCount?: number;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

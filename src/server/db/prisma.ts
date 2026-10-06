@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { PrismaPg } from '@prisma/adapter-pg';
+import { SerializedPrismaPg } from './serialized-pg';
 import { PrismaClient } from '@/generated/prisma/client';
 
 const globalForPrisma = globalThis as typeof globalThis & {
@@ -13,7 +13,7 @@ export function getPrismaClient(): PrismaClient {
   const staleClient = globalForPrisma.prismaClient;
   if (
     staleClient &&
-    (globalForPrisma.prismaSchemaVersion !== 'product-full-v1' ||
+    (globalForPrisma.prismaSchemaVersion !== 'product-full-v1-pg-serial-v1-territory-members-v1' ||
       typeof staleClient.product?.findMany !== 'function' ||
       typeof staleClient.customer?.findMany !== 'function' ||
       typeof staleClient.productLot?.findMany !== 'function')
@@ -30,9 +30,9 @@ export function getPrismaClient(): PrismaClient {
     }
 
     globalForPrisma.prismaClient = new PrismaClient({
-      adapter: new PrismaPg({ connectionString }),
+      adapter: new SerializedPrismaPg({ connectionString }),
     });
-    globalForPrisma.prismaSchemaVersion = 'product-full-v1';
+    globalForPrisma.prismaSchemaVersion = 'product-full-v1-pg-serial-v1-territory-members-v1';
   }
 
   if (typeof globalForPrisma.prismaClient.product?.findMany !== 'function') {

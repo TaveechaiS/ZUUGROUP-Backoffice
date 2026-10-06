@@ -9,6 +9,7 @@ import type { PageData, LotRow } from '@/types/api/operations';
 
 import PaginationControls from '@/components/ui/pagination-controls';
 import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import ListRequestState from '@/components/ui/list-request-state';
 
 export default function Page() {
@@ -60,7 +61,7 @@ export default function Page() {
   const rows = result?.data ?? [];
   return (
     <section className="min-w-0 space-y-6 px-4 py-6 text-[#344256] md:px-6 md:py-8">
-      <h2 className="text-lg poppins-semibold text-[#1a58a7]">ประวัติการเติมสต็อกสินค้า</h2>
+      <h2 className="text-lg poppins-semibold text-[#1a58a7]">ประวัติการเติมสต็อก</h2>
       <ListRequestState error={error} retry={() => setRetry((value) => value + 1)} />
       {loading ? (
         <LoadingComponent isVisible />
@@ -133,11 +134,7 @@ export default function Page() {
                 })}
               </tbody>
             </SortableTable>
-            {!rows.length && (
-              <p className="p-8 text-center text-sm text-[#65758b]">
-                ยังไม่มีประวัติการเติมสต็อกสินค้า
-              </p>
-            )}
+            {!rows.length && <NotFoundComponent title="ยังไม่มีประวัติการเติมสต็อก" />}
             <PaginationControls
               page={page}
               pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}

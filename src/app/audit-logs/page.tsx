@@ -7,6 +7,7 @@ import type { AuditListResponse } from '@/types/api/audit';
 import { Get } from '@/service/http';
 import ListRequestState from '@/components/ui/list-request-state';
 import LoadingComponent from '@/components/ui/loading-component';
+import NotFoundComponent from '@/components/ui/not-found-component';
 import type { AuditRow, AuditFiltersResponse } from '@/types/api/audit';
 
 const actionNames: Record<string, string> = {
@@ -189,9 +190,9 @@ export default function Page() {
           </tbody>
         </SortableTable>
         {!loading && !error && rows.length === 0 && (
-          <p className="px-5 py-12 text-center text-sm text-[#8492a6]">
-            {q || action ? 'ไม่พบเหตุการณ์ที่ตรงกับเงื่อนไข' : 'ยังไม่มีประวัติการทำรายการ'}
-          </p>
+          <NotFoundComponent
+            title={q || action ? 'ไม่พบเหตุการณ์ที่ตรงกับเงื่อนไข' : 'ยังไม่มีประวัติการทำรายการ'}
+          />
         )}
         <PaginationControls
           page={page}

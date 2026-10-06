@@ -1,5 +1,11 @@
 export const ROLE_IDS = ['ADMIN', 'SALES', 'MANAGER', 'ACCOUNTING_CFO'] as const;
 import type { RoleId, UserCreateRequest } from '@/types/api/users';
+import { uuidPattern } from './products';
+
+export function validUserTerritory(value: unknown) {
+  return value === undefined || value === null || value === '' ||
+    (typeof value === 'string' && uuidPattern.test(value));
+}
 
 export function isRoleId(value: unknown): value is RoleId {
   return typeof value === 'string' && ROLE_IDS.some((role) => role === value);
@@ -20,17 +26,20 @@ export function userCreateInput(
     !name ||
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
     !isRoleId(body.roleId) ||
-    !passwordIsValid(password)
+    !passwordIsValid(password) || !validUserTerritory(body.territoryId) ||
+    (Boolean(body.territoryId) && body.roleId !== 'SALES' && body.roleId !== 'MANAGER')
   ) {
     return null;
   }
   const roleId = body.roleId;
 
-  return { name, email, team, password, roleId };
+  return { name, email, team, password, roleId,
+    territoryId: typeof body.territoryId === 'string' && body.territoryId ? body.territoryId.toLowerCase() : null };
 }
 
 export function userUpdateError(body: Record<string, unknown>): string | null {
   const action = body.action;
+  if (action === 'profile' && !validUserTerritory(body.territoryId)) return 'เขตขายไม่ถูกต้อง';
   if (!['role', 'status', 'password', 'profile', 'delete', 'restore'].includes(String(action))) {
     return 'คำสั่งไม่ถูกต้อง';
   }

@@ -23,8 +23,14 @@ export async function recordHandler(request: NextRequest, key: string, id?: stri
       : { view: null, include: [] };
     const needsAdmin = write || params.get('deleted') === 'true';
     let user: Awaited<ReturnType<typeof getCurrentApiUser>> = null;
-    if (needsAdmin || query.view === 'config' || query.include.includes('config'))
+    if (
+      key === 'sales-territories' ||
+      needsAdmin ||
+      query.view === 'config' ||
+      query.include.includes('config')
+    )
       user = await getCurrentApiUser(request);
+    if (key === 'sales-territories' && !user) throw new RecordError(401, 'กรุณาเข้าสู่ระบบ');
     if (needsAdmin) {
       if (!hasSameOrigin(request)) throw new RecordError(403, 'คำขอไม่ถูกต้อง');
       if (!user) throw new RecordError(401, 'กรุณาเข้าสู่ระบบ');

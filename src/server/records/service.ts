@@ -15,9 +15,11 @@ import type {
   RecordConfigResponse,
 } from '@/types/api/records';
 import 'server-only';
+import { randomUUID } from 'node:crypto';
 import { sqlTableOrder } from '@/server/validation/table-sort';
 import { Prisma } from '@/generated/prisma/client';
 import { getPrismaClient, readWithConnectionRetry } from '@/server/db/prisma';
+import { validateTerritorySales, replaceTerritorySales } from './territory-sales';
 import { moduleFor, RECORD_MODULES } from '@/features/records/types';
 import type { RecordModule, RecordRow } from '@/types/api/records';
 const snake = (key: string) => key.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
@@ -37,14 +39,16 @@ const select = (m: RecordModule) =>
     ...(m.key === 'sales-territories'
       ? [
           Prisma.sql`(SELECT name FROM users WHERE id=sales_territories.manager_id) AS "managerName"`,
-          Prisma.sql`(SELECT name FROM users WHERE id=sales_territories.sales_id) AS "salesName"`,
+          Prisma.sql`(SELECT string_agg(u.name,', ' ORDER BY u.name,u.id) FROM sales_territory_sales s JOIN users u ON u.id=s.user_id WHERE s.territory_id=sales_territories.id) AS "salesName"`,
+          Prisma.sql`(SELECT coalesce(jsonb_agg(jsonb_build_object('id',u.id,'name',u.name) ORDER BY u.name,u.id),'[]'::jsonb) FROM sales_territory_sales s JOIN users u ON u.id=s.user_id WHERE s.territory_id=sales_territories.id) AS "salesMembers"`,
+          Prisma.sql`(SELECT count(*)::int FROM sales_territory_sales s WHERE s.territory_id=sales_territories.id) AS "salesCount"`,
         ]
       : []),
     ...(m.key === 'customers'
       ? [
           Prisma.sql`(SELECT name FROM sales_territories WHERE id=customers.territory_id) AS "territoryName"`,
           Prisma.sql`(SELECT u.name FROM users u JOIN sales_territories t ON t.manager_id=u.id WHERE t.id=customers.territory_id) AS "managerName"`,
-          Prisma.sql`(SELECT u.name FROM users u JOIN sales_territories t ON t.sales_id=u.id WHERE t.id=customers.territory_id) AS "salesName"`,
+          Prisma.sql`(SELECT string_agg(u.name,', ' ORDER BY u.name,u.id) FROM users u JOIN sales_territory_sales s ON s.user_id=u.id WHERE s.territory_id=customers.territory_id) AS "salesName"`,
         ]
       : []),
   ]);
@@ -75,6 +79,13 @@ function output(m: RecordModule, row: DbRow): RecordRow {
     updatedAt: row.updatedAt.toISOString(),
     deletedAt: row.deletedAt?.toISOString() ?? null,
     ...(row.memberCount !== undefined ? { memberCount: Number(row.memberCount) } : {}),
+    ...(m.key === 'sales-territories'
+      ? {
+          salesMembers: (row.salesMembers ?? []) as { id: string; name: string }[],
+          salesIds: ((row.salesMembers ?? []) as { id: string }[]).map((member) => member.id),
+          salesCount: Number(row.salesCount ?? 0),
+        }
+      : {}),
     ...['managerName', 'salesName', 'territoryName'].reduce(
       (names, key) => (row[key] !== undefined ? { ...names, [key]: row[key] ?? null } : names),
       {},
@@ -133,6 +144,8 @@ export async function recordList(
   for (const key of ['createdAt', 'updatedAt']) sortColumns[key] = column(key);
   if (['customers', 'sales-territories'].includes(m.key))
     for (const key of ['managerName', 'salesName']) sortColumns[key] = Prisma.raw('"' + key + '"');
+  if (m.key === 'sales-territories')
+    sortColumns.salesCount = Prisma.sql`(SELECT count(*) FROM sales_territory_sales s WHERE s.territory_id=sales_territories.id)`;
   if (m.key === 'customers') sortColumns.territoryName = Prisma.sql`"territoryName"`;
   if (['sales-territories', 'customer-groups'].includes(m.key))
     sortColumns.memberCount = Prisma.sql`"memberCount"`;
@@ -267,6 +280,19 @@ export async function recordWrite(
         )
           throw new RecordError(409, 'ข้อมูลถูกแก้ไขแล้ว กรุณาเปิดรายการใหม่');
       }
+      let salesIds: string[] | undefined;
+      if (m.key === 'sales-territories' && parsed && 'salesId' in parsed.values) {
+        salesIds = parsed.salesIds;
+        if (!salesIds) {
+          const existing = (before?.salesMembers ?? []) as { id: string }[];
+          if (existing.length > 1) {
+            if (parsed.values.salesId !== before?.salesId)
+              throw new RecordError(409, 'เขตมีฝ่ายขายหลายคน กรุณาเลือกผ่านรายชื่อฝ่ายขาย');
+            salesIds = existing.map((member) => member.id);
+          } else salesIds = parsed.values.salesId ? [parsed.values.salesId] : [];
+        }
+        await validateTerritorySales(tx, id, salesIds);
+      }
       if (parsed)
         for (const f of m.fields.filter((f) => f.relation)) {
           const value = parsed.values[f.key];
@@ -291,7 +317,7 @@ export async function recordWrite(
               if (!matches.length)
                 throw new RecordError(400, `${f.label} ต้องเป็นบัญชีที่ใช้งานอยู่และมีบทบาทตรงกัน`);
               const taken = await tx.$queryRaw<{ id: string }[]>(
-                Prisma.sql`SELECT id FROM sales_territories WHERE (manager_id=${value}::uuid OR sales_id=${value}::uuid) AND id<>COALESCE(${id}::uuid,'00000000-0000-0000-0000-000000000000'::uuid)`,
+                Prisma.sql`SELECT id FROM sales_territories t WHERE (manager_id=${value}::uuid OR EXISTS(SELECT 1 FROM sales_territory_sales s WHERE s.territory_id=t.id AND s.user_id=${value}::uuid)) AND id<>COALESCE(${id}::uuid,'00000000-0000-0000-0000-000000000000'::uuid)`,
               );
               if (taken.length) throw new RecordError(409, 'ผู้ใช้งานคนนี้อยู่ในเขตอื่นแล้ว');
             }
@@ -302,13 +328,18 @@ export async function recordWrite(
         const assigned = await tx.$queryRaw<{ total: number }[]>(
           Prisma.sql`SELECT count(*)::int AS total FROM customers WHERE territory_id=${id}::uuid AND deleted_at IS NULL`,
         );
-        if (assigned[0].total || before?.managerId || before?.salesId)
+        if (assigned[0].total || before?.managerId || Number(before?.salesCount ?? 0))
           throw new RecordError(409, 'เขตยังมีลูกค้าหรือผู้รับผิดชอบ กรุณาย้ายออกก่อนลบ');
       }
       if (action === 'create') {
-        const entries = Object.entries(parsed!.values);
+        const generatedId =
+          m.key === 'sales-territories' && !('code' in parsed!.values) ? randomUUID() : null;
+        const entries = Object.entries({
+          ...parsed!.values,
+          ...(generatedId ? { id: generatedId, code: generatedId } : {}),
+        });
         const vals = entries.map(([k, v]) =>
-          moduleFor(m.key)!.fields.find((f) => f.key === k)?.relation
+          k === 'id' || moduleFor(m.key)!.fields.find((f) => f.key === k)?.relation
             ? Prisma.sql`${v}::uuid`
             : moduleFor(m.key)!.fields.find((f) => f.key === k)?.type === 'number'
               ? Prisma.sql`${v}::numeric`
@@ -335,6 +366,12 @@ export async function recordWrite(
               : [Prisma.sql`deleted_at=NULL,deleted_by_id=NULL,delete_reason=NULL`];
         rows = await tx.$queryRaw<DbRow[]>(
           Prisma.sql`UPDATE ${table(m)} SET ${Prisma.join([...setters, Prisma.sql`updated_at=clock_timestamp()`])} WHERE id=${id}::uuid RETURNING ${select(m)}`,
+        );
+      }
+      if (salesIds) {
+        await replaceTerritorySales(tx, rows[0].id, salesIds);
+        rows = await tx.$queryRaw<DbRow[]>(
+          Prisma.sql`SELECT ${select(m)} FROM ${table(m)} WHERE id=${rows[0].id}::uuid`,
         );
       }
       const after = output(m, rows[0]);

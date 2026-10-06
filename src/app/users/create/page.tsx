@@ -1,4 +1,5 @@
 'use client';
+import UserTerritoryPicker from '@/components/ui/user-territory-picker';
 
 import { useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
@@ -10,6 +11,8 @@ import SuccessAlertComponent from '@/components/ui/success-alert-component';
 export default function Page() {
   const router = useRouter();
   const mutationLock = useRef(false);
+  const [roleId, setRoleId] = useState<string>(roles[0][0]);
+  const [territoryId, setTerritoryId] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [createdPath, setCreatedPath] = useState('');
@@ -64,11 +67,11 @@ export default function Page() {
           <Field label="อีเมล">
             <input name="email" type="email" required className={fieldClass} />
           </Field>
-          <Field label="ทีม / เขต">
+          <Field label="ทีม">
             <input name="team" maxLength={120} className={fieldClass} />
           </Field>
           <Field label="บทบาท">
-            <select name="roleId" required className={fieldClass}>
+            <select name="roleId" required className={fieldClass} value={roleId} onChange={(event) => { setRoleId(event.target.value); setTerritoryId(''); }}>
               {roles.map(([id, name]) => (
                 <option key={id} value={id}>
                   {name}
@@ -77,6 +80,7 @@ export default function Page() {
             </select>
           </Field>
         </div>
+        {(roleId === 'SALES' || roleId === 'MANAGER') && <fieldset disabled={busy || Boolean(createdPath)}><UserTerritoryPicker value={territoryId} onChange={setTerritoryId} /></fieldset>}
         <Field label="รหัสผ่านครั้งแรก (ขั้นต่ำ 8 ตัวอักษร)">
           <input
             name="password"

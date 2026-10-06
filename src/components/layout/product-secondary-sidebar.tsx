@@ -16,7 +16,7 @@ export default function ProductSecondarySidebar({ roleId }: { roleId: string }) 
   return (
     <SecondarySidebarFrame>
       <nav
-        aria-label="เมนูสินค้าและสต็อก"
+        aria-label="เมนูสินค้า"
         className="flex gap-1 overflow-x-auto p-2 md:flex-col md:gap-2 md:px-0 md:py-5"
       >
         {pages.map((page) => {

@@ -249,3 +249,43 @@ Records list/detail/write ส่ง code/name และฟิลด์ของ�
 สินค้าใช้ category.name/category.code, dosageForm.name/dosageForm.code, drug.name, defaultWarehouse.name; public เก็บ relation เฉพาะ name ตาม allowlist เดิม ผู้ใช้ใช้ userRole.roleId/userRole.role.name, lastLoginAt, deletedByUser.name/employeeCode Audit ใช้ actor.name/employeeCode และ target.name/employeeCode วันที่ทั้งหมดเป็น ISO และจัดรูปแบบที่ UI/CSV
 
 Filters key ตรงกับ query field เช่น /api/customers?category=...&province=... ส่วน inventory ใช้ category.name/dosageForm.name รูปแบบ endpoint/method/include/view/limit=10 เดิม
+
+## TASK-233 — เขตขายเชื่อมจริง (6 ตุลาคม 2569)
+
+อ่านทุกendpointของ sales-territories ต้องบัญชีACTIVE/login; เขียนAdmin. POST /api/sales-territories รับ {"name":"ชื่อเขต","notes":"หมายเหตุ"}: name trimไม่ว่าง max500; notes optional max4000. ผล201 {data:RecordRow} มีid UUIDที่serverสร้างและauditหนึ่งรายการในtransactionเดียวกัน. ไม่ส่งid/code/status/ผู้ใช้/ลูกค้าจากฟอร์มนี้. ค่าcodeในschemaเก่าใช้UUIDเดียวกับidภายในเมื่อไม่ส่งcode; statusdefaultใช้งานอยู่จากserver; legacy APIfieldsยังรองรับเพื่อรักษาข้อมูลเดิม. ตารางไม่แสดงcode. ชื่อซ้ำยังไม่เพิ่มข้อห้ามใหม่ที่เจ้าของไม่ได้กำหนด.
+
+GET /api/sales-territories?include=config&limit=10&offset=0 ใช้search/sortKey=name|managerName|salesCount/sortDirection=asc|desc และขนาด10/20/50/100. ผลdata/pagination/config.canWrite. GET /api/sales-territories/{id} แสดงname/notes/managerName/salesMembers/salesCount/memberCount; GET ?view=options&search=&limit=10&offset=0 มีตัวเลือก+pagination.hasMoreสำหรับงานถัดไป. รหัสcodeเดิมยังอ่านตามlegacyได้ แต่เว็บเปิดด้วยUUID.
+
+401ไม่login,403ไม่Adminเมื่อเขียนหรือoriginไม่ตรง,400JSON/validation/unknownfield,404ไม่พบเขต,503เชื่อมDBชั่วคราว. อย่าสร้างAuth/ผู้ใช้ทดสอบจากCollectionนี้. PostmanPOSTจะเขียนDBจริงเมื่อกดSendและเก็บterritoryIdในEnvironment; ตั้งloginEmail/loginPassword/accessTokenในEnvironmentส่วนตัว.
+
+## TASK-262 — ข้อมูลพื้นฐานลูกค้า /api/customer-options (6 ตุลาคม 2569)
+
+| Method | Path | สิทธิ์ |
+|---|---|---|
+| GET | `/api/customer-options?kinds=codeGroup,creditTerm,creditStart,billingCycle,documentType` | ผู้ใช้ที่ login — เฉพาะรายการเปิดใช้ ครบทุกแถว ไม่แบ่งหน้า |
+| GET | `/api/customer-options?kind=&search=&sortBy=code|name|days|active&sortDirection=&limit=1–100&offset=&includeInactive=` | ผู้ใช้ที่ login; includeInactive=true เฉพาะ Admin |
+| POST | `/api/customer-options` body `{kind,name,code?,days?}` | Admin + same origin/Bearer; 201 `{item}` |
+| PATCH | `/api/customer-options` body `{id,version,name?,days?,active?}` | Admin; version ไม่ตรง 409; เปลี่ยน kind/code ไม่ได้ 400 |
+
+item: `{id,kind,name,code,days,active,version}`. code บังคับเฉพาะ codeGroup (A-Z/0-9 2–3 ตัว, unique ต่อ kind) และห้ามส่งใน kind อื่น; days บังคับเฉพาะ creditTerm (จำนวนเต็ม 0–365, 0=เงินสด) และห้ามส่งใน kind อื่น. ชื่อ unique ต่อ kind แบบไม่สนตัวพิมพ์ (409). ทุกการเขียนบันทึก audit CUSTOMER_OPTION_CREATED/UPDATED. ไม่มีลบ ใช้ active=false. ข้อผิดพลาด 400/401/403/404/409/503 รูปแบบ `{error}`.
+
+
+## TASK-263 — ลูกค้า /api/customers (6–7 ตุลาคม 2569)
+
+| Method | Path | สิทธิ์ | หมายเหตุ |
+|---|---|---|---|
+| GET | `/api/customers?search=&territoryId=&province=&sortBy=&sortDirection=&limit=1–100&offset=&include=filters,config` | login | sortBy=code|name|contactName|licenseStatus|creditDays|province|territoryName. แสดงเฉพาะลูกค้าที่สร้างจากฟอร์มใหม่ (details ไม่ว่าง) |
+| GET | `/api/customers?view=options|filters|config` | login | records API เดิม สำหรับตัวเลือกลูกค้าในโมดูลอื่น (เดิมอ่านได้โดยไม่ login — ปิดแล้ว) |
+| GET | `/api/customers/{id}` | login | 404 เมื่อ id ผิดรูปแบบ/ไม่พบ |
+| GET | `/api/customers/next-sequence?codeGroupId=` | Admin | เลขถัดไปแยกต่อกลุ่มรหัส อย่างน้อย 4 หลัก ไม่จองเลข |
+| POST | `/api/customers/requests` body `{requestId,data}` | Admin | 201 `{requestId,status}`; ส่งซ้ำ requestId+ข้อมูลเดิมได้ผลเดิม; ข้อมูลต่างกันได้ 409 |
+| POST | `/api/customers/requests/{id}/files` multipart `fileId,documentTypeId,file` | Admin | ภาพ JPEG/PNG/WebP/GIF หรือ PDF ≤10 MB ตรวจ signature/sha256/ชื่อ/ขนาดตาม manifest |
+| POST | `/api/customers/requests/{id}` | Admin | บันทึกลูกค้า 200 `{customer:{id,code}}` + audit CUSTOMER_CREATED_FULL; ซ้ำ 409 |
+| GET/DELETE | `/api/customers/requests/{id}` | Admin เจ้าของคำขอ | สถานะ / ยกเลิกพร้อมลบไฟล์ใน Storage |
+| GET | `/api/customers/files/{id}` | login | private no-store เฉพาะไฟล์ของลูกค้าที่บันทึกแล้ว |
+
+data: `{codeGroupId, sequence (ว่าง=อัตโนมัติ, 1–999999), fields, shippingAddresses[≤20], files[≤50]}`. fields คีย์ camelCase ตาม src/config/customers.ts (CUSTOMER_TEXT_FIELDS + territoryId/creditTermId/creditStartId). บังคับ: name, contactName, phone, email, accountingContactName, accountingPhone, accountingEmail, taxId (ตัวเลข 13 หลัก), vatStatus (จดทะเบียน/ไม่จดทะเบียน), branchType (สำนักงานใหญ่/สาขา), billingAddress/Subdistrict/District/Province/Postcode. อีเมลตรวจรูปแบบ, วันที่ YYYY-MM-DD, creditLimit ≥0 ทศนิยม ≤2 (ตัด , ให้). ที่อยู่จัดส่งว่างทั้งแถวไม่บันทึก; ถ้าไม่เลือกเริ่มต้นใช้แห่งแรก. รหัส = code ของกลุ่ม + "-" + เลขรันเติม 0 ให้ครบ 4 หลัก. คอลัมน์ legacy name/code/province(=จังหวัดออกบิล)/category(=ชื่อกลุ่มรหัส)/payment_terms(=ชื่อเครดิต)/territory_id ถูกเติมเพื่อให้ตัวเลือกลูกค้าในโมดูลอื่นใช้ได้. POST /api/customers และ PATCH/DELETE /api/customers/{id} แบบ records เดิมถูกถอด (ยังไม่มีแก้ไข/ลบลูกค้าในรอบนี้).
+
+TASK-266: GET /api/customers รับ licenseStatus กรองผลตรวจใบอนุญาต (ค่า ยังไม่ระบุ = ช่องว่าง) และ include=filters คืน licenseStatuses (ค่าที่มีจริงใน DB, ช่องว่างแสดงเป็น ยังไม่ระบุ).
+
+TASK-271: GET /api/customers?status= รับ ใช้งาน/ระงับ/เลิกค้าขาย/ใบอนุญาตหมดอายุ/ใบอนุญาตใกล้หมดอายุ; ตรงกับป้ายเดียวในตาราง (ลำดับ ลบแล้ว → ระงับ/เลิกค้าขาย → ใบอนุญาตหมดอายุ (วันหมด < วันนี้ Asia/Bangkok) → ใกล้หมด (≤30 วัน) → ใช้งาน). ใช้งาน = ลูกค้าใช้งานที่ใบอนุญาตไม่หมด/ไม่ใกล้หมด. licenseStatus ยังรองรับใน API แต่หน้าเว็บไม่ใช้แล้ว.

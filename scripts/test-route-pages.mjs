@@ -89,13 +89,66 @@ for (const recordModule of definitions) {
     assert.ok(service.includes("approve: ['MANAGER']") && service.includes("complete: ['ADMIN']"));
     continue;
   }
+  if (recordModule.key === 'sales-territories') {
+    assert.ok(
+      fs
+        .readFileSync('src/app/customers/territories/page.tsx', 'utf8')
+        .includes('/api/sales-territories'),
+    );
+    assert.ok(
+      fs
+        .readFileSync('src/app/customers/territories/[id]/page.tsx', 'utf8')
+        .includes('/api/sales-territories/'),
+    );
+    assert.ok(
+      fs
+        .readFileSync('src/app/customers/territories/create/layout.tsx', 'utf8')
+        .includes('requireAdmin'),
+    );
+    continue;
+  }
   const root = 'src/app' + recordModule.page;
   const create = root + '/create/page.tsx';
   const detail = root + '/[id]/page.tsx';
   for (const file of [create, detail]) {
+    // TASK-263: customer create/detail use the dedicated customer API, not record fields.
+    if (file === 'src/app/customers/create/page.tsx') {
+      // TASK-268: the page renders the shared create/edit form.
+      assert.ok(fs.readFileSync(file, 'utf8').includes('<CustomerForm />'));
+      const page = fs.readFileSync('src/app/customers/create/customer-form.tsx', 'utf8');
+      assert.ok(page.includes('/edit-requests'), 'Customer edit must save via edit requests');
+      assert.ok(
+        fs.readFileSync('src/app/customers/[id]/edit/layout.tsx', 'utf8').includes('requireAdmin'),
+      );
+      assert.ok(page.includes('/api/customers/requests'), 'Customer create must save via requests');
+      assert.ok(page.includes('/api/customer-options?kinds='), 'Customer create must load options');
+      assert.ok(
+        fs.readFileSync('src/app/customers/create/layout.tsx', 'utf8').includes('requireAdmin'),
+      );
+      continue;
+    }
+    if (file === 'src/app/customers/[id]/page.tsx') {
+      const page = fs.readFileSync(file, 'utf8');
+      assert.ok(page.includes("'/api/customers/'"), 'Customer detail must read the customer API');
+      assert.ok(page.includes('LoadingComponent') && page.includes('NotFoundComponent'));
+      continue;
+    }
     const fields = controls(file);
-    for (const field of recordModule.fields)
-      assert.ok(fields.has(field.key), file + ': missing field ' + field.key);
+    const removedTerritoryFields = new Set(['status', 'area', 'owner', 'managerId', 'salesId']);
+    for (const field of recordModule.fields.filter(
+      (field) => recordModule.key !== 'sales-territories' || !removedTerritoryFields.has(field.key),
+    ))
+      assert.ok(
+        fields.has(
+          recordModule.key === 'sales-territories' && field.key === 'salesId'
+            ? 'salesIds'
+            : field.key,
+        ),
+        file + ': missing field ' + field.key,
+      );
+    if (recordModule.key === 'sales-territories')
+      for (const key of removedTerritoryFields)
+        assert.ok(!fields.has(key), file + ': removed territory field still shown: ' + key);
     const source = fs.readFileSync(file, 'utf8');
     assert.ok(!/\{entity\.fields\.map/.test(source), file + ': generic fields render');
     assert.ok(
@@ -107,10 +160,12 @@ for (const recordModule of definitions) {
     fs.readFileSync(root + '/create/layout.tsx', 'utf8').includes('requireAdmin'),
     root + ': missing create auth guard',
   );
-  assert.ok(
-    fs.readFileSync(detail, 'utf8').includes('expectedUpdatedAt'),
-    detail + ': lost edit concurrency guard',
-  );
+  // TASK-263: customer detail is read-only until the customer edit task.
+  if (recordModule.key !== 'customers')
+    assert.ok(
+      fs.readFileSync(detail, 'utf8').includes('expectedUpdatedAt'),
+      detail + ': lost edit concurrency guard',
+    );
 }
 for (const route of ['users', 'audit-logs'])
   assert.ok(fs.readFileSync('src/app/' + route + '/layout.tsx', 'utf8').includes('requireAdmin'));

@@ -14,6 +14,14 @@ const statusTones: Record<string, StatusTone> = {
   รับเข้า: 'success',
   รอตรวจ: 'warning',
   ส่งกลับแก้ไข: 'warning',
+  // Customer license check results (TASK-265).
+  ผ่าน: 'success',
+  ต้องแก้เอกสาร: 'warning',
+  ไม่ผ่าน: 'danger',
+  // Customer list badge (TASK-271).
+  ใบอนุญาตหมดอายุ: 'danger',
+  ใบอนุญาตใกล้หมดอายุ: 'warning',
+  เลิกค้าขาย: 'neutral',
   ยกเลิก: 'danger',
   งดขาย: 'warning',
   หมดอายุ: 'danger',
