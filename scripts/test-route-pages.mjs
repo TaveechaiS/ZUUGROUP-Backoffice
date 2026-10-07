@@ -73,6 +73,7 @@ for (const recordModule of definitions) {
       'src/app/orders/page.tsx',
       'src/app/orders/create/page.tsx',
       'src/app/orders/[id]/page.tsx',
+      'src/components/sales/document-form.tsx',
     ]
       .map((file) => fs.readFileSync(file, 'utf8'))
       .join('\n');
@@ -87,6 +88,25 @@ for (const recordModule of definitions) {
     );
     const service = fs.readFileSync('src/server/operations/service.ts', 'utf8');
     assert.ok(service.includes("approve: ['MANAGER']") && service.includes("complete: ['ADMIN']"));
+    continue;
+  }
+  // TASK-275: quotations use the dedicated quote workflow API and the shared document form.
+  if (recordModule.key === 'quotes') {
+    const pages = [
+      'src/app/quotes/page.tsx',
+      'src/app/quotes/create/page.tsx',
+      'src/app/quotes/[id]/page.tsx',
+    ]
+      .map((file) => fs.readFileSync(file, 'utf8'))
+      .join('\n');
+    assert.ok(pages.includes('/api/quotes') && pages.includes('kind="quote"'));
+    assert.ok(pages.includes('expectedUpdatedAt') && pages.includes("'convert'"));
+    assert.ok(
+      fs.readFileSync('src/app/quotes/create/layout.tsx', 'utf8').includes('requireActiveUser'),
+    );
+    assert.ok(
+      fs.readFileSync('src/server/quotes/service.ts', 'utf8').includes("approve: ['MANAGER']"),
+    );
     continue;
   }
   if (recordModule.key === 'sales-territories') {

@@ -34,6 +34,13 @@ export function cost(value: unknown) {
     throw new RecordError(400, 'ต้นทุนต้องไม่ติดลบและทศนิยมไม่เกิน 2 หลัก');
   return v;
 }
+// TASK-275: per-line discount in baht (prices include VAT); missing means no discount.
+export function discount(value: unknown) {
+  const v = value === undefined || value === null || value === '' ? '0' : String(value);
+  if (!/^\d{1,10}(\.\d{1,2})?$/.test(v))
+    throw new RecordError(400, 'ส่วนลดต้องไม่ติดลบและทศนิยมไม่เกิน 2 หลัก');
+  return v;
+}
 export function day(value: unknown) {
   const v = str(value, 'วันที่');
   if (
@@ -51,6 +58,11 @@ export function bangkokDay(now = new Date()) {
     month: '2-digit',
     day: '2-digit',
   }).format(now);
+}
+export function addDays(date: string, days: number) {
+  const value = new Date(date + 'T00:00:00Z');
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
 }
 export function addMonths(date: string, months: number) {
   const [y, m, d] = date.split('-').map(Number);
@@ -77,7 +89,11 @@ export function requestedLines(value: unknown) {
     throw new RecordError(400, 'กรุณาเพิ่มสินค้า 1–50 รายการ');
   const lines = value.map((v) => {
     const b = object(v);
-    return { productId: id(b.productId, 'สินค้า'), quantity: qty(b.quantity) };
+    return {
+      productId: id(b.productId, 'สินค้า'),
+      quantity: qty(b.quantity),
+      discount: discount(b.discount),
+    };
   });
   if (new Set(lines.map((l) => l.productId)).size !== lines.length)
     throw new RecordError(400, 'สินค้าในเอกสารต้องไม่ซ้ำกัน');

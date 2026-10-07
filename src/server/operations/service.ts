@@ -26,10 +26,10 @@ import type {
   OrderLine,
 } from '@/types/api/operations';
 export type Actor = { id: string; roleId: string; name: string };
-type Tx = Prisma.TransactionClient;
+export type Tx = Prisma.TransactionClient;
 type Policy = { saleMonths: number; donationMonths: number; warningDays: number };
 export const seesCost = (actor: Actor) => ['ADMIN', 'ACCOUNTING_CFO'].includes(actor.roleId);
-const query = <T>(tx: Tx, sql: Prisma.Sql) => tx.$queryRaw<T[]>(sql);
+export const query = <T>(tx: Tx, sql: Prisma.Sql) => tx.$queryRaw<T[]>(sql);
 function receiptPrefix() {
   const year =
     Number(
@@ -50,13 +50,29 @@ async function policy(tx: Tx) {
   if (!rows[0]) throw new RecordError(503, 'ยังไม่ได้ตั้งค่านโยบายคลัง');
   return rows[0];
 }
-async function lockProducts(tx: Tx, ids: string[]) {
+// TASK-274/275: document numbers are SO-/QT-<Buddhist year>-0001, restarting every year. The
+// advisory lock serialises concurrent creates; deleted documents keep their number so it is never
+// reused.
+const numberedTables = { SO: Prisma.sql`sales_orders`, QT: Prisma.sql`quotations` };
+export async function nextDocumentCode(tx: Tx, kind: keyof typeof numberedTables) {
+  const prefix = kind + '-' + receiptPrefix().match(/\d{4}/)![0] + '-';
+  await tx.$queryRaw(
+    Prisma.sql`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${prefix},2))`,
+  );
+  const rows = await query<{ value: number }>(
+    tx,
+    Prisma.sql`SELECT COALESCE(MAX(substring(code FROM ${prefix.length + 1}::int)::int),0)+1 AS value FROM ${numberedTables[kind]} WHERE code ~ ${'^' + prefix + '[0-9]{4}$'}`,
+  );
+  if (rows[0].value > 9999) throw new RecordError(409, 'เลขเอกสารของปีนี้ครบ 9999 แล้ว');
+  return prefix + String(rows[0].value).padStart(4, '0');
+}
+export async function lockProducts(tx: Tx, ids: string[]) {
   for (const value of [...new Set(ids)].sort())
     await tx.$queryRaw(
       Prisma.sql`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${value},0))`,
     );
 }
-async function command(
+export async function command(
   actor: Actor,
   body: Record<string, unknown>,
   kind: string,
@@ -423,7 +439,7 @@ export async function operationOptions(actor: Actor, scope?: 'receive') {
       actor.roleId === 'ADMIN'
         ? await query<{ value: string }>(
             tx,
-            Prisma.sql`SELECT (COALESCE(MAX(substring(code FROM ${prefix.length + 1})::int),0)+1)::text AS value FROM stock_receipts WHERE code ~ ${'^' + prefix + '[0-9]{5}$'}`,
+            Prisma.sql`SELECT (COALESCE(MAX(substring(code FROM ${prefix.length + 1}::int)::int),0)+1)::text AS value FROM stock_receipts WHERE code ~ ${'^' + prefix + '[0-9]{5}$'}`,
           )
         : [];
     if (receiptNumbers[0] && Number(receiptNumbers[0].value) > 99999)
@@ -436,14 +452,14 @@ export async function operationOptions(actor: Actor, scope?: 'receive') {
       : { data: { products, customers, warehouses, users, actor, policy: p!, nextReceiptCode } };
   });
 }
-function page(params: URLSearchParams) {
+export function page(params: URLSearchParams) {
   return {
     offset: integer(params, 'offset', 0, 0, 100000),
     limit: integer(params, 'limit', 10, 1, 100),
     search: str(params.get('search') ?? '', 'ค้นหา', false, 200),
   };
 }
-const pageResult = <T>(data: T[], total: number, offset: number, limit: number) => ({
+export const pageResult = <T>(data: T[], total: number, offset: number, limit: number) => ({
   data,
   pagination: { offset, limit, total, hasMore: offset + data.length < total },
 });
@@ -789,7 +805,14 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
   );
 }
 
-async function allocate(tx: Tx, orderId: string, lines: { productId: string; quantity: number }[]) {
+// unitPrice is only set when a quotation converts, so the quoted price is kept.
+type AllocationInput = {
+  productId: string;
+  quantity: number;
+  discount?: string;
+  unitPrice?: string;
+};
+async function allocate(tx: Tx, orderId: string, lines: AllocationInput[]) {
   const warehouseId = await mainWarehouse(tx),
     p = await policy(tx),
     minimum = addMonths(bangkokDay(), p.saleMonths);
@@ -811,10 +834,14 @@ async function allocate(tx: Tx, orderId: string, lines: { productId: string; qua
         409,
         `${product.name} มีจำนวนพร้อมขายไม่พอ ไม่สามารถสร้าง/แก้ Order ได้`,
       );
+    const price = new Prisma.Decimal(input.unitPrice ?? product.price),
+      discount = new Prisma.Decimal(input.discount ?? '0');
+    if (discount.gt(price.mul(input.quantity)))
+      throw new RecordError(400, `ส่วนลด ${product.name} เกินราคารวมของรายการ`);
     await tx.$executeRaw(
-      Prisma.sql`INSERT INTO sales_order_lines(id,order_id,product_id,quantity,unit_price,product_name) VALUES(${lineId}::uuid,${orderId}::uuid,${product.id}::uuid,${input.quantity},${product.price}::numeric,${product.name})`,
+      Prisma.sql`INSERT INTO sales_order_lines(id,order_id,product_id,quantity,unit_price,discount,product_name) VALUES(${lineId}::uuid,${orderId}::uuid,${product.id}::uuid,${input.quantity},${price.toFixed(2)}::numeric,${discount.toFixed(2)}::numeric,${product.name})`,
     );
-    total = total.add(new Prisma.Decimal(product.price).mul(input.quantity));
+    total = total.add(price.mul(input.quantity)).sub(discount);
     let remaining = input.quantity;
     for (const b of balances) {
       const n = Math.min(remaining, b.quantity - b.reserved);
@@ -844,6 +871,43 @@ async function release(tx: Tx, orderId: string) {
     Prisma.sql`UPDATE stock_reservations SET status='คืนจอง' WHERE id IN (SELECT r.id FROM stock_reservations r JOIN sales_order_lines li ON li.id=r.order_line_id WHERE li.order_id=${orderId}::uuid AND r.status='จอง')`,
   );
 }
+// Shared by order create and quotation convert (TASK-275); runs inside the caller's command.
+export async function createOrder(
+  tx: Tx,
+  actor: Actor,
+  input: {
+    customerId: string;
+    notes: string;
+    lines: AllocationInput[];
+    quotationId?: string;
+    // Set when converting an approved quotation: the agreed price is already approved, so the
+    // order starts approved by the same person instead of waiting for Manager again.
+    approvedById?: string | null;
+  },
+) {
+  await lockProducts(
+    tx,
+    input.lines.map((l) => l.productId),
+  );
+  const customer = (
+    await query<{ id: string; territoryId: string | null; name: string }>(
+      tx,
+      Prisma.sql`SELECT id,territory_id AS "territoryId",name FROM customers WHERE id=${input.customerId}::uuid AND deleted_at IS NULL FOR KEY SHARE`,
+    )
+  )[0];
+  if (!customer) throw new RecordError(400, 'ไม่พบลูกค้า');
+  const newId = randomUUID(),
+    code = await nextDocumentCode(tx, 'SO'),
+    status = input.approvedById ? S.approved : S.pending;
+  await tx.$executeRaw(
+    Prisma.sql`INSERT INTO sales_orders(id,code,name,status,customer_id,territory_id,owner,notes,workflow_managed,created_by_id,quotation_id,approved_by_id) VALUES(${newId}::uuid,${code},${customer.name},${status},${input.customerId}::uuid,${customer.territoryId}::uuid,${actor.name},${input.notes},true,${actor.id}::uuid,${input.quotationId ?? null}::uuid,${input.approvedById ?? null}::uuid)`,
+  );
+  const amount = await allocate(tx, newId, input.lines);
+  await tx.$executeRaw(
+    Prisma.sql`UPDATE sales_orders SET amount=${amount}::numeric WHERE id=${newId}::uuid`,
+  );
+  return { id: newId, code, status };
+}
 export async function orderWrite(actor: Actor, raw: unknown, orderId?: string) {
   const b = object(raw),
     action = orderId ? str(b.action, 'คำสั่ง') : 'create';
@@ -857,31 +921,14 @@ export async function orderWrite(actor: Actor, raw: unknown, orderId?: string) {
   };
   allow(actor, roles[action] ?? []);
   return command(actor, b, `orders.${action}`, async (tx) => {
-    if (action === 'create') {
-      const lines = requestedLines(b.lines);
-      await lockProducts(
-        tx,
-        lines.map((l) => l.productId),
-      );
-      const customerId = id(b.customerId, 'ลูกค้า');
-      const customer = (
-        await query<{ id: string; territoryId: string | null; name: string }>(
-          tx,
-          Prisma.sql`SELECT id,territory_id AS "territoryId",name FROM customers WHERE id=${customerId}::uuid AND deleted_at IS NULL FOR KEY SHARE`,
-        )
-      )[0];
-      if (!customer) throw new RecordError(400, 'ไม่พบลูกค้า');
-      const newId = randomUUID(),
-        code = str(b.code, 'เลขที่ Order', true, 100);
-      await tx.$executeRaw(
-        Prisma.sql`INSERT INTO sales_orders(id,code,name,status,customer_id,territory_id,owner,notes,workflow_managed,created_by_id) VALUES(${newId}::uuid,${code},${customer.name},${S.pending},${customerId}::uuid,${customer.territoryId}::uuid,${actor.name},${str(b.notes, 'หมายเหตุ', false)},true,${actor.id}::uuid)`,
-      );
-      const amount = await allocate(tx, newId, lines);
-      await tx.$executeRaw(
-        Prisma.sql`UPDATE sales_orders SET amount=${amount}::numeric WHERE id=${newId}::uuid`,
-      );
-      return { data: { id: newId, code, status: S.pending } };
-    }
+    if (action === 'create')
+      return {
+        data: await createOrder(tx, actor, {
+          customerId: id(b.customerId, 'ลูกค้า'),
+          notes: str(b.notes, 'หมายเหตุ', false),
+          lines: requestedLines(b.lines),
+        }),
+      };
     const oid = id(orderId);
     const before = (
       await query<{
@@ -907,11 +954,18 @@ export async function orderWrite(actor: Actor, raw: unknown, orderId?: string) {
       throw new RecordError(409, 'เอกสารเสร็จสิ้นหรือยกเลิกแล้ว');
     if (actor.roleId === 'SALES' && before.createdById !== actor.id)
       throw new RecordError(403, 'Sales แก้ได้เฉพาะเอกสารที่สร้างเอง');
-    const oldLines = await query<{ productId: string }>(
+    const oldLines = await query<{ productId: string; unitPrice: string }>(
       tx,
-      Prisma.sql`SELECT product_id AS "productId" FROM sales_order_lines WHERE order_id=${oid}::uuid`,
+      Prisma.sql`SELECT product_id AS "productId",unit_price::text AS "unitPrice" FROM sales_order_lines WHERE order_id=${oid}::uuid`,
     );
-    const newLines = action === 'edit' ? requestedLines(b.lines) : [];
+    // TASK-275: a product already on the order keeps its locked price (e.g. the quoted price).
+    const newLines =
+      action === 'edit'
+        ? requestedLines(b.lines).map((line) => ({
+            ...line,
+            unitPrice: oldLines.find((old) => old.productId === line.productId)?.unitPrice,
+          }))
+        : [];
     await lockProducts(
       tx,
       [...oldLines, ...newLines].map((l) => l.productId),
@@ -1017,7 +1071,7 @@ export async function orderWrite(actor: Actor, raw: unknown, orderId?: string) {
     throw new RecordError(400, 'คำสั่งไม่ถูกต้อง');
   });
 }
-const orderSelect = Prisma.sql`o.id,o.code,o.name,o.status,o.customer_id AS "customerId",COALESCE(c.name,'-') AS "customerName",COALESCE(t.name,'-') AS "territoryName",COALESCE(m.name,'-') AS "managerName",COALESCE(s.name,'-') AS "salesName",COALESCE(creator.name,o.owner) AS "createdByName",o.created_by_id AS "createdById",COALESCE(approver.name,'-') AS "approvedByName",COALESCE(finisher.name,'-') AS "completedByName",o.return_reason AS "returnReason",o.notes,COALESCE(o.amount,0)::text AS amount,o.created_at AS "createdAt",o.updated_at AS "updatedAt",o.workflow_managed AS "workflowManaged"`;
+const orderSelect = Prisma.sql`o.id,o.code,o.name,o.status,o.customer_id AS "customerId",COALESCE(c.name,'-') AS "customerName",COALESCE(t.name,'-') AS "territoryName",COALESCE(m.name,'-') AS "managerName",COALESCE(s.name,'-') AS "salesName",COALESCE(creator.name,o.owner) AS "createdByName",o.created_by_id AS "createdById",COALESCE(approver.name,'-') AS "approvedByName",COALESCE(finisher.name,'-') AS "completedByName",o.return_reason AS "returnReason",o.notes,COALESCE(o.amount,0)::text AS amount,o.created_at AS "createdAt",o.updated_at AS "updatedAt",o.workflow_managed AS "workflowManaged",o.quotation_id AS "quotationId",(SELECT q.code FROM quotations q WHERE q.id=o.quotation_id) AS "quotationCode"`;
 const orderFrom = Prisma.sql`sales_orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN sales_territories t ON t.id=o.territory_id LEFT JOIN users m ON m.id=t.manager_id LEFT JOIN LATERAL (SELECT string_agg(u.name,', ' ORDER BY u.name,u.id) AS name FROM sales_territory_sales member JOIN users u ON u.id=member.user_id WHERE member.territory_id=t.id) s ON true LEFT JOIN users creator ON creator.id=o.created_by_id LEFT JOIN users approver ON approver.id=o.approved_by_id LEFT JOIN users finisher ON finisher.id=o.completed_by_id`;
 export async function orderRead(actor: Actor, params: URLSearchParams, orderId?: string) {
   return getPrismaClient().$transaction(
@@ -1035,7 +1089,7 @@ export async function orderRead(actor: Actor, params: URLSearchParams, orderId?:
         if (!row) throw new RecordError(404, 'ไม่พบ Order');
         const lines = await query<OrderLine>(
           tx,
-          Prisma.sql`SELECT id,product_id AS "productId",product_name AS "productName",quantity,unit_price::text AS "unitPrice" FROM sales_order_lines WHERE order_id=${row.id}::uuid ORDER BY id`,
+          Prisma.sql`SELECT id,product_id AS "productId",product_name AS "productName",quantity,unit_price::text AS "unitPrice",discount::text AS discount FROM sales_order_lines WHERE order_id=${row.id}::uuid ORDER BY id`,
         );
         for (const line of lines) {
           line.allocations = await query(

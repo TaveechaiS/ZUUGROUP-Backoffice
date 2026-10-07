@@ -1,673 +1,216 @@
 'use client';
-import PaginationControls from '@/components/ui/pagination-controls';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sortable-table';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { Get, Post, Update } from '@/service/http';
-import type { OperationOptions, OrderRow, PageData } from '@/types/api/operations';
+import PaginationControls from '@/components/ui/pagination-controls';
 import StatusBadge from '@/components/ui/status-badge';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
-import SuccessAlertComponent from '@/components/ui/success-alert-component';
-import ConfirmationDialog from '@/components/ui/confirmation-dialog';
-function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
-  return (
-    <label className="flex min-w-0 flex-col gap-2 text-sm poppins-medium text-[#26364b]">
-      {label}
-      {children}
-      {hint && <span className="text-xs poppins-regular text-gray-500">{hint}</span>}
-    </label>
-  );
-}
+import { SearchIcon } from '@/components/icons/status-icons';
+import { Get } from '@/service/http';
+import type { OrderRow, PageData } from '@/types/api/operations';
+import { ORDER_STATUSES, dateTime, money } from '@/components/sales/document-ui';
 
-function ErrorMessage({ message }: { message: string }) {
-  return message ? (
-    <p role="alert" className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-600">
-      {message}
-    </p>
-  ) : null;
-}
+const columns = ['code', 'customerName', 'territoryName', 'createdAt', 'amount', 'status'];
+const cellClass = 'px-5 py-4 align-top';
+const ALL = '';
+type OrderPage = PageData<OrderRow> & { actor?: { id: string; roleId: string } };
 
-const inputClass =
-  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-[#26364b] outline-none focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100 disabled:bg-gray-50';
-
-const buttonClass =
-  'rounded-lg bg-[#1a58a7] px-4 py-2.5 text-sm poppins-medium text-white hover:bg-[#174a8b] disabled:cursor-not-allowed disabled:opacity-50';
-
-const secondaryClass =
-  'rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm poppins-medium text-[#26364b] hover:bg-blue-50 disabled:opacity-50';
-
-const money = (value: unknown) =>
-  Number(value ?? 0).toLocaleString('th-TH', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-const dateTime = (value: string) =>
-  new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: 'Asia/Bangkok',
-  }).format(new Date(value));
-type LineInput = { productId: string; quantity: string };
 export default function Page() {
-  const mode = 'list' as 'list' | 'create' | 'detail';
-  const params = useParams<{ id: string }>(),
-    router = useRouter();
+  const router = useRouter();
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState(ALL);
+  const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [options, setOptions] = useState<OperationOptions | null>(null),
-    [rows, setRows] = useState<OrderRow[]>([]),
-    [row, setRow] = useState<OrderRow | null>(null),
-    [search, setSearch] = useState(''),
-    [status, setStatus] = useState(''),
-    [offset, setOffset] = useState(0),
-    [total, setTotal] = useState(0),
-    [version, setVersion] = useState(0),
-    [loading, setLoading] = useState(true),
-    [error, setError] = useState(''),
-    [busy, setBusy] = useState(false),
-    [notice, setNotice] = useState(''),
-    [after, setAfter] = useState(''),
-    [edit, setEdit] = useState(false),
-    [code, setCode] = useState(''),
-    [customerId, setCustomer] = useState(''),
-    [notes, setNotes] = useState(''),
-    [reason, setReason] = useState(''),
-    [lines, setLines] = useState<LineInput[]>([{ productId: '', quantity: '1' }]),
-    [pending, setPending] = useState<Record<string, unknown> | null>(null);
+  const [refresh, setRefresh] = useState(0);
+  const [result, setResult] = useState<OrderPage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const sort = useTableSort(() => setOffset(0));
-  const lock = useRef(false),
-    commandKey = useRef(crypto.randomUUID());
+
   useEffect(() => {
     const controller = new AbortController();
-    Get<{ data: OperationOptions }>('/api/inventory?view=options', controller.signal)
-      .then((r) => setOptions(r.data))
-      .catch((e) => {
-        if (!controller.signal.aborted) setError(e.message);
-      });
-    return () => controller.abort();
-  }, [version]);
-  useEffect(() => {
-    const controller = new AbortController();
-    const timer = setTimeout(
-      () => {
-        setLoading(true);
-        setError('');
-        const url =
-          mode === 'detail'
-            ? '/api/orders/' + encodeURIComponent(params.id)
-            : '/api/orders?' +
-              new URLSearchParams({
-                search,
-                status,
-                offset: String(offset),
-                limit: String(pageSize),
-              });
-        if (mode === 'create') {
+    const timer = setTimeout(() => {
+      setLoading(true);
+      setError('');
+      const url =
+        '/api/orders?' +
+        new URLSearchParams({ search, status, offset: String(offset), limit: String(pageSize) });
+      Get<OrderPage>(
+        withTableSort(url, { key: sort.key, direction: sort.direction }),
+        controller.signal,
+      )
+        .then((response) => {
+          if (controller.signal.aborted) return;
+          const total = response.pagination.total;
+          if (offset && offset >= total)
+            setOffset(Math.max(0, Math.ceil(total / pageSize) - 1) * pageSize);
+          setResult(response);
           setLoading(false);
-          return;
-        }
-        Get<PageData<OrderRow> | { data: OrderRow }>(
-          mode === 'list' ? withTableSort(url, { key: sort.key, direction: sort.direction }) : url,
-          controller.signal,
-        )
-          .then((r) => {
-            if (controller.signal.aborted) return;
-            if ('pagination' in r) {
-              setRows(r.data);
-              setTotal(r.pagination.total);
-              if (offset >= r.pagination.total && offset)
-                setOffset(Math.max(0, Math.ceil(r.pagination.total / pageSize) - 1) * pageSize);
-            } else {
-              setRow(r.data);
-              setNotes(r.data.notes);
-              setCustomer(r.data.customerId ?? '');
-              setCode(r.data.code);
-              setLines(
-                (r.data.lines ?? []).map((l) => ({
-                  productId: l.productId,
-                  quantity: String(l.quantity),
-                })),
-              );
-            }
-            setLoading(false);
-          })
-          .catch((e) => {
-            if (!controller.signal.aborted) {
-              setError(e.message);
-              setLoading(false);
-            }
-          });
-      },
-      mode === 'list' ? 200 : 0,
-    );
+        })
+        .catch((e) => {
+          if (controller.signal.aborted) return;
+          setError(e.message);
+          setLoading(false);
+        });
+    }, 200);
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [mode, params.id, search, status, offset, pageSize, version, sort.key, sort.direction]);
-  const role = options?.actor.roleId ?? '',
-    canCreate = ['SALES', 'ADMIN'].includes(role),
-    canEdit =
-      !!row?.workflowManaged &&
-      !['เสร็จสิ้น', 'ยกเลิก'].includes(row.status) &&
-      ((role === 'SALES' &&
-        row.createdById === options?.actor.id &&
-        ['รอตรวจ', 'ส่งกลับแก้ไข'].includes(row.status)) ||
-        role === 'MANAGER' ||
-        role === 'ADMIN');
-  function ask(action: string) {
-    setPending({
-      action,
-      reason,
-      expectedUpdatedAt: row?.updatedAt,
-      idempotencyKey: crypto.randomUUID(),
-    });
+  }, [search, status, offset, pageSize, refresh, sort.key, sort.direction]);
+
+  function resetFilters() {
+    setSearch('');
+    setStatus(ALL);
+    setOffset(0);
   }
-  async function execute(body: Record<string, unknown>) {
-    if (lock.current) return;
-    lock.current = true;
-    setBusy(true);
-    setError('');
-    try {
-      const r =
-        mode === 'create'
-          ? await Post<{ data: { id: string } }>('/api/orders', body)
-          : await Update<{ data: { id: string } }>('/api/orders/' + row!.id, body);
-      commandKey.current = crypto.randomUUID();
-      setNotice(mode === 'create' ? 'สร้าง Order และจองสินค้าแล้ว' : 'บันทึกคำสั่งแล้ว');
-      setPending(null);
-      setEdit(false);
-      setReason('');
-      if (mode === 'create') setAfter('/orders/' + r.data.id);
-      else setVersion((v) => v + 1);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'ทำรายการไม่สำเร็จ');
-    } finally {
-      lock.current = false;
-      setBusy(false);
-    }
-  }
-  function save() {
-    const body = {
-      code,
-      customerId,
-      notes,
-      lines: lines.map((l) => ({ productId: l.productId, quantity: Number(l.quantity) })),
-      idempotencyKey: commandKey.current,
-      ...(mode === 'detail' ? { action: 'edit', expectedUpdatedAt: row?.updatedAt } : {}),
-    };
-    setPending(body);
-  }
-  const sum = lines.reduce(
-    (n, l) =>
-      n +
-      Number(options?.products.find((p) => p.id === l.productId)?.salePrice ?? 0) *
-        Number(l.quantity || 0),
-    0,
-  );
+  const rows = result?.data ?? [];
+  const open = (id: string) => router.push(`/orders/${id}`);
+
   return (
-    <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 text-[#26364b] md:p-6">
-      <SuccessAlertComponent
-        isOpen={!!notice}
-        title={notice}
-        onClose={() => {
-          setNotice('');
-          if (after) {
-            router.push(after);
-            setAfter('');
-          }
-        }}
-      />
-      <ConfirmationDialog
-        isOpen={!!pending}
-        title={pending?.action === 'complete' ? 'ยืนยันจัดของและตัดคลัง?' : 'ยืนยันบันทึกเอกสาร?'}
-        description={
-          error ||
-          (pending?.action === 'complete'
-            ? 'เอกสารจะเป็นเสร็จสิ้นและตัดสินค้าตามล็อตที่จองไว้'
-            : 'ระบบจะบันทึกประวัติและปรับจำนวนจองตามคำสั่งนี้')
-        }
-        variant="primary"
-        confirmLabel="ยืนยัน"
-        busyLabel="กำลังบันทึก..."
-        busy={busy}
-        onCancel={() => setPending(null)}
-        onConfirm={() => {
-          if (pending) void execute(pending);
-        }}
-      />
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl poppins-semibold">
-          {mode === 'create' ? 'สร้างคำสั่งซื้อ' : 'คำสั่งซื้อและจัดส่ง'}
-        </h1>
-        {mode === 'list' ? (
-          canCreate && (
-            <Link href="/orders/create" className={buttonClass}>
-              สร้างคำสั่งซื้อ
-            </Link>
-          )
-        ) : (
-          <Link href="/orders" className={secondaryClass}>
-            กลับรายการ
-          </Link>
-        )}
-      </header>
-      <ErrorMessage message={error} />
-      {mode === 'list' && (
-        <>
-          <div className="flex flex-wrap gap-3">
+    <section aria-label="คำสั่งซื้อ" className="min-w-0 w-full px-4 py-6 md:px-6 md:py-8">
+      <div className="mb-6">
+        <h1 className="text-xl poppins-semibold text-[#26364b]">คำสั่งซื้อ</h1>
+      </div>
+      <div
+        role="tablist"
+        aria-label="สถานะคำสั่งซื้อ"
+        className="mb-4 flex flex-wrap gap-x-4 border-b border-[#e4e9f0]"
+      >
+        {[ALL, ...ORDER_STATUSES].map((value) => (
+          <button
+            key={value || 'all'}
+            type="button"
+            role="tab"
+            aria-selected={status === value}
+            onClick={() => {
+              setStatus(value);
+              setOffset(0);
+            }}
+            className={`-mb-px min-h-10 border-b-2 px-1 pb-3 text-sm transition ${status === value ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
+          >
+            {value || 'ทั้งหมด'}
+          </button>
+        ))}
+      </div>
+      <div className="mb-6 grid grid-cols-1 items-end gap-5 rounded-xl border border-[#e4e7ec] bg-white p-6 shadow-xs">
+        <label className="min-w-0">
+          <span className="mb-2 block text-xs text-[#344256]">ค้นหาคำสั่งซื้อ</span>
+          <div className="relative">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
             <input
-              className={inputClass + ' max-w-sm'}
-              placeholder="ค้นหาเลขที่หรือลูกค้า"
-              aria-label="ค้นหาคำสั่งซื้อ"
+              type="search"
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
+              onChange={(event) => {
+                setSearch(event.target.value);
                 setOffset(0);
               }}
+              placeholder="เลขที่คำสั่งซื้อ หรือชื่อลูกค้า"
+              className="h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white pl-10 pr-3 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#9ba7b6] focus:border-[#1a58a7]"
             />
-            <select
-              className={inputClass + ' max-w-52'}
-              aria-label="สถานะ"
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
-                setOffset(0);
-              }}
-            >
-              <option value="">ทุกสถานะ</option>
-              {['รอตรวจ', 'อนุมัติ', 'ส่งกลับแก้ไข', 'เสร็จสิ้น', 'ยกเลิก'].map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
           </div>
-          <div className="relative min-h-48 overflow-x-auto rounded-xl border border-gray-100 bg-white">
-            <LoadingComponent isVisible={loading} variant="content" />
-            <SortableTable
-              sort={sort}
-              columns={['code', 'territoryName', 'createdAt', 'amount', 'status']}
-              className="w-full min-w-[750px] text-left text-sm"
-            >
-              <thead className="bg-blue-50">
-                <tr>
-                  {['เลขที่ / ลูกค้า', 'เขต / ผู้สร้าง', 'วันที่', 'ยอดขาย', 'สถานะ'].map((t) => (
-                    <th key={t} scope="col" className="p-4 poppins-medium">
-                      {t}
+        </label>
+      </div>
+      {error && (
+        <div role="alert" className="mb-4 flex gap-3 text-sm poppins-regular text-red-600">
+          {error}
+          <button type="button" onClick={() => setRefresh((v) => v + 1)} className="text-[#1a58a7]">
+            ลองใหม่
+          </button>
+        </div>
+      )}
+      <div
+        className="relative min-h-80 overflow-hidden rounded-lg border border-[#d9e3ee] bg-white"
+        aria-busy={loading}
+      >
+        <div className="overflow-x-auto">
+          <SortableTable
+            sort={sort}
+            columns={columns}
+            className="w-full min-w-[960px] border-collapse text-left text-sm poppins-regular text-[#344256]"
+          >
+            <thead className="border-b border-[#d9e3ee] bg-[#f7f9fc] text-[#65758b]">
+              <tr>
+                {['เลขที่', 'ลูกค้า', 'เขต / ผู้สร้าง', 'วันที่สร้าง', 'ยอดขาย (บาท)', 'สถานะ'].map(
+                  (label) => (
+                    <th key={label} scope="col" className="px-5 py-3 poppins-medium">
+                      {label}
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {!loading &&
+                !error &&
+                rows.map((order) => (
                   <tr
+                    key={order.id}
+                    role="link"
                     tabIndex={0}
-                    key={r.id}
-                    onClick={() => router.push('/orders/' + r.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        router.push('/orders/' + r.id);
-                      }
+                    aria-label={`เปิดคำสั่งซื้อ ${order.code}`}
+                    onClick={() => open(order.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') open(order.id);
                     }}
-                    className="cursor-pointer border-t border-gray-100 hover:bg-blue-50/50"
+                    className="cursor-pointer border-b border-[#edf1f5] last:border-b-0 hover:bg-blue-50/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#1a58a7]"
                   >
-                    <td className="p-4">
-                      <span className="poppins-medium">{r.code}</span>
-                      <small className="block text-gray-500">{r.customerName}</small>
+                    <td className={`${cellClass} whitespace-nowrap poppins-medium text-[#1a58a7]`}>
+                      {order.code}
                     </td>
-                    <td className="p-4">
-                      {r.territoryName}
-                      <small className="block text-gray-500">{r.createdByName}</small>
+                    <td className={cellClass}>
+                      <p className="poppins-medium">{order.customerName || '—'}</p>
                     </td>
-                    <td className="p-4">{dateTime(r.createdAt)}</td>
-                    <td className="p-4">{money(r.amount)}</td>
-                    <td className="p-4">
-                      <StatusBadge value={r.status} />
-                      {!r.workflowManaged && (
-                        <small className="block pt-1 text-gray-500">เอกสารเดิม</small>
+                    <td className={cellClass}>
+                      <p>{order.territoryName || '—'}</p>
+                      <p className="mt-1 text-xs text-[#718096]">{order.createdByName || '—'}</p>
+                    </td>
+                    <td className={`${cellClass} whitespace-nowrap`}>
+                      {dateTime(order.createdAt)}
+                    </td>
+                    <td className={`${cellClass} whitespace-nowrap text-right`}>
+                      {money(order.amount)}
+                    </td>
+                    <td className={cellClass}>
+                      <StatusBadge value={order.status} />
+                      {!order.workflowManaged && (
+                        <p className="mt-2 text-xs text-[#718096]">เอกสารเดิม</p>
                       )}
                     </td>
                   </tr>
                 ))}
-                {!loading && !error && !rows.length && (
-                  <tr>
-                    <td colSpan={5} className="p-10 text-center text-gray-500">
-                      <NotFoundComponent title="ไม่พบคำสั่งซื้อ" />
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </SortableTable>
-          </div>
-          <PaginationControls
-            page={Math.floor(offset / pageSize) + 1}
-            pages={Math.max(1, Math.ceil(total / pageSize))}
-            total={total}
-            count={rows.length}
-            onChange={(page) => setOffset((page - 1) * pageSize)}
-            pageSize={pageSize}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setOffset(0);
-            }}
-            disabled={loading}
-          />
-        </>
-      )}
-      {mode !== 'list' && (
-        <div className="relative min-h-48">
-          <LoadingComponent isVisible={loading || !options} variant="content" />
-          {mode === 'create' || edit ? (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                save();
-              }}
-              className="flex max-w-5xl flex-col gap-5 rounded-xl border border-gray-100 bg-white p-5"
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="เลขที่คำสั่งซื้อ">
-                  <input
-                    required
-                    className={inputClass}
-                    value={code}
-                    disabled={mode === 'detail'}
-                    onChange={(e) => {
-                      setCode(e.target.value);
-                      commandKey.current = crypto.randomUUID();
-                    }}
-                  />
-                </Field>
-                <Field label="ลูกค้า">
-                  <select
-                    required
-                    disabled={mode === 'detail'}
-                    className={inputClass}
-                    value={customerId}
-                    onChange={(e) => {
-                      setCustomer(e.target.value);
-                      commandKey.current = crypto.randomUUID();
-                    }}
-                  >
-                    <option value="">เลือกลูกค้า</option>
-                    {options?.customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} · {c.territoryName || 'ยังไม่กำหนดเขต'}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
-              <h2 className="poppins-medium">รายการสินค้า</h2>
-              <p className="text-xs text-gray-500">
-                เลือกสินค้าและจำนวน ระบบจองล็อตที่หมดอายุก่อนให้อัตโนมัติ
-                โดยใช้เฉพาะล็อตที่ผ่านเกณฑ์ขาย
-              </p>
-              {lines.map((l, index) => {
-                const product = options?.products.find((p) => p.id === l.productId);
-                return (
-                  <div
-                    className="grid items-end gap-3 rounded-lg border border-gray-100 p-3 sm:grid-cols-[1fr_120px_120px_auto]"
-                    key={index}
-                  >
-                    <Field label={`สินค้า ${index + 1}`}>
-                      <select
-                        required
-                        className={inputClass}
-                        value={l.productId}
-                        onChange={(e) => {
-                          setLines((v) =>
-                            v.map((r, i) =>
-                              i === index ? { ...r, productId: e.target.value } : r,
-                            ),
-                          );
-                          commandKey.current = crypto.randomUUID();
-                        }}
-                      >
-                        <option value="">เลือกสินค้า</option>
-                        {options?.products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} · พร้อมขาย {p.available} {p.unit}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    <Field label="จำนวน">
-                      <input
-                        required
-                        type="number"
-                        min="1"
-                        step="1"
-                        className={inputClass}
-                        value={l.quantity}
-                        onChange={(e) => {
-                          setLines((v) =>
-                            v.map((r, i) => (i === index ? { ...r, quantity: e.target.value } : r)),
-                          );
-                          commandKey.current = crypto.randomUUID();
-                        }}
-                      />
-                    </Field>
-                    <div className="py-3 text-sm">
-                      {money(Number(product?.salePrice ?? 0) * Number(l.quantity))} บาท
-                    </div>
-                    <button
-                      type="button"
-                      disabled={lines.length === 1}
-                      className={secondaryClass}
-                      onClick={() => {
-                        setLines((v) => v.filter((_, i) => i !== index));
-                        commandKey.current = crypto.randomUUID();
-                      }}
-                    >
-                      ลบแถว
-                    </button>
-                  </div>
-                );
-              })}
-              <button
-                type="button"
-                className={secondaryClass + ' self-start'}
-                onClick={() => {
-                  setLines((v) => [...v, { productId: '', quantity: '1' }]);
-                  commandKey.current = crypto.randomUUID();
-                }}
-              >
-                เพิ่มสินค้า
-              </button>
-              <Field label="หมายเหตุ">
-                <textarea
-                  className={inputClass}
-                  value={notes}
-                  onChange={(e) => {
-                    setNotes(e.target.value);
-                    commandKey.current = crypto.randomUUID();
-                  }}
-                />
-              </Field>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="poppins-semibold">ยอดขาย {money(sum)} บาท</span>
-                <div className="flex gap-2">
-                  {edit && (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      className={secondaryClass}
-                      onClick={() => {
-                        setEdit(false);
-                        setVersion((v) => v + 1);
-                      }}
-                    >
-                      ยกเลิก
-                    </button>
-                  )}
-                  <button
-                    className={buttonClass}
-                    disabled={busy || (mode === 'create' && !canCreate)}
-                  >
-                    บันทึกและจองสินค้า
-                  </button>
-                </div>
-              </div>
-            </form>
-          ) : (
-            row && (
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-xl poppins-semibold">{row.code}</h2>
-                    <p className="text-sm text-gray-500">
-                      {row.customerName} · {row.territoryName}
-                    </p>
-                  </div>
-                  <StatusBadge value={row.status} />
-                </div>
-                <dl className="grid gap-4 rounded-xl border border-gray-100 bg-white p-5 text-sm sm:grid-cols-3">
-                  {[
-                    ['ผู้สร้าง', row.createdByName],
-                    ['Manager ประจำเขต', row.managerName],
-                    ['Sales ประจำเขต', row.salesName],
-                    ['ผู้อนุมัติ', row.approvedByName],
-                    ['ผู้จัดและตัดคลัง', row.completedByName],
-                    ['สร้างเมื่อ', dateTime(row.createdAt)],
-                  ].map(([label, value]) => (
-                    <div key={label}>
-                      <dt className="text-xs text-gray-500">{label}</dt>
-                      <dd className="mt-1">{value || '-'}</dd>
-                    </div>
-                  ))}
-                </dl>
-                {row.returnReason && (
-                  <p className="rounded-lg bg-orange-50 p-3 text-sm text-orange-700">
-                    เหตุผล: {row.returnReason}
-                  </p>
-                )}
-                {!row.workflowManaged && (
-                  <p className="rounded-lg bg-blue-50 p-4 text-sm">
-                    เอกสารเดิมมีเฉพาะข้อมูลหัวเอกสาร จึงยังไม่มีรายการจองล็อตหรือการตัดคลัง
-                  </p>
-                )}
-                <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
-                  <SortableTable className="w-full min-w-[620px] text-left text-sm">
-                    <thead className="bg-blue-50">
-                      <tr>
-                        {['สินค้า', 'จำนวน', 'ราคาขายต่อหน่วย', 'ล็อตที่จัดให้', 'สถานะ'].map(
-                          (t) => (
-                            <th key={t} scope="col" className="p-4 poppins-medium">
-                              {t}
-                            </th>
-                          ),
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {row.lines?.map((l) => (
-                        <tr key={l.id} className="border-t border-gray-100">
-                          <td className="p-4">{l.productName}</td>
-                          <td className="p-4">{l.quantity}</td>
-                          <td className="p-4">{money(l.unitPrice)}</td>
-                          <td className="p-4">
-                            {l.allocations.map((a) => (
-                              <div key={a.id}>
-                                {a.lotNumber} · {a.quantity}
-                                <small className="block text-gray-500">ล็อต {a.lotId}</small>
-                              </div>
-                            ))}
-                          </td>
-                          <td className="p-4">
-                            {l.allocations.map((a) => (
-                              <div key={a.id} className="py-1">
-                                <StatusBadge value={a.status} />
-                              </div>
-                            ))}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </SortableTable>
-                </div>
-                <div className="rounded-xl border border-gray-100 bg-white p-5">
-                  <p className="poppins-semibold">ยอดขาย {money(row.amount)} บาท</p>
-                  {row.costAmount !== undefined && (
-                    <div className="mt-2 flex flex-wrap gap-5 text-sm">
-                      <span>ต้นทุนที่จ่าย {money(row.costAmount)} บาท</span>
-                      <span>ผลต่างยอดขายกับต้นทุน {money(row.grossProfit)} บาท</span>
-                    </div>
-                  )}
-                  <p className="mt-3 text-sm text-gray-500">หมายเหตุ: {row.notes || '-'}</p>
-                </div>
-                {row.workflowManaged && !['เสร็จสิ้น', 'ยกเลิก'].includes(row.status) && (
-                  <div className="flex flex-col gap-3 rounded-xl border border-gray-100 bg-white p-5">
-                    {(['MANAGER', 'ADMIN'].includes(role) ||
-                      (role === 'SALES' && row.createdById === options?.actor.id)) && (
-                      <Field label="เหตุผลส่งกลับ / ยกเลิก">
-                        <textarea
-                          className={inputClass}
-                          value={reason}
-                          onChange={(e) => setReason(e.target.value)}
-                        />
-                      </Field>
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                      {canEdit && (
-                        <button
-                          className={secondaryClass}
-                          disabled={busy}
-                          onClick={() => setEdit(true)}
-                        >
-                          แก้รายการสินค้า
-                        </button>
-                      )}
-                      {role === 'MANAGER' && ['รอตรวจ', 'ส่งกลับแก้ไข'].includes(row.status) && (
-                        <button
-                          className={buttonClass}
-                          disabled={busy}
-                          onClick={() => ask('approve')}
-                        >
-                          อนุมัติ
-                        </button>
-                      )}
-                      {['MANAGER', 'ADMIN'].includes(role) && (
-                        <button
-                          className={secondaryClass}
-                          disabled={busy || !reason.trim()}
-                          onClick={() => ask('return')}
-                        >
-                          ส่งกลับ Sales แก้ไข
-                        </button>
-                      )}
-                      {role === 'ADMIN' && row.status === 'อนุมัติ' && (
-                        <button
-                          className={buttonClass}
-                          disabled={busy}
-                          onClick={() => ask('complete')}
-                        >
-                          ยืนยันจัดของและตัดคลัง
-                        </button>
-                      )}
-                      {(['MANAGER', 'ADMIN'].includes(role) ||
-                        (role === 'SALES' && row.createdById === options?.actor.id)) && (
-                        <button
-                          className={secondaryClass + ' text-red-600'}
-                          disabled={busy || !reason.trim()}
-                          onClick={() => ask('cancel')}
-                        >
-                          ยกเลิก Order และคืนจอง
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      สร้างเอกสารแล้วจองทันที · ตัดของเมื่อ Admin ยืนยันเสร็จสิ้น
-                    </p>
-                  </div>
-                )}
-              </div>
-            )
-          )}
+            </tbody>
+          </SortableTable>
         </div>
-      )}
+        <LoadingComponent
+          isVisible={loading && !error}
+          variant="content"
+          label="กำลังโหลดคำสั่งซื้อ..."
+        />
+        {!loading && !error && !rows.length && (
+          <NotFoundComponent
+            title="ไม่พบคำสั่งซื้อ"
+            onRefresh={() => setRefresh((value) => value + 1)}
+            onBack={resetFilters}
+            backLabel="แสดงทั้งหมด"
+          />
+        )}
+        <PaginationControls
+          page={Math.floor(offset / pageSize) + 1}
+          pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
+          total={result?.pagination.total ?? 0}
+          count={rows.length}
+          pageSize={pageSize}
+          onChange={(page) => setOffset((page - 1) * pageSize)}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setOffset(0);
+          }}
+          disabled={loading}
+        />
+      </div>
     </section>
   );
 }

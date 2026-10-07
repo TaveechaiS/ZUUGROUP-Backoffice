@@ -15,7 +15,7 @@ export default function SalesDocumentSecondarySidebar({
   const pathname = usePathname();
   const quote = parentHref === '/quotes';
   const creating = pathname === `${parentHref}/create`;
-  const canCreate = quote ? roleId === 'ADMIN' : ['ADMIN', 'SALES'].includes(roleId);
+  const canCreate = ['ADMIN', 'SALES'].includes(roleId);
   const pages = [
     { href: parentHref, label: quote ? 'รายการใบเสนอราคา' : 'รายการคำสั่งซื้อ' },
     ...ADMIN_PAGES.filter((page) => page.parentHref === parentHref && canCreate),

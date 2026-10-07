@@ -224,14 +224,17 @@ export function AdminShell({
                   currentPath === '/customers/list/create' ||
                   (/^\/customers\/[^/]+$/.test(currentPath) &&
                     !['groups', 'documents', 'dashboard'].includes(currentPath.split('/')[2])) ||
-                  (/^\/customers\/requests\/[^/]+$/.test(currentPath) && account?.roleId === 'ADMIN') ||
-                (/^\/customers\/[^/]+\/edit$/.test(currentPath) &&
+                  (/^\/customers\/requests\/[^/]+$/.test(currentPath) &&
+                    account?.roleId === 'ADMIN') ||
+                  (/^\/customers\/[^/]+\/edit$/.test(currentPath) &&
                     !['territories', 'groups', 'documents', 'dashboard', 'list'].includes(
                       currentPath.split('/')[2],
                     ) &&
                     account?.roleId === 'ADMIN'))) ||
               (userSection && account?.roleId === 'ADMIN') ||
               showProductDetail ||
+              orderSection ||
+              quoteSection ||
               (currentPath === '/products/create' && account?.roleId === 'ADMIN') ||
               ((currentPath === '/settings/product-options' ||
                 currentPath === '/settings/customer-options') &&

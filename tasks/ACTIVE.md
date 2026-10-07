@@ -1,5 +1,17 @@
 # งานที่กำลังทำ
 
+## TASK-275 — ใบเสนอราคาจริง + ส่วนลดคำสั่งซื้อ — 2026-10-07
+
+- IMPLEMENTED / WAITING_FOR_UAT: DB apply แล้ว, /api/quotes + หน้า /quotes, ส่วนลดในคำสั่งซื้อ, แปลง QT→SO, test-quotes 11 ผ่าน, Postman local. แก้บั๊กเลขเอกสาร substring regex. ค้างถาม: SO ที่แปลงแล้วข้าม Manager ไหม. ดู tasks/TASK-275-quotations.md.
+
+## TASK-274 — หน้าคำสั่งซื้อ design ใหม่ (หน้าตาอย่างเดียว) — 2026-10-07
+
+- IMPLEMENTED / WAITING_FOR_UAT: /orders รายการ/สร้าง/รายละเอียด ใช้แบบหน้าลูกค้า-สินค้า, API/สิทธิ์เดิม, เปิดเนื้อหาใน admin-shell. test-linked-operations ติด fixture T092 ค้าง (รอเจ้าของ). ดู tasks/TASK-274-orders-new-design.md.
+
+## TASK-273 — คำสั่งซื้อแบบใหม่ หน้า Admin (preview) — 2026-10-07
+
+- SUPERSEDED_BY_TASK-274: เจ้าของให้ปรับหน้า /orders จริงแทน preview; ลบ /orders/preview แล้ว. ข้อตกลงธุรกิจใน Specs TASK-273 ยังใช้สำหรับรอบ DB.
+
 ## TASK-272 — คำขอเพิ่มลูกค้า หน้า Admin (preview) — 2026-10-07
 
 - PARKED — รอทำ Sales/Manager (เจ้าของ OK 7 ต.ค. 2569): หน้า preview เสร็จ ไม่เชื่อมข้อมูล. ค้าง: ตาราง customer_requests, /api/customer-requests, ฟอร์ม+คำขอของฉัน (Sales/Manager), อนุมัติ→เปิดฟอร์มเพิ่มลูกค้า prefill, เหตุผลส่งกลับ/ไม่อนุมัติ, แจ้งเตือน. ดู tasks/TASK-272-customer-requests-preview.md.

@@ -102,6 +102,7 @@ export type OrderLine = {
   productName: string;
   quantity: number;
   unitPrice: string;
+  discount: string;
   allocations: {
     id: string;
     lotId: string;
@@ -131,6 +132,8 @@ export type OrderRow = {
   createdAt: string;
   updatedAt: string;
   workflowManaged: boolean;
+  quotationId: string | null;
+  quotationCode: string | null;
   lines?: OrderLine[];
   costAmount?: string;
   grossProfit?: string;

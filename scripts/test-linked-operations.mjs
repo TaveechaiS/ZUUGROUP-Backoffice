@@ -654,6 +654,7 @@ try {
     await tx.auditEvent.deleteMany({ where: { actorUserId: uid } });
     await tx.product.deleteMany({ where: { id: pid } });
     await tx.customer.deleteMany({ where: { id: cid } });
+    await tx.salesTerritorySales.deleteMany({ where: { territoryId: { in: territories } } });
     await tx.salesTerritory.deleteMany({ where: { id: { in: territories } } });
     await tx.userRole.deleteMany({ where: { userId: { in: [managerId, salesId] } } });
     await tx.user.deleteMany({ where: { id: { in: [managerId, salesId] } } });

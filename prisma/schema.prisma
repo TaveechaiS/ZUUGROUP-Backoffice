@@ -172,6 +172,7 @@ model SalesOrderLine {
  productId String @map("product_id") @db.Uuid
  quantity Int
  unitPrice Decimal @map("unit_price") @db.Decimal(12,2)
+ discount Decimal @default(0) @db.Decimal(12,2)
  productName String @map("product_name")
  order SalesOrder @relation(fields:[orderId],references:[id],onDelete:Restrict,onUpdate:NoAction)
  product Product @relation(fields:[productId],references:[id],onDelete:Restrict,onUpdate:NoAction)
@@ -242,6 +243,8 @@ model User {
   operationCommands OperationCommand[]
   createdOrders SalesOrder[] @relation("OrderCreator")
   approvedOrders SalesOrder[] @relation("OrderApprover")
+  createdQuotations Quotation[] @relation("QuoteCreator")
+  approvedQuotations Quotation[] @relation("QuoteApprover")
   completedOrders SalesOrder[] @relation("OrderCompleter")
   id           String        @id @default(uuid()) @db.Uuid
   employeeCode String        @unique @map("employee_code")
@@ -389,6 +392,7 @@ model Product {
   codeFormat ProductOption? @relation("ProductCodeFormat",fields:[codeFormatId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   lots ProductLot[]
   orderLines SalesOrderLine[]
+  quotationLines QuotationLine[]
   id                 String          @id @default(uuid()) @db.Uuid
   code               String          @unique
   sequence           Int
@@ -489,6 +493,7 @@ model SalesTerritory {
   manager User? @relation("TerritoryManager",fields:[managerId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   sales User? @relation("TerritorySales",fields:[salesId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   orders SalesOrder[] @relation("OrderTerritory")
+  quotations Quotation[] @relation("QuoteTerritory")
   managerId String? @unique @map("manager_id") @db.Uuid
   salesId String? @unique @map("sales_id") @db.Uuid
   customerRecords Customer[]
@@ -630,6 +635,17 @@ model PurchaseOrder {
 }
 
 model Quotation {
+  workflowManaged Boolean @default(false) @map("workflow_managed")
+  validUntil DateTime? @map("valid_until") @db.Date
+  territoryId String? @map("territory_id") @db.Uuid
+  createdById String? @map("created_by_id") @db.Uuid
+  approvedById String? @map("approved_by_id") @db.Uuid
+  returnReason String @default("") @map("return_reason")
+  territory SalesTerritory? @relation("QuoteTerritory",fields:[territoryId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  creator User? @relation("QuoteCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  approver User? @relation("QuoteApprover",fields:[approvedById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  lines QuotationLine[]
+  order SalesOrder?
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
@@ -657,6 +673,8 @@ model SalesOrder {
   completer User? @relation("OrderCompleter",fields:[completedById],references:[id],onDelete:Restrict,onUpdate:NoAction)
   territory SalesTerritory? @relation("OrderTerritory",fields:[territoryId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   lines SalesOrderLine[]
+  quotationId String? @unique @map("quotation_id") @db.Uuid
+  quotation Quotation? @relation(fields:[quotationId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   workflowManaged Boolean @default(false) @map("workflow_managed")
   createdById String? @map("created_by_id") @db.Uuid
   approvedById String? @map("approved_by_id") @db.Uuid
@@ -775,4 +793,19 @@ model RecordImportMap {
  recordId String @map("record_id") @db.Uuid
  @@index([entity,recordId])
  @@map("record_import_map")
+}
+
+model QuotationLine {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quotationId String @map("quotation_id") @db.Uuid
+  productId String @map("product_id") @db.Uuid
+  productName String @map("product_name")
+  quantity Int
+  unitPrice Decimal @map("unit_price") @db.Decimal(12,2)
+  discount Decimal @default(0) @db.Decimal(12,2)
+  quotation Quotation @relation(fields:[quotationId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  product Product @relation(fields:[productId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  @@unique([quotationId,productId])
+  @@index([productId],map:"quotation_lines_product")
+  @@map("quotation_lines")
 }
