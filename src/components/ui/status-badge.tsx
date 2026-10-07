@@ -20,6 +20,7 @@ const statusTones: Record<string, StatusTone> = {
   ไม่ผ่าน: 'danger',
   // Customer list badge (TASK-271).
   ใบอนุญาตหมดอายุ: 'danger',
+  ต้องตรวจสอบ: 'warning',
   ใบอนุญาตใกล้หมดอายุ: 'warning',
   เลิกค้าขาย: 'neutral',
   ยกเลิก: 'danger',

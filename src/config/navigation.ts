@@ -53,6 +53,15 @@ export const ADMIN_PAGES: AdminPage[] = [
     parentHref: '/customers',
   },
   {
+    href: '/customers/requests',
+    label: 'คำขอเพิ่มลูกค้า',
+    section: 'จัดการข้อมูล',
+    icon: 'customers',
+    description: 'คำขอเพิ่มลูกค้าจาก Sales / Manager ให้ Admin ตรวจ',
+    secondaryOnly: true,
+    parentHref: '/customers',
+  },
+  {
     href: '/customers/groups',
     label: 'กลุ่มลูกค้า',
     section: 'จัดการข้อมูล',

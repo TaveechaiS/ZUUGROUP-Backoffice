@@ -8,12 +8,15 @@ import SecondarySidebarFrame from '@/components/layout/secondary-sidebar-frame';
 export default function CustomerSecondarySidebar({ roleId }: { roleId: string }) {
   const pathname = usePathname();
   const creating = pathname === '/customers/create' || pathname === '/customers/list/create';
+  const requests =
+    pathname === '/customers/requests' || pathname.startsWith('/customers/requests/');
   const listing =
     pathname === '/customers' ||
     pathname === '/customers/list' ||
     (/^\/customers\/[^/]+$/.test(pathname) &&
       ![
         '/customers/create',
+        '/customers/requests',
         '/customers/groups',
         '/customers/territories',
         '/customers/documents',
@@ -21,7 +24,8 @@ export default function CustomerSecondarySidebar({ roleId }: { roleId: string })
       ].includes(pathname));
   const pages = ADMIN_PAGES.filter(
     (page) =>
-      page.parentHref === '/customers' && (page.href !== '/customers/create' || roleId === 'ADMIN'),
+      page.parentHref === '/customers' &&
+      (!['/customers/create', '/customers/requests'].includes(page.href) || roleId === 'ADMIN'),
   );
 
   return (
@@ -31,7 +35,12 @@ export default function CustomerSecondarySidebar({ roleId }: { roleId: string })
         className="flex gap-1 overflow-x-auto p-2 md:flex-col md:gap-2 md:px-0 md:py-5"
       >
         {pages.map((page) => {
-          const active = page.href === '/customers/create' ? creating : listing && !creating;
+          const active =
+            page.href === '/customers/create'
+              ? creating
+              : page.href === '/customers/requests'
+                ? requests
+                : listing && !creating && !requests;
           return (
             <Link
               key={page.href}

@@ -28,14 +28,15 @@ const ALL = '';
 export default function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string | string[] }>;
+  searchParams: Promise<{ tab?: string | string[]; search?: string | string[] }>;
 }) {
   const router = useRouter();
+  const query = use(searchParams);
   const [tab, setTab] = useState<'active' | 'deleted'>(
-    use(searchParams).tab === 'deleted' ? 'deleted' : 'active',
+    query.tab === 'deleted' ? 'deleted' : 'active',
   );
   const [status, setStatus] = useState(ALL);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(typeof query.search === 'string' ? query.search : '');
   const [territoryId, setTerritoryId] = useState(ALL);
   const [province, setProvince] = useState(ALL);
   const [offset, setOffset] = useState(0);

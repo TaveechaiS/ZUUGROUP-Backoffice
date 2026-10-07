@@ -1,5 +1,9 @@
 # งานที่กำลังทำ
 
+## TASK-272 — คำขอเพิ่มลูกค้า หน้า Admin (preview) — 2026-10-07
+
+- PARKED — รอทำ Sales/Manager (เจ้าของ OK 7 ต.ค. 2569): หน้า preview เสร็จ ไม่เชื่อมข้อมูล. ค้าง: ตาราง customer_requests, /api/customer-requests, ฟอร์ม+คำขอของฉัน (Sales/Manager), อนุมัติ→เปิดฟอร์มเพิ่มลูกค้า prefill, เหตุผลส่งกลับ/ไม่อนุมัติ, แจ้งเตือน. ดู tasks/TASK-272-customer-requests-preview.md.
+
 ## TASK-271 — สถานะลูกค้าป้ายเดียว + ตัวกรองเดียว — 2026-10-07
 
 - IMPLEMENTED / WAITING_FOR_UAT: ดู tasks/TASK-271-single-status.md.

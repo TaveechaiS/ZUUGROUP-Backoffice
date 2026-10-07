@@ -224,7 +224,8 @@ export function AdminShell({
                   currentPath === '/customers/list/create' ||
                   (/^\/customers\/[^/]+$/.test(currentPath) &&
                     !['groups', 'documents', 'dashboard'].includes(currentPath.split('/')[2])) ||
-                  (/^\/customers\/[^/]+\/edit$/.test(currentPath) &&
+                  (/^\/customers\/requests\/[^/]+$/.test(currentPath) && account?.roleId === 'ADMIN') ||
+                (/^\/customers\/[^/]+\/edit$/.test(currentPath) &&
                     !['territories', 'groups', 'documents', 'dashboard', 'list'].includes(
                       currentPath.split('/')[2],
                     ) &&
