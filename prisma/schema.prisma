@@ -99,6 +99,10 @@ model StockReceipt {
  code String @unique
  source String @default("")
  notes String @default("")
+ supplierId String? @map("supplier_id") @db.Uuid
+ purchaseOrderLineId String? @map("purchase_order_line_id") @db.Uuid
+ supplier Supplier? @relation(fields:[supplierId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+ purchaseOrderLine PurchaseOrderLine? @relation(fields:[purchaseOrderLineId],references:[id],onDelete:Restrict,onUpdate:NoAction)
  actorUserId String @map("actor_user_id") @db.Uuid
  actor User @relation(fields:[actorUserId],references:[id],onDelete:Restrict,onUpdate:NoAction)
  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -244,6 +248,8 @@ model User {
   createdOrders SalesOrder[] @relation("OrderCreator")
   approvedOrders SalesOrder[] @relation("OrderApprover")
   createdQuotations Quotation[] @relation("QuoteCreator")
+  createdSuppliers Supplier[] @relation("SupplierCreator")
+  createdPurchaseOrders PurchaseOrder[] @relation("PurchaseOrderCreator")
   approvedQuotations Quotation[] @relation("QuoteApprover")
   completedOrders SalesOrder[] @relation("OrderCompleter")
   id           String        @id @default(uuid()) @db.Uuid
@@ -393,6 +399,7 @@ model Product {
   lots ProductLot[]
   orderLines SalesOrderLine[]
   quotationLines QuotationLine[]
+  purchaseOrderLines PurchaseOrderLine[]
   id                 String          @id @default(uuid()) @db.Uuid
   code               String          @unique
   sequence           Int
@@ -573,10 +580,17 @@ model CustomerFollowUp {
 
 model Supplier {
   purchaseOrderRecords PurchaseOrder[]
+  receipts StockReceipt[]
+  taxId String @default("") @map("tax_id")
+  address String @default("")
+  phone String @default("")
+  email String @default("")
+  createdById String? @map("created_by_id") @db.Uuid
+  creator User? @relation("SupplierCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
-  status String @default("ใช้งานอยู่")
+  status String @default("ใช้งาน")
   category String @default("")
   location String @default("")
   contact String @default("")
@@ -613,10 +627,16 @@ model Expense {
 }
 
 model PurchaseOrder {
+  orderDate DateTime? @map("order_date") @db.Date
+  expectedOn DateTime? @map("expected_on") @db.Date
+  createdById String? @map("created_by_id") @db.Uuid
+  closeReason String @default("") @map("close_reason")
+  creator User? @relation("PurchaseOrderCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  lines PurchaseOrderLine[]
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
-  status String @default("ใช้งานอยู่")
+  status String @default("รอรับสินค้า")
   supplierId String? @map("supplier_id") @db.Uuid
   supplier Supplier? @relation(fields: [supplierId], references: [id], onDelete: Restrict)
   @@index([supplierId])
@@ -808,4 +828,20 @@ model QuotationLine {
   @@unique([quotationId,productId])
   @@index([productId],map:"quotation_lines_product")
   @@map("quotation_lines")
+}
+
+model PurchaseOrderLine {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  purchaseOrderId String @map("purchase_order_id") @db.Uuid
+  productId String @map("product_id") @db.Uuid
+  productName String @map("product_name")
+  quantity Int
+  unitCost Decimal @map("unit_cost") @db.Decimal(14,2)
+  discount Decimal @default(0) @db.Decimal(14,2)
+  purchaseOrder PurchaseOrder @relation(fields:[purchaseOrderId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  product Product @relation(fields:[productId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  receipts StockReceipt[]
+  @@unique([purchaseOrderId,productId])
+  @@index([productId],map:"purchase_order_lines_product")
+  @@map("purchase_order_lines")
 }

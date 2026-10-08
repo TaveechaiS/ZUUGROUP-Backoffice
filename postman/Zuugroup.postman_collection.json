@@ -230,6 +230,21 @@
       "key": "documentUpdatedAt",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "supplierId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "purchaseOrderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "purchaseOrderLineId",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -7837,6 +7852,1386 @@
                 }
               ],
               "body": "{\n  \"data\": {\n    \"id\": \"33333333-3333-4333-8333-333333333333\",\n    \"status\": \"ยกเลิก\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d8321611-4257-4734-ba4c-66905fa933b4",
+      "name": "ผู้ขาย (Suppliers)",
+      "description": "TASK-276. รหัส SUP-0001 ระบบออกเอง. paymentTerms: เงินสด|30 วัน|60 วัน|90 วัน. status: ใช้งาน|ระงับ (ระงับแล้วเลือกในใบสั่งซื้อ/รับเข้าใหม่ไม่ได้). อ่านได้ทุก Role ที่ login; เขียนเฉพาะ Admin. ลบแบบกู้คืนได้ ต้องมี reason. ทุกคำสั่งเขียนต้องมี idempotencyKey ใหม่.",
+      "item": [
+        {
+          "id": "37ee0e3b-1e9d-421e-99cf-b066a708019f",
+          "name": "GET รายการผู้ขาย",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/suppliers?limit={{limit}}&offset={{offset}}&search=&status=",
+            "description": "status: ใช้งาน|ระงับ|ลบแล้ว. search: รหัส/ชื่อ/เลขภาษี/ผู้ติดต่อ/โทร. sortBy: code|name|contact|paymentTerms|status.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "  pm.environment.set(\"supplierId\", data.data[0]?.id ?? \"\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/suppliers?limit={{limit}}&offset={{offset}}&search=&status=",
+                "description": "status: ใช้งาน|ระงับ|ลบแล้ว. search: รหัส/ชื่อ/เลขภาษี/ผู้ติดต่อ/โทร. sortBy: code|name|contact|paymentTerms|status.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"66666666-6666-4666-8666-666666666666\",\n      \"code\": \"SUP-0001\",\n      \"name\": \"ผู้ขายตัวอย่าง\",\n      \"status\": \"ใช้งาน\",\n      \"taxId\": \"0105551234567\",\n      \"paymentTerms\": \"30 วัน\",\n      \"deletedAt\": null,\n      \"purchaseCount\": 1,\n      \"openPurchaseCount\": 1\n    }\n  ],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 1,\n    \"hasMore\": false\n  },\n  \"actor\": {\n    \"id\": \"55555555-5555-4555-8555-555555555555\",\n    \"roleId\": \"ADMIN\",\n    \"name\": \"Admin\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "54516320-a292-4ef1-8c9c-7328f6c93a7c",
+          "name": "GET ตัวเลือกผู้ขายที่ใช้งาน",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/suppliers?view=options",
+            "description": "ผู้ขายสถานะใช้งานที่ไม่ถูกลบ สำหรับฟอร์มใบสั่งซื้อ/รับเข้า.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/suppliers?view=options",
+                "description": "ผู้ขายสถานะใช้งานที่ไม่ถูกลบ สำหรับฟอร์มใบสั่งซื้อ/รับเข้า.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"66666666-6666-4666-8666-666666666666\",\n      \"code\": \"SUP-0001\",\n      \"name\": \"ผู้ขายตัวอย่าง\",\n      \"paymentTerms\": \"30 วัน\"\n    }\n  ],\n  \"actor\": {\n    \"id\": \"55555555-5555-4555-8555-555555555555\",\n    \"roleId\": \"ADMIN\",\n    \"name\": \"Admin\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "c8b3f38c-9c77-470e-b32a-118d03c12956",
+          "name": "GET รายละเอียดผู้ขาย",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/suppliers/{{supplierId}}",
+            "description": "รับ id หรือรหัส SUP. มีจำนวนใบสั่งซื้อทั้งหมด/ค้างรับ.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "  pm.environment.set(\"documentUpdatedAt\", data.data.updatedAt);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/suppliers/{{supplierId}}",
+                "description": "รับ id หรือรหัส SUP. มีจำนวนใบสั่งซื้อทั้งหมด/ค้างรับ.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"66666666-6666-4666-8666-666666666666\",\n    \"code\": \"SUP-0001\",\n    \"name\": \"ผู้ขายตัวอย่าง\",\n    \"status\": \"ใช้งาน\",\n    \"taxId\": \"0105551234567\",\n    \"paymentTerms\": \"30 วัน\",\n    \"deletedAt\": null,\n    \"purchaseCount\": 1,\n    \"openPurchaseCount\": 1\n  },\n  \"actor\": {\n    \"id\": \"55555555-5555-4555-8555-555555555555\",\n    \"roleId\": \"ADMIN\",\n    \"name\": \"Admin\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "08b2a1f8-23b0-4dc1-b406-67f7dd2a50b0",
+          "name": "POST เพิ่มผู้ขาย",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/suppliers",
+            "description": "Admin. name บังคับ; taxId ถ้ามีต้องเป็นตัวเลข 13 หลัก; email ต้องถูกรูปแบบ.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"name\": \"ผู้ขายตัวอย่าง\",\n  \"taxId\": \"0105551234567\",\n  \"address\": \"\",\n  \"contact\": \"\",\n  \"phone\": \"\",\n  \"email\": \"\",\n  \"paymentTerms\": \"30 วัน\",\n  \"status\": \"ใช้งาน\",\n  \"notes\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "  pm.environment.set(\"supplierId\", data.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/suppliers",
+                "description": "Admin. name บังคับ; taxId ถ้ามีต้องเป็นตัวเลข 13 หลัก; email ต้องถูกรูปแบบ.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"name\": \"ผู้ขายตัวอย่าง\",\n  \"taxId\": \"0105551234567\",\n  \"address\": \"\",\n  \"contact\": \"\",\n  \"phone\": \"\",\n  \"email\": \"\",\n  \"paymentTerms\": \"30 วัน\",\n  \"status\": \"ใช้งาน\",\n  \"notes\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"66666666-6666-4666-8666-666666666666\",\n    \"code\": \"SUP-0001\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "6ba3e1f3-d644-4f14-ab47-8dfd4333c276",
+          "name": "PATCH แก้ไขผู้ขาย",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/suppliers/{{supplierId}}",
+            "description": "Admin. ผู้ขายที่ถูกลบต้องกู้คืนก่อน.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"expectedUpdatedAt\": \"{{documentUpdatedAt}}\",\n  \"action\": \"edit\",\n  \"name\": \"ผู้ขายตัวอย่าง\",\n  \"taxId\": \"0105551234567\",\n  \"address\": \"\",\n  \"contact\": \"\",\n  \"phone\": \"\",\n  \"email\": \"\",\n  \"paymentTerms\": \"30 วัน\",\n  \"status\": \"ใช้งาน\",\n  \"notes\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/suppliers/{{supplierId}}",
+                "description": "Admin. ผู้ขายที่ถูกลบต้องกู้คืนก่อน.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"expectedUpdatedAt\": \"{{documentUpdatedAt}}\",\n  \"action\": \"edit\",\n  \"name\": \"ผู้ขายตัวอย่าง\",\n  \"taxId\": \"0105551234567\",\n  \"address\": \"\",\n  \"contact\": \"\",\n  \"phone\": \"\",\n  \"email\": \"\",\n  \"paymentTerms\": \"30 วัน\",\n  \"status\": \"ใช้งาน\",\n  \"notes\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"66666666-6666-4666-8666-666666666666\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "57472dfa-f28b-4321-a4a8-451322fa5103",
+          "name": "PATCH กู้คืนผู้ขาย",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/suppliers/{{supplierId}}",
+            "description": "Admin.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"expectedUpdatedAt\": \"{{documentUpdatedAt}}\",\n  \"action\": \"restore\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/suppliers/{{supplierId}}",
+                "description": "Admin.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"expectedUpdatedAt\": \"{{documentUpdatedAt}}\",\n  \"action\": \"restore\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"66666666-6666-4666-8666-666666666666\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "75fd56dd-2c8d-498c-8d6f-7d1ff2de3647",
+          "name": "DELETE ลบผู้ขาย",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/suppliers/{{supplierId}}",
+            "description": "เท่ากับ action=delete (soft delete) ต้องมี reason. ใบสั่งซื้อเดิมยังอยู่.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"reason\": \"เหตุผล\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/suppliers/{{supplierId}}",
+                "description": "เท่ากับ action=delete (soft delete) ต้องมี reason. ใบสั่งซื้อเดิมยังอยู่.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"reason\": \"เหตุผล\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"66666666-6666-4666-8666-666666666666\",\n    \"reason\": \"เหตุผล\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1e7c7ef8-b0d4-4a02-892e-7954107731f5",
+      "name": "ใบสั่งซื้อ (Purchase Orders)",
+      "description": "TASK-276. เลข PO-ปีพ.ศ.-0001 ระบบออกเอง. Admin สร้างมีผลทันที (ไม่มีขั้นอนุมัติ). ต้นทุนต่อหน่วยรวม VAT + ส่วนลดบาทต่อรายการ. สถานะ รอรับสินค้า → รับบางส่วน → รับครบ ตามรับเข้าจริง (POST /api/inventory action=receive + purchaseOrderLineId); รับเกินจำนวนสั่งไม่ได้. แก้ได้ก่อนรับครั้งแรก. ปิดแล้ว = ปิดใบที่รับบางส่วน, ยกเลิก = ใบที่ยังไม่รับ; ทั้งสองต้องมี reason.",
+      "item": [
+        {
+          "id": "59c758e5-99b0-4982-895d-6b9370233533",
+          "name": "GET รายการใบสั่งซื้อ",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/purchases?limit={{limit}}&offset={{offset}}&search=&status=&supplierId=",
+            "description": "status: รอรับสินค้า|รับบางส่วน|รับครบ|ปิดแล้ว|ยกเลิก. sortBy: code|supplierName|orderDate|expectedOn|amount|status.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "  pm.environment.set(\"purchaseOrderId\", data.data[0]?.id ?? \"\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/purchases?limit={{limit}}&offset={{offset}}&search=&status=&supplierId=",
+                "description": "status: รอรับสินค้า|รับบางส่วน|รับครบ|ปิดแล้ว|ยกเลิก. sortBy: code|supplierName|orderDate|expectedOn|amount|status.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"77777777-7777-4777-8777-777777777777\",\n      \"code\": \"PO-2569-0001\",\n      \"status\": \"รอรับสินค้า\",\n      \"supplierName\": \"ผู้ขายตัวอย่าง\",\n      \"orderDate\": \"2026-10-08\",\n      \"expectedOn\": \"2026-10-15\",\n      \"amount\": \"480.00\",\n      \"ordered\": 10,\n      \"received\": 0\n    }\n  ],\n  \"pagination\": {\n    \"offset\": 0,\n    \"limit\": 10,\n    \"total\": 1,\n    \"hasMore\": false\n  },\n  \"actor\": {\n    \"id\": \"55555555-5555-4555-8555-555555555555\",\n    \"roleId\": \"ADMIN\",\n    \"name\": \"Admin\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "4684016c-fb68-407e-b400-b3b375f93714",
+          "name": "GET รายการค้างรับ (สำหรับรับเข้า)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/purchases?view=open-lines",
+            "description": "บรรทัดของใบที่ยังเปิดและค้างรับ > 0. ใช้ id เป็น purchaseOrderLineId ตอนรับเข้า.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "  pm.environment.set(\"purchaseOrderLineId\", data.data[0]?.id ?? \"\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/purchases?view=open-lines",
+                "description": "บรรทัดของใบที่ยังเปิดและค้างรับ > 0. ใช้ id เป็น purchaseOrderLineId ตอนรับเข้า.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"88888888-8888-4888-8888-888888888888\",\n      \"purchaseOrderCode\": \"PO-2569-0001\",\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 10,\n      \"received\": 0,\n      \"remaining\": 10\n    }\n  ],\n  \"actor\": {\n    \"id\": \"55555555-5555-4555-8555-555555555555\",\n    \"roleId\": \"ADMIN\",\n    \"name\": \"Admin\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "3641fe86-5386-4248-a4b6-7931b2522ac5",
+          "name": "GET รายละเอียดใบสั่งซื้อ",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/purchases/{{purchaseOrderId}}",
+            "description": "รับ id หรือเลขที่ PO. มี lines (สั่ง/รับแล้ว/ค้างรับ) และ receipts.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "  pm.environment.set(\"documentUpdatedAt\", data.data.updatedAt);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/purchases/{{purchaseOrderId}}",
+                "description": "รับ id หรือเลขที่ PO. มี lines (สั่ง/รับแล้ว/ค้างรับ) และ receipts.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"77777777-7777-4777-8777-777777777777\",\n    \"code\": \"PO-2569-0001\",\n    \"status\": \"รอรับสินค้า\",\n    \"supplierName\": \"ผู้ขายตัวอย่าง\",\n    \"orderDate\": \"2026-10-08\",\n    \"expectedOn\": \"2026-10-15\",\n    \"amount\": \"480.00\",\n    \"ordered\": 10,\n    \"received\": 0,\n    \"lines\": [],\n    \"receipts\": []\n  },\n  \"actor\": {\n    \"id\": \"55555555-5555-4555-8555-555555555555\",\n    \"roleId\": \"ADMIN\",\n    \"name\": \"Admin\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "9e17992a-29e8-48d0-a1bd-5297cdfdb781",
+          "name": "POST สร้างใบสั่งซื้อ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/purchases",
+            "description": "Admin. supplierId ต้องใช้งานอยู่. orderDate ไม่ส่ง = วันนี้ และห้ามเกินวันนี้; expectedOn ไม่บังคับ ห้ามก่อน orderDate.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"supplierId\": \"{{supplierId}}\",\n  \"orderDate\": \"\",\n  \"expectedOn\": \"\",\n  \"notes\": \"\",\n  \"lines\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 10,\n      \"unitCost\": \"50.00\",\n      \"discount\": \"20.00\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "  pm.environment.set(\"purchaseOrderId\", data.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/purchases",
+                "description": "Admin. supplierId ต้องใช้งานอยู่. orderDate ไม่ส่ง = วันนี้ และห้ามเกินวันนี้; expectedOn ไม่บังคับ ห้ามก่อน orderDate.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"supplierId\": \"{{supplierId}}\",\n  \"orderDate\": \"\",\n  \"expectedOn\": \"\",\n  \"notes\": \"\",\n  \"lines\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 10,\n      \"unitCost\": \"50.00\",\n      \"discount\": \"20.00\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"77777777-7777-4777-8777-777777777777\",\n    \"code\": \"PO-2569-0001\",\n    \"status\": \"รอรับสินค้า\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "92344145-4b25-49de-9327-5cea4cd059f9",
+          "name": "PATCH แก้ไขใบสั่งซื้อ",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/purchases/{{purchaseOrderId}}",
+            "description": "Admin. ได้เฉพาะก่อนรับสินค้าครั้งแรก มิฉะนั้น 409.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"expectedUpdatedAt\": \"{{documentUpdatedAt}}\",\n  \"action\": \"edit\",\n  \"supplierId\": \"{{supplierId}}\",\n  \"notes\": \"\",\n  \"lines\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 10,\n      \"unitCost\": \"50.00\",\n      \"discount\": \"20.00\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/purchases/{{purchaseOrderId}}",
+                "description": "Admin. ได้เฉพาะก่อนรับสินค้าครั้งแรก มิฉะนั้น 409.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"expectedUpdatedAt\": \"{{documentUpdatedAt}}\",\n  \"action\": \"edit\",\n  \"supplierId\": \"{{supplierId}}\",\n  \"notes\": \"\",\n  \"lines\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 10,\n      \"unitCost\": \"50.00\",\n      \"discount\": \"20.00\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"77777777-7777-4777-8777-777777777777\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "fcd68532-3be7-4bc1-8431-c17c7cb95845",
+          "name": "PATCH ปิดใบสั่งซื้อ (ไม่รับส่วนที่เหลือ)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/purchases/{{purchaseOrderId}}",
+            "description": "Admin. ต้องรับสินค้าแล้วบางส่วน; ยังไม่รับเลยใช้ยกเลิก.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"expectedUpdatedAt\": \"{{documentUpdatedAt}}\",\n  \"action\": \"close\",\n  \"reason\": \"เหตุผล\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/purchases/{{purchaseOrderId}}",
+                "description": "Admin. ต้องรับสินค้าแล้วบางส่วน; ยังไม่รับเลยใช้ยกเลิก.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"expectedUpdatedAt\": \"{{documentUpdatedAt}}\",\n  \"action\": \"close\",\n  \"reason\": \"เหตุผล\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"77777777-7777-4777-8777-777777777777\",\n    \"status\": \"ปิดแล้ว\",\n    \"reason\": \"เหตุผล\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "ca08781a-dc1c-4c15-9507-2595d207ed0b",
+          "name": "DELETE ยกเลิกใบสั่งซื้อ",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/purchases/{{purchaseOrderId}}",
+            "description": "เท่ากับ action=cancel ต้องมี reason. ได้เฉพาะใบที่ยังไม่รับสินค้า.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"reason\": \"เหตุผล\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/purchases/{{purchaseOrderId}}",
+                "description": "เท่ากับ action=cancel ต้องมี reason. ได้เฉพาะใบที่ยังไม่รับสินค้า.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"reason\": \"เหตุผล\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"77777777-7777-4777-8777-777777777777\",\n    \"status\": \"ยกเลิก\",\n    \"reason\": \"เหตุผล\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "id": "3d76b41b-0885-4ff1-a0a7-16da282d9401",
+          "name": "POST รับเข้าจากใบสั่งซื้อ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/inventory",
+            "description": "Admin. action=receive เดิม + purchaseOrderLineId (ไม่บังคับ) หรือ supplierId (ไม่บังคับ). สินค้าต้องตรงบรรทัด, จำนวนไม่เกินค้างรับ (409). code = nextReceiptCode จาก GET /api/inventory?view=options&scope=receive.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"action\": \"receive\",\n  \"code\": \"{{receiptCode}}\",\n  \"purchaseOrderLineId\": \"{{purchaseOrderLineId}}\",\n  \"notes\": \"\",\n  \"lots\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"warehouseId\": \"{{warehouseId}}\",\n      \"quantity\": 4,\n      \"totalCost\": \"192.00\",\n      \"manufacturedOn\": \"2026-01-01\",\n      \"expiresOn\": \"2029-01-01\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201 && pm.response.headers.get(\"Content-Type\")?.includes(\"json\")) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.pagination) pm.test(\"Pagination is bounded\", () => { pm.expect(data.data).to.be.an(\"array\"); pm.expect(data.data.length).to.be.at.most(data.pagination.limit); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "ตัวอย่างสำเร็จ",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/inventory",
+                "description": "Admin. action=receive เดิม + purchaseOrderLineId (ไม่บังคับ) หรือ supplierId (ไม่บังคับ). สินค้าต้องตรงบรรทัด, จำนวนไม่เกินค้างรับ (409). code = nextReceiptCode จาก GET /api/inventory?view=options&scope=receive.\n\nBearer accessToken จาก Login ใน Environment ส่วนตัว. 401 ไม่เข้าสู่ระบบ, 403 ไม่มีสิทธิ์/ไม่ใช่ Admin, 400 ข้อมูลไม่ถูกต้อง, 404 ไม่พบ, 409 ข้อมูลซ้ำ/ถูกแก้ไขแล้ว, 503 เชื่อมต่อชั่วคราว. ตัวอย่าง response เป็นโครงสร้างสมมุติ ไม่ใช่ข้อมูลจริง.",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idempotencyKey\": \"{{$guid}}\",\n  \"action\": \"receive\",\n  \"code\": \"{{receiptCode}}\",\n  \"purchaseOrderLineId\": \"{{purchaseOrderLineId}}\",\n  \"notes\": \"\",\n  \"lots\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"warehouseId\": \"{{warehouseId}}\",\n      \"quantity\": 4,\n      \"totalCost\": \"192.00\",\n      \"manufacturedOn\": \"2026-01-01\",\n      \"expiresOn\": \"2029-01-01\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"99999999-9999-4999-8999-999999999999\",\n    \"code\": \"GR-2569-00001\",\n    \"lotIds\": [],\n    \"purchaseOrderId\": \"77777777-7777-4777-8777-777777777777\"\n  }\n}"
             }
           ]
         }

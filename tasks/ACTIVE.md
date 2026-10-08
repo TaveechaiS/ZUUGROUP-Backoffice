@@ -1,5 +1,9 @@
 # งานที่กำลังทำ
 
+## TASK-276 — จัดซื้อ: ผู้ขาย + ใบสั่งซื้อ + ผูกรับเข้า — 2026-10-08
+
+- IMPLEMENTED / WAITING_FOR_UAT (8 ต.ค. 2569; OWNER_APPROVED "ทำที่แนะนำไปก่อน"): DB apply แล้ว, test-purchasing 10 ผ่าน, route 81, quotes 11, lint/tsc/build ผ่าน, Postman local. ขอบเขต DB suppliers/purchase_orders/purchase_order_lines/stock_receipts, src/server/purchasing, /api/suppliers, /api/purchases, หน้า /suppliers /purchases, หน้ารับเข้า /products/stock/create, เมนูจัดซื้อ. ลำดับงาน: ทำทุกหน้าให้เสร็จก่อน แล้วค่อยลด Role/สิทธิ์. ดู tasks/TASK-276-purchasing.md.
+
 ## TASK-275 — ใบเสนอราคาจริง + ส่วนลดคำสั่งซื้อ — 2026-10-07
 
 - IMPLEMENTED / WAITING_FOR_UAT: DB apply แล้ว, /api/quotes + หน้า /quotes, ส่วนลดในคำสั่งซื้อ, แปลง QT→SO, test-quotes 11 ผ่าน, Postman local. แก้บั๊กเลขเอกสาร substring regex. ค้างถาม: SO ที่แปลงแล้วข้าม Manager ไหม. ดู tasks/TASK-275-quotations.md.

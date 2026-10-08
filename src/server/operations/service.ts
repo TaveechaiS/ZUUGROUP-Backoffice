@@ -25,6 +25,7 @@ import type {
   OrderRow,
   OrderLine,
 } from '@/types/api/operations';
+import type { OpenPurchaseLine } from '@/types/api/purchasing';
 export type Actor = { id: string; roleId: string; name: string };
 export type Tx = Prisma.TransactionClient;
 type Policy = { saleMonths: number; donationMonths: number; warningDays: number };
@@ -53,7 +54,11 @@ async function policy(tx: Tx) {
 // TASK-274/275: document numbers are SO-/QT-<Buddhist year>-0001, restarting every year. The
 // advisory lock serialises concurrent creates; deleted documents keep their number so it is never
 // reused.
-const numberedTables = { SO: Prisma.sql`sales_orders`, QT: Prisma.sql`quotations` };
+const numberedTables = {
+  SO: Prisma.sql`sales_orders`,
+  QT: Prisma.sql`quotations`,
+  PO: Prisma.sql`purchase_orders`,
+};
 export async function nextDocumentCode(tx: Tx, kind: keyof typeof numberedTables) {
   const prefix = kind + '-' + receiptPrefix().match(/\d{4}/)![0] + '-';
   await tx.$queryRaw(
@@ -65,6 +70,39 @@ export async function nextDocumentCode(tx: Tx, kind: keyof typeof numberedTables
   );
   if (rows[0].value > 9999) throw new RecordError(409, 'เลขเอกสารของปีนี้ครบ 9999 แล้ว');
   return prefix + String(rows[0].value).padStart(4, '0');
+}
+export const receivedOnLine = (line: Prisma.Sql) =>
+  Prisma.sql`COALESCE((SELECT sum(rl.received_quantity) FROM stock_receipts rr JOIN product_lots rl ON rl.receipt_id=rr.id WHERE rr.purchase_order_line_id=${line}),0)::int`;
+export const openPurchaseLineSelect = Prisma.sql`li.id,po.id AS "purchaseOrderId",po.code AS "purchaseOrderCode",po.supplier_id AS "supplierId",s.name AS "supplierName",li.product_id AS "productId",li.product_name AS "productName",COALESCE(p.unit,'') AS unit,li.quantity,${receivedOnLine(Prisma.sql`li.id`)} AS received,(li.quantity-${receivedOnLine(Prisma.sql`li.id`)}) AS remaining,li.unit_cost::text AS "unitCost",li.discount::text AS discount`;
+export const openPurchaseLineFrom = Prisma.sql`purchase_order_lines li JOIN purchase_orders po ON po.id=li.purchase_order_id JOIN suppliers s ON s.id=po.supplier_id LEFT JOIN products p ON p.id=li.product_id`;
+export async function refreshPurchaseStatus(tx: Tx, purchaseOrderId: string) {
+  await tx.$executeRaw(
+    Prisma.sql`UPDATE purchase_orders po SET status=CASE WHEN t.received=0 THEN 'รอรับสินค้า' WHEN t.received>=t.ordered THEN 'รับครบ' ELSE 'รับบางส่วน' END,updated_at=clock_timestamp() FROM (SELECT sum(li.quantity)::int AS ordered,sum(${receivedOnLine(Prisma.sql`li.id`)})::int AS received FROM purchase_order_lines li WHERE li.purchase_order_id=${purchaseOrderId}::uuid) t WHERE po.id=${purchaseOrderId}::uuid AND po.status IN ('รอรับสินค้า','รับบางส่วน','รับครบ')`,
+  );
+}
+async function purchaseLine(tx: Tx, lineId: string) {
+  const line = (
+    await query<{
+      purchaseOrderId: string;
+      status: string;
+      supplierId: string;
+      supplierName: string;
+      productId: string;
+      quantity: number;
+    }>(
+      tx,
+      Prisma.sql`SELECT po.id AS "purchaseOrderId",po.status,po.supplier_id AS "supplierId",s.name AS "supplierName",li.product_id AS "productId",li.quantity FROM purchase_order_lines li JOIN purchase_orders po ON po.id=li.purchase_order_id JOIN suppliers s ON s.id=po.supplier_id WHERE li.id=${lineId}::uuid AND po.deleted_at IS NULL FOR UPDATE OF po`,
+    )
+  )[0];
+  if (!line) throw new RecordError(400, 'ไม่พบรายการในใบสั่งซื้อ');
+  return line;
+}
+async function receivedExcept(tx: Tx, lineId: string, lotId: string | null) {
+  const rows = await query<{ value: number }>(
+    tx,
+    Prisma.sql`SELECT COALESCE(sum(l.received_quantity),0)::int AS value FROM stock_receipts r JOIN product_lots l ON l.receipt_id=r.id WHERE r.purchase_order_line_id=${lineId}::uuid AND l.id IS DISTINCT FROM ${lotId}::uuid`,
+  );
+  return rows[0].value;
 }
 export async function lockProducts(tx: Tx, ids: string[]) {
   for (const value of [...new Set(ids)].sort())
@@ -228,9 +266,41 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
         tx,
         inputs.map((l) => l.productId),
       );
+      const lineId =
+        body.purchaseOrderLineId === undefined || body.purchaseOrderLineId === ''
+          ? null
+          : id(body.purchaseOrderLineId, 'รายการในใบสั่งซื้อ');
+      let supplierId =
+        body.supplierId === undefined || body.supplierId === ''
+          ? null
+          : id(body.supplierId, 'ผู้ขาย');
+      let source = str(body.source, 'แหล่งที่มา', false);
+      let purchaseOrderId: string | null = null;
+      if (lineId) {
+        const line = await purchaseLine(tx, lineId);
+        if (!['รอรับสินค้า', 'รับบางส่วน'].includes(line.status))
+          throw new RecordError(409, 'ใบสั่งซื้อนี้รับครบ ปิด หรือยกเลิกแล้ว');
+        if (line.productId !== inputs[0].productId)
+          throw new RecordError(400, 'สินค้าไม่ตรงกับรายการในใบสั่งซื้อ');
+        const remaining = line.quantity - (await receivedExcept(tx, lineId, null));
+        if (inputs[0].quantity > remaining)
+          throw new RecordError(409, `รับเกินจำนวนที่สั่ง (ค้างรับ ${remaining})`);
+        supplierId = line.supplierId;
+        source = source || line.supplierName;
+        purchaseOrderId = line.purchaseOrderId;
+      } else if (supplierId) {
+        const supplier = (
+          await query<{ name: string }>(
+            tx,
+            Prisma.sql`SELECT name FROM suppliers WHERE id=${supplierId}::uuid AND deleted_at IS NULL AND status='ใช้งาน' FOR KEY SHARE`,
+          )
+        )[0];
+        if (!supplier) throw new RecordError(400, 'ผู้ขายไม่พร้อมใช้งาน');
+        source = source || supplier.name;
+      }
       const receiptId = randomUUID();
       await tx.$executeRaw(
-        Prisma.sql`INSERT INTO stock_receipts(id,code,source,notes,actor_user_id) VALUES(${receiptId}::uuid,${code},${str(body.source, 'แหล่งที่มา', false)},${str(body.notes, 'หมายเหตุ', false)},${actor.id}::uuid)`,
+        Prisma.sql`INSERT INTO stock_receipts(id,code,source,notes,actor_user_id,supplier_id,purchase_order_line_id) VALUES(${receiptId}::uuid,${code},${source},${str(body.notes, 'หมายเหตุ', false)},${actor.id}::uuid,${supplierId}::uuid,${lineId}::uuid)`,
       );
       const lotIds: string[] = [];
       for (const input of inputs) {
@@ -250,7 +320,8 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
         );
         await movement(tx, actor, lotId, input.warehouseId, input.quantity, 'รับเข้า', receiptId);
       }
-      return { data: { id: receiptId, code, lotIds } };
+      if (purchaseOrderId) await refreshPurchaseStatus(tx, purchaseOrderId);
+      return { data: { id: receiptId, code, lotIds, purchaseOrderId } };
     }
     const lotId = id(body.lotId, 'ล็อต');
     let l = await lot(tx, lotId);
@@ -259,9 +330,9 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
     const reason = str(body.reason, 'เหตุผล');
     if (action === 'correct') {
       const original = (
-        await query<{ createdAt: Date }>(
+        await query<{ createdAt: Date; lineId: string | null }>(
           tx,
-          Prisma.sql`SELECT created_at AS "createdAt" FROM stock_receipts WHERE id=${l.receiptId}::uuid`,
+          Prisma.sql`SELECT created_at AS "createdAt",purchase_order_line_id AS "lineId" FROM stock_receipts WHERE id=${l.receiptId}::uuid`,
         )
       )[0];
       if (Date.now() - original.createdAt.getTime() > 7 * 86400000)
@@ -273,6 +344,15 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
       if (expiresOn <= manufacturedOn || manufacturedOn > bangkokDay())
         throw new RecordError(400, 'วันผลิต/วันหมดอายุไม่ถูกต้อง');
       const warehouseId = id(body.warehouseId, 'คลังที่ปรับผลต่าง');
+      const orderLine = original.lineId ? await purchaseLine(tx, original.lineId) : null;
+      if (orderLine) {
+        const others = await receivedExcept(tx, original.lineId!, lotId);
+        if (others + newQuantity > orderLine.quantity)
+          throw new RecordError(
+            409,
+            `รับเกินจำนวนที่สั่งในใบสั่งซื้อ (สั่ง ${orderLine.quantity} รับรายการอื่นแล้ว ${others})`,
+          );
+      }
       const b = await balance(tx, lotId, warehouseId);
       const delta = newQuantity - l.receivedQuantity;
       if (b.quantity + delta < b.reserved)
@@ -303,6 +383,7 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
         Prisma.sql`UPDATE stock_balances SET quantity=quantity+${delta} WHERE lot_id=${lotId}::uuid AND warehouse_id=${warehouseId}::uuid`,
       );
       await movement(tx, actor, lotId, warehouseId, delta, 'แก้รับเข้า', revisionId, reason);
+      if (orderLine) await refreshPurchaseStatus(tx, orderLine.purchaseOrderId);
       return { data: { id: revisionId, lotId, action } };
     }
     const warehouseId = id(body.warehouseId, 'คลัง');
@@ -447,8 +528,20 @@ export async function operationOptions(actor: Actor, scope?: 'receive') {
     const nextReceiptCode = receiptNumbers[0]
       ? prefix + receiptNumbers[0].value.padStart(5, '0')
       : undefined;
+    const suppliers = scope
+      ? await query<{ id: string; code: string; name: string; paymentTerms: string }>(
+          tx,
+          Prisma.sql`SELECT id,code,name,payment_terms AS "paymentTerms" FROM suppliers WHERE deleted_at IS NULL AND status='ใช้งาน' ORDER BY name,id`,
+        )
+      : [];
+    const openLines = scope
+      ? await query<OpenPurchaseLine>(
+          tx,
+          Prisma.sql`SELECT * FROM (SELECT ${openPurchaseLineSelect} FROM ${openPurchaseLineFrom} WHERE po.deleted_at IS NULL AND po.status IN ('รอรับสินค้า','รับบางส่วน')) x WHERE x.remaining>0 ORDER BY x."purchaseOrderCode",x."productName",x.id`,
+        )
+      : [];
     return scope
-      ? { data: { products, warehouses, actor, nextReceiptCode } }
+      ? { data: { products, warehouses, actor, nextReceiptCode, suppliers, openLines } }
       : { data: { products, customers, warehouses, users, actor, policy: p!, nextReceiptCode } };
   });
 }

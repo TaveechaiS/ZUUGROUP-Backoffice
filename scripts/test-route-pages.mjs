@@ -109,6 +109,25 @@ for (const recordModule of definitions) {
     );
     continue;
   }
+  if (recordModule.key === 'suppliers' || recordModule.key === 'purchases') {
+    const root = 'src/app/' + recordModule.key;
+    const pages = [root + '/page.tsx', root + '/create/page.tsx', root + '/[id]/page.tsx']
+      .map((file) => fs.readFileSync(file, 'utf8'))
+      .join('\n');
+    assert.ok(pages.includes('/api/' + recordModule.key));
+    assert.ok(pages.includes('expectedUpdatedAt'), root + ': lost edit concurrency guard');
+    assert.ok(pages.includes('LoadingComponent') && pages.includes('NotFoundComponent'));
+    assert.ok(
+      fs.readFileSync(root + '/create/layout.tsx', 'utf8').includes('requireAdmin'),
+      root + ': missing create auth guard',
+    );
+    assert.ok(
+      fs
+        .readFileSync('src/server/purchasing/service.ts', 'utf8')
+        .includes("allow(actor, ['ADMIN'])"),
+    );
+    continue;
+  }
   if (recordModule.key === 'sales-territories') {
     assert.ok(
       fs

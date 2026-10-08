@@ -15,6 +15,7 @@ import SalesDocumentSecondarySidebar from '@/components/layout/sales-document-se
 import StockSecondarySidebar from '@/components/layout/stock-secondary-sidebar';
 import NavigationOnlyTabs from '@/components/layout/navigation-only-tabs';
 import SettingsSecondarySidebar from '@/components/layout/settings-secondary-sidebar';
+import PurchasingSecondarySidebar from '@/components/layout/purchasing-secondary-sidebar';
 import { logout } from '@/app/login/actions';
 
 export function AdminShell({
@@ -59,6 +60,11 @@ export function AdminShell({
   const promotionSection = currentPath === '/promotions' || currentPath.startsWith('/promotions/');
   const quoteSection = currentPath === '/quotes' || currentPath.startsWith('/quotes/');
   const orderSection = currentPath === '/orders' || currentPath.startsWith('/orders/');
+  const purchasingSection =
+    currentPath === '/purchases' ||
+    currentPath.startsWith('/purchases/') ||
+    currentPath === '/suppliers' ||
+    currentPath.startsWith('/suppliers/');
   const salesReportSection =
     currentPath === '/reports/sales' || currentPath.startsWith('/reports/sales/');
   const inventoryReportSection =
@@ -127,9 +133,11 @@ export function AdminShell({
                                   ? 'ใบเสนอราคา'
                                   : orderSection
                                     ? 'คำสั่งซื้อ'
-                                    : settingsSection
-                                      ? 'ตั้งค่าระบบ'
-                                      : page.label}
+                                    : purchasingSection
+                                      ? 'จัดซื้อ'
+                                      : settingsSection
+                                        ? 'ตั้งค่าระบบ'
+                                        : page.label}
               </h1>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 text-xs text-[#59677e] md:gap-5">
@@ -207,6 +215,7 @@ export function AdminShell({
             {orderSection && (
               <SalesDocumentSecondarySidebar parentHref="/orders" roleId={account?.roleId ?? ''} />
             )}
+            {purchasingSection && <PurchasingSecondarySidebar roleId={account?.roleId ?? ''} />}
             {salesReportSection && <ReportSecondarySidebar parentHref="/reports/sales" />}
             {inventoryReportSection && <ReportSecondarySidebar parentHref="/reports/inventory" />}
             {settingsSection && account?.roleId === 'ADMIN' && <SettingsSecondarySidebar />}
@@ -235,6 +244,7 @@ export function AdminShell({
               showProductDetail ||
               orderSection ||
               quoteSection ||
+              purchasingSection ||
               (currentPath === '/products/create' && account?.roleId === 'ADMIN') ||
               ((currentPath === '/settings/product-options' ||
                 currentPath === '/settings/customer-options') &&

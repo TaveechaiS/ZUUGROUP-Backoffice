@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Get, Post, HttpError } from '@/service/http';
 import type { ReceiveOptions, Option } from '@/types/api/operations';
+import type { OpenPurchaseLine } from '@/types/api/purchasing';
 import SearchCombobox from '@/components/ui/search-combobox';
 import LoadingComponent from '@/components/ui/loading-component';
 import ListRequestState from '@/components/ui/list-request-state';
@@ -13,6 +14,8 @@ import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 const inputClass =
   'mt-2 block h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#8994a5] focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
 const initial = {
+  purchaseOrderLineId: '',
+  supplierId: '',
   productId: '',
   warehouseId: '',
   code: '',
@@ -26,6 +29,8 @@ const sections = [
   {
     title: 'ข้อมูลการรับเข้า',
     fields: [
+      ['purchaseOrderLineId', 'ใบสั่งซื้อ'],
+      ['supplierId', 'ผู้ขาย'],
       ['productId', 'สินค้า'],
       ['warehouseId', 'คลังปลายทาง'],
       ['code', 'ID'],
@@ -58,6 +63,7 @@ export default function Page() {
   const [confirm, setConfirm] = useState(false);
   const [alert, setAlert] = useState<'save' | 'cancel' | null>(null);
   const [savedCode, setSavedCode] = useState('');
+  const [savedOrderId, setSavedOrderId] = useState('');
   const lock = useRef(false);
   const attempted = useRef(false);
   const initialized = useRef(false);
@@ -72,12 +78,17 @@ export default function Page() {
           setOptions(data);
           if (!initialized.current) {
             initialized.current = true;
-            const requested = new URLSearchParams(window.location.search).get('productId');
+            const query = new URLSearchParams(window.location.search);
+            const requested = query.get('productId');
+            const line = data.openLines.find(
+              (item) => item.id === query.get('purchaseOrderLineId'),
+            );
             setValues((current) => ({
               ...current,
               code: current.code || data.nextReceiptCode || '',
               warehouseId: data.warehouses.find((item) => item.code === 'MAIN')?.id ?? '',
               productId: data.products.some((item) => item.id === requested) ? requested! : '',
+              ...(line ? fromLine(line, line.remaining) : {}),
             }));
           }
         })
@@ -95,6 +106,7 @@ export default function Page() {
     };
   }, [retry]);
   const product = options?.products.find((item) => item.id === values.productId);
+  const orderLine = options?.openLines.find((item) => item.id === values.purchaseOrderLineId);
   const idParts = values.code.match(/^(GR)-(\d{4})-(\d*)$/);
   const idPrefix = idParts ? idParts[1] + '-' + idParts[2] + '-' : '';
   const days =
@@ -117,7 +129,17 @@ export default function Page() {
     day: '2-digit',
   }).format(new Date());
   function change(key: keyof typeof initial, value: string) {
-    setValues((current) => ({ ...current, [key]: value }));
+    setValues((current) => {
+      if (key === 'purchaseOrderLineId') {
+        const line = options?.openLines.find((item) => item.id === value);
+        return line
+          ? { ...current, ...fromLine(line, line.remaining) }
+          : { ...current, purchaseOrderLineId: '', supplierId: '' };
+      }
+      if (key === 'quantity' && orderLine && /^[1-9]\d*$/.test(value))
+        return { ...current, ...fromLine(orderLine, Number(value)) };
+      return { ...current, [key]: value };
+    });
     setError('');
   }
   function prepare(event: FormEvent<HTMLFormElement>) {
@@ -141,6 +163,10 @@ export default function Page() {
       setError('จำนวนรับเข้าต้องเป็นจำนวนเต็มมากกว่า 0');
       return;
     }
+    if (orderLine && Number(values.quantity) > orderLine.remaining) {
+      setError(`รับเกินจำนวนที่สั่ง (ค้างรับ ${orderLine.remaining} ${orderLine.unit})`);
+      return;
+    }
     if (!/^(?:0|[1-9]\d{0,11})(?:\.\d{1,2})?$/.test(values.totalCost)) {
       setError('ต้นทุนรวมล็อตต้องตั้งแต่ 0 และทศนิยมไม่เกิน 2 ตำแหน่ง');
       return;
@@ -155,6 +181,11 @@ export default function Page() {
       idempotencyKey: crypto.randomUUID(),
       code: idPrefix + sequence.padStart(5, '0'),
       notes: values.notes.trim(),
+      ...(values.purchaseOrderLineId
+        ? { purchaseOrderLineId: values.purchaseOrderLineId }
+        : values.supplierId
+          ? { supplierId: values.supplierId }
+          : {}),
       lots: [
         {
           productId: values.productId,
@@ -175,10 +206,13 @@ export default function Page() {
     setBusy(true);
     setError('');
     try {
-      const result = await Post<{ data: { code: string; id: string } }>('/api/inventory', pending);
+      const result = await Post<{
+        data: { code: string; id: string; purchaseOrderId?: string | null };
+      }>('/api/inventory', pending);
       if (!result.data?.id || !result.data.code)
         throw new Error('ไม่ได้รับผลการรับเข้า กรุณาลองคำขอเดิมอีกครั้ง');
       setSavedCode(result.data.code);
+      setSavedOrderId(result.data.purchaseOrderId ?? '');
       setPending(null);
       setConfirm(false);
       setAlert('save');
@@ -247,7 +281,12 @@ export default function Page() {
                   </summary>
                   <div className="mt-4 flex flex-wrap gap-x-8 gap-y-5">
                     {section.fields.map(([key, label]) => {
-                      const required = !['unitCost', 'notes'].includes(key);
+                      const required = ![
+                        'unitCost',
+                        'notes',
+                        'purchaseOrderLineId',
+                        'supplierId',
+                      ].includes(key);
                       const isDate = key === 'manufacturedOn' || key === 'expiresOn';
                       return (
                         <div
@@ -268,7 +307,52 @@ export default function Page() {
                               </span>
                             )}
                           </label>
-                          {key === 'productId' || key === 'warehouseId' ? (
+                          {key === 'purchaseOrderLineId' ? (
+                            <select
+                              id="stock-purchaseOrderLineId"
+                              value={values.purchaseOrderLineId}
+                              onChange={(event) => change(key, event.target.value)}
+                              className={inputClass}
+                            >
+                              <option value="">ไม่อ้างใบสั่งซื้อ</option>
+                              {options.openLines.map((line) => (
+                                <option key={line.id} value={line.id}>
+                                  {line.purchaseOrderCode} · {line.productName} · ค้างรับ{' '}
+                                  {line.remaining} {line.unit}
+                                </option>
+                              ))}
+                            </select>
+                          ) : key === 'supplierId' ? (
+                            <select
+                              id="stock-supplierId"
+                              value={values.supplierId}
+                              disabled={Boolean(orderLine)}
+                              onChange={(event) => change(key, event.target.value)}
+                              className={inputClass + ' disabled:bg-blue-50'}
+                            >
+                              <option value="">ไม่ระบุผู้ขาย</option>
+                              {orderLine &&
+                                !options.suppliers.some(
+                                  (item) => item.id === orderLine.supplierId,
+                                ) && (
+                                  <option value={orderLine.supplierId}>
+                                    {orderLine.supplierName}
+                                  </option>
+                                )}
+                              {options.suppliers.map((supplier) => (
+                                <option key={supplier.id} value={supplier.id}>
+                                  {supplier.name} · {supplier.code}
+                                </option>
+                              ))}
+                            </select>
+                          ) : key === 'productId' && orderLine ? (
+                            <input
+                              id="stock-productId"
+                              readOnly
+                              value={orderLine.productName}
+                              className={inputClass + ' bg-blue-50'}
+                            />
+                          ) : key === 'productId' || key === 'warehouseId' ? (
                             <SelectField
                               label={label}
                               id={'stock-' + key}
@@ -359,6 +443,13 @@ export default function Page() {
                           {key === 'quantity' && product && (
                             <p className="mt-2 text-xs text-[#65758b]">
                               หน่วยสินค้า: {product.unit}
+                              {orderLine &&
+                                ` · สั่ง ${orderLine.quantity} รับแล้ว ${orderLine.received} ค้างรับ ${orderLine.remaining}`}
+                            </p>
+                          )}
+                          {key === 'totalCost' && orderLine && (
+                            <p className="mt-2 text-xs text-[#65758b]">
+                              เติมจากต้นทุนในใบสั่งซื้อ (หักส่วนลดตามสัดส่วน) แก้ได้ตามของจริง
                             </p>
                           )}
                         </div>
@@ -433,7 +524,9 @@ export default function Page() {
         }
         onClose={() => {
           setAlert(null);
-          router.push('/products/stock');
+          router.push(
+            alert === 'save' && savedOrderId ? `/purchases/${savedOrderId}` : '/products/stock',
+          );
           router.refresh();
         }}
       />
@@ -486,6 +579,18 @@ function SelectField({
       />
     </div>
   );
+}
+
+function fromLine(line: OpenPurchaseLine, quantity: number) {
+  const total =
+    Number(line.unitCost) * quantity - (Number(line.discount) * quantity) / line.quantity;
+  return {
+    purchaseOrderLineId: line.id,
+    supplierId: line.supplierId,
+    productId: line.productId,
+    quantity: String(quantity),
+    totalCost: (Math.round(Math.max(0, total) * 100) / 100).toFixed(2),
+  };
 }
 
 const dateOnly = (value: string) =>

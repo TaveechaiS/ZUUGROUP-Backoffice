@@ -1,3 +1,4 @@
+import type { OpenPurchaseLine, SupplierOption } from '@/types/api/purchasing';
 export type Option = {
   id: string;
   code: string;
@@ -20,7 +21,10 @@ export type OperationOptions = {
 export type ReceiveOptions = Pick<
   OperationOptions,
   'nextReceiptCode' | 'products' | 'warehouses' | 'actor'
->;
+> & {
+  suppliers: SupplierOption[];
+  openLines: OpenPurchaseLine[];
+};
 export type StockRow = {
   id: string;
   lotId: string;

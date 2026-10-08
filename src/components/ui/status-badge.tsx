@@ -14,6 +14,8 @@ const statusTones: Record<string, StatusTone> = {
   รับเข้า: 'success',
   รอตรวจ: 'warning',
   ส่งกลับแก้ไข: 'warning',
+  รอรับสินค้า: 'info',
+  ปิดแล้ว: 'neutral',
   // Customer license check results (TASK-265).
   ผ่าน: 'success',
   ต้องแก้เอกสาร: 'warning',

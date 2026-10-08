@@ -98,21 +98,26 @@ export function DateInput({
   label,
   value,
   min,
+  max,
+  required = true,
   onChange,
 }: {
   label: string;
   value: string;
   min?: string;
+  max?: string;
+  required?: boolean;
   onChange: (value: string) => void;
 }) {
   return (
     <div className="relative mt-2">
       <input
         type="date"
-        required
+        required={required}
         aria-label={label}
         value={value}
         min={min}
+        max={max}
         onChange={(event) => onChange(event.target.value)}
         className="block h-11 w-full min-w-0 rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-transparent outline-none focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
       />
