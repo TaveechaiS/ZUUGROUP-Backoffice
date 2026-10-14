@@ -1,4 +1,5 @@
-import type { OpenPurchaseLine, SupplierOption } from '@/types/api/purchasing';
+import type { OpenPurchaseLine } from '@/types/api/purchasing';
+import type { PromotionSnapshot } from '@/types/api/promotions';
 export type Option = {
   id: string;
   code: string;
@@ -22,7 +23,6 @@ export type ReceiveOptions = Pick<
   OperationOptions,
   'nextReceiptCode' | 'products' | 'warehouses' | 'actor'
 > & {
-  suppliers: SupplierOption[];
   openLines: OpenPurchaseLine[];
 };
 export type StockRow = {
@@ -107,6 +107,7 @@ export type OrderLine = {
   quantity: number;
   unitPrice: string;
   discount: string;
+  isGift: boolean;
   allocations: {
     id: string;
     lotId: string;
@@ -138,6 +139,9 @@ export type OrderRow = {
   workflowManaged: boolean;
   quotationId: string | null;
   quotationCode: string | null;
+  promotionId: string | null;
+  promotion: PromotionSnapshot | null;
+  billDiscount: string;
   lines?: OrderLine[];
   costAmount?: string;
   grossProfit?: string;

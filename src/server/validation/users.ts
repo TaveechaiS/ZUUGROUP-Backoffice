@@ -3,8 +3,12 @@ import type { RoleId, UserCreateRequest } from '@/types/api/users';
 import { uuidPattern } from './products';
 
 export function validUserTerritory(value: unknown) {
-  return value === undefined || value === null || value === '' ||
-    (typeof value === 'string' && uuidPattern.test(value));
+  return (
+    value === undefined ||
+    value === null ||
+    value === '' ||
+    (typeof value === 'string' && uuidPattern.test(value))
+  );
 }
 
 export function isRoleId(value: unknown): value is RoleId {
@@ -26,15 +30,25 @@ export function userCreateInput(
     !name ||
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
     !isRoleId(body.roleId) ||
-    !passwordIsValid(password) || !validUserTerritory(body.territoryId) ||
+    !passwordIsValid(password) ||
+    !validUserTerritory(body.territoryId) ||
     (Boolean(body.territoryId) && body.roleId !== 'SALES' && body.roleId !== 'MANAGER')
   ) {
     return null;
   }
   const roleId = body.roleId;
 
-  return { name, email, team, password, roleId,
-    territoryId: typeof body.territoryId === 'string' && body.territoryId ? body.territoryId.toLowerCase() : null };
+  return {
+    name,
+    email,
+    team,
+    password,
+    roleId,
+    territoryId:
+      typeof body.territoryId === 'string' && body.territoryId
+        ? body.territoryId.toLowerCase()
+        : null,
+  };
 }
 
 export function userUpdateError(body: Record<string, unknown>): string | null {

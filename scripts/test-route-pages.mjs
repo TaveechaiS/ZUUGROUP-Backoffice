@@ -109,7 +109,67 @@ for (const recordModule of definitions) {
     );
     continue;
   }
-  if (recordModule.key === 'suppliers' || recordModule.key === 'purchases') {
+  if (recordModule.key === 'customer-documents') {
+    const page = fs.readFileSync('src/app/customers/documents/page.tsx', 'utf8');
+    assert.ok(page.includes('/api/customer-documents') && page.includes('NotFoundComponent'));
+    assert.ok(!fs.existsSync('src/app/customers/documents/create'), 'documents are read-only');
+    continue;
+  }
+  const dedicated = {
+    billing: [
+      'src/app/billing',
+      '/api/billing',
+      'ACCOUNTING_CFO',
+      'src/server/billing/service.ts',
+      'allow(actor, BILLING_WRITERS)',
+    ],
+    expenses: [
+      'src/app/expenses',
+      '/api/expenses',
+      'ACCOUNTING_CFO',
+      'src/server/expenses/service.ts',
+      'allow(actor, EXPENSE_WRITERS)',
+    ],
+    promotions: [
+      'src/app/promotions',
+      '/api/promotions',
+      'requireAdmin',
+      'src/server/promotions/service.ts',
+      "allow(actor, ['ADMIN'])",
+    ],
+    'customer-follow-ups': [
+      'src/app/customers/dashboard',
+      '/api/customer-follow-ups',
+      'SALES',
+      'src/server/follow-ups/service.ts',
+      'allow(actor, FOLLOW_UP_WRITERS)',
+    ],
+    'stock-counts': [
+      'src/app/stock-counts',
+      '/api/stock-counts',
+      'requireAdmin',
+      'src/server/stock-counts/service.ts',
+      "allow(actor, ['ADMIN'])",
+    ],
+  }[recordModule.key];
+  if (dedicated) {
+    const [root, api, guard, server, rule] = dedicated;
+    const pages = [root + '/page.tsx', root + '/create/page.tsx', root + '/[id]/page.tsx']
+      .map((file) => fs.readFileSync(file, 'utf8'))
+      .join('\n');
+    assert.ok(
+      pages.includes(api) && pages.includes('expectedUpdatedAt'),
+      root + ': lost API or edit guard',
+    );
+    assert.ok(pages.includes('LoadingComponent') && pages.includes('NotFoundComponent'), root);
+    assert.ok(
+      fs.readFileSync(root + '/create/layout.tsx', 'utf8').includes(guard),
+      root + ': create guard',
+    );
+    assert.ok(fs.readFileSync(server, 'utf8').includes(rule), server + ': write guard');
+    continue;
+  }
+  if (recordModule.key === 'purchases') {
     const root = 'src/app/' + recordModule.key;
     const pages = [root + '/page.tsx', root + '/create/page.tsx', root + '/[id]/page.tsx']
       .map((file) => fs.readFileSync(file, 'utf8'))
@@ -161,9 +221,12 @@ for (const recordModule of definitions) {
       );
       assert.ok(page.includes('/api/customers/requests'), 'Customer create must save via requests');
       assert.ok(page.includes('/api/customer-options?kinds='), 'Customer create must load options');
+      const createLayout = fs.readFileSync('src/app/customers/create/layout.tsx', 'utf8');
       assert.ok(
-        fs.readFileSync('src/app/customers/create/layout.tsx', 'utf8').includes('requireAdmin'),
+        createLayout.includes("isAdmin: role === 'ADMIN'"),
+        'non-admin create must be a request',
       );
+      assert.ok(page.includes("action: 'submit'"), 'Sales/Manager create must submit for review');
       continue;
     }
     if (file === 'src/app/customers/[id]/page.tsx') {
@@ -195,8 +258,10 @@ for (const recordModule of definitions) {
       file + ': lost inline validation',
     );
   }
+  const createGuard = fs.readFileSync(root + '/create/layout.tsx', 'utf8');
   assert.ok(
-    fs.readFileSync(root + '/create/layout.tsx', 'utf8').includes('requireAdmin'),
+    createGuard.includes('requireAdmin') ||
+      (recordModule.key === 'customers' && createGuard.includes('requireActiveUser')),
     root + ': missing create auth guard',
   );
   // TASK-263: customer detail is read-only until the customer edit task.

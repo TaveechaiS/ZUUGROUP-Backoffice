@@ -60,6 +60,7 @@ model CustomerOption {
   codeGroupCustomers Customer[] @relation("CustomerCodeGroup")
   creditTermCustomers Customer[] @relation("CustomerCreditTerm")
   files CustomerFile[]
+  expenses Expense[]
   @@index([kind,active,name,id],map:"customer_options_kind_active")
   @@map("customer_options")
 }
@@ -67,13 +68,18 @@ model CustomerOption {
 model CustomerCreateRequest {
   id String @id @db.Uuid
   actorId String @map("actor_id") @db.Uuid
-  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  actor User @relation("CustomerRequestActor",fields:[actorId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   customerId String @unique @map("customer_id") @db.Uuid
   payload Json
   digest String
   status String @default("pending")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  submittedAt DateTime? @map("submitted_at") @db.Timestamptz(6)
+  reviewedById String? @map("reviewed_by_id") @db.Uuid
+  reviewedAt DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  reviewReason String @default("") @map("review_reason")
+  reviewer User? @relation("CustomerRequestReviewer",fields:[reviewedById],references:[id],onDelete:Restrict,onUpdate:NoAction)
   files CustomerFile[]
   @@map("customer_create_requests")
 }
@@ -126,6 +132,7 @@ model ProductLot {
  movements StockMovement[]
  revisions ReceiptRevision[]
  reservations StockReservation[]
+ countLines StockCountLine[]
  @@index([productId,expiresOn,id],map:"product_lots_product_expiry")
  @@index([receiptId],map:"product_lots_receipt")
  @@map("product_lots")
@@ -177,11 +184,12 @@ model SalesOrderLine {
  quantity Int
  unitPrice Decimal @map("unit_price") @db.Decimal(12,2)
  discount Decimal @default(0) @db.Decimal(12,2)
+ isGift Boolean @default(false) @map("is_gift")
  productName String @map("product_name")
  order SalesOrder @relation(fields:[orderId],references:[id],onDelete:Restrict,onUpdate:NoAction)
  product Product @relation(fields:[productId],references:[id],onDelete:Restrict,onUpdate:NoAction)
  reservations StockReservation[]
- @@unique([orderId,productId])
+ @@unique([orderId,productId,isGift],map:"sales_order_lines_order_product_gift_key")
  @@index([productId],map:"sales_order_lines_product")
  @@map("sales_order_lines")
 }
@@ -237,7 +245,8 @@ enum ProductStatus {
 
 model User {
   productCreateRequests ProductCreateRequest[]
-  customerCreateRequests CustomerCreateRequest[]
+  customerCreateRequests CustomerCreateRequest[] @relation("CustomerRequestActor")
+  reviewedCustomerRequests CustomerCreateRequest[] @relation("CustomerRequestReviewer")
   managedTerritories SalesTerritory[] @relation("TerritoryManager")
   salesTerritories SalesTerritory[] @relation("TerritorySales")
   territorySalesMemberships SalesTerritorySales[]
@@ -250,6 +259,13 @@ model User {
   createdQuotations Quotation[] @relation("QuoteCreator")
   createdSuppliers Supplier[] @relation("SupplierCreator")
   createdPurchaseOrders PurchaseOrder[] @relation("PurchaseOrderCreator")
+  createdPromotions Promotion[] @relation("PromotionCreator")
+  createdExpenses Expense[] @relation("ExpenseCreator")
+  createdInvoices Invoice[] @relation("InvoiceCreator")
+  createdFollowUps CustomerFollowUp[] @relation("FollowUpCreator")
+  createdStockCounts StockCountSession[] @relation("StockCountCreator")
+  invoicePayments InvoicePayment[]
+  expenseFiles ExpenseFile[]
   approvedQuotations Quotation[] @relation("QuoteApprover")
   completedOrders SalesOrder[] @relation("OrderCompleter")
   id           String        @id @default(uuid()) @db.Uuid
@@ -381,6 +397,8 @@ model Warehouse {
   movements StockMovement[]
   reservations StockReservation[]
   stockCountSessionRecords StockCountSession[]
+  promotionGifts PromotionGift[]
+  quotationGiftLines QuotationLine[]
   id        String    @id @default(uuid()) @db.Uuid
   code      String    @unique
   name      String    @unique
@@ -400,6 +418,8 @@ model Product {
   orderLines SalesOrderLine[]
   quotationLines QuotationLine[]
   purchaseOrderLines PurchaseOrderLine[]
+  promotionProducts PromotionProduct[]
+  promotionGifts PromotionGift[]
   id                 String          @id @default(uuid()) @db.Uuid
   code               String          @unique
   sequence           Int
@@ -559,13 +579,20 @@ model CustomerFollowUp {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
-  status String @default("ใช้งานอยู่")
+  status String @default("รอติดตาม")
   customerId String? @map("customer_id") @db.Uuid
   customer Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   @@index([customerId])
   category String @default("")
   province String @default("")
   followUpText String @default("") @map("follow_up_text")
+  contactedOn DateTime? @map("contacted_on") @db.Date
+  channel String @default("โทร")
+  nextOn DateTime? @map("next_on") @db.Date
+  result String @default("")
+  createdById String? @map("created_by_id") @db.Uuid
+  cancelReason String @default("") @map("cancel_reason")
+  creator User? @relation("FollowUpCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
   owner String @default("")
   notes String @default("")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -610,8 +637,16 @@ model Expense {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
-  status String @default("ใช้งานอยู่")
+  status String @default("บันทึกแล้ว")
   category String @default("")
+  expenseDate DateTime? @map("expense_date") @db.Date
+  categoryId String? @map("category_id") @db.Uuid
+  payee String @default("")
+  createdById String? @map("created_by_id") @db.Uuid
+  cancelReason String @default("") @map("cancel_reason")
+  categoryOption CustomerOption? @relation(fields:[categoryId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  creator User? @relation("ExpenseCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  files ExpenseFile[]
   description String @default("")
   owner String @default("")
   amount Decimal? @db.Decimal(14, 2)
@@ -661,6 +696,10 @@ model Quotation {
   createdById String? @map("created_by_id") @db.Uuid
   approvedById String? @map("approved_by_id") @db.Uuid
   returnReason String @default("") @map("return_reason")
+  promotionId String? @map("promotion_id") @db.Uuid
+  promotionSnapshot Json? @map("promotion_snapshot")
+  billDiscount Decimal @default(0) @map("bill_discount") @db.Decimal(12,2)
+  promotion Promotion? @relation(fields:[promotionId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   territory SalesTerritory? @relation("QuoteTerritory",fields:[territoryId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   creator User? @relation("QuoteCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
   approver User? @relation("QuoteApprover",fields:[approvedById],references:[id],onDelete:Restrict,onUpdate:NoAction)
@@ -693,6 +732,7 @@ model SalesOrder {
   completer User? @relation("OrderCompleter",fields:[completedById],references:[id],onDelete:Restrict,onUpdate:NoAction)
   territory SalesTerritory? @relation("OrderTerritory",fields:[territoryId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   lines SalesOrderLine[]
+  invoices Invoice[]
   quotationId String? @unique @map("quotation_id") @db.Uuid
   quotation Quotation? @relation(fields:[quotationId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   workflowManaged Boolean @default(false) @map("workflow_managed")
@@ -701,6 +741,10 @@ model SalesOrder {
   completedById String? @map("completed_by_id") @db.Uuid
   territoryId String? @map("territory_id") @db.Uuid
   returnReason String @default("") @map("return_reason")
+  promotionId String? @map("promotion_id") @db.Uuid
+  promotionSnapshot Json? @map("promotion_snapshot")
+  billDiscount Decimal @default(0) @map("bill_discount") @db.Decimal(12,2)
+  promotion Promotion? @relation(fields:[promotionId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
@@ -726,11 +770,19 @@ model Invoice {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
-  status String @default("ใช้งานอยู่")
+  status String @default("ค้างชำระ")
   customerId String? @map("customer_id") @db.Uuid
   customer Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   @@index([customerId])
   dueText String @default("") @map("due_text")
+  salesOrderId String? @map("sales_order_id") @db.Uuid
+  issueDate DateTime? @map("issue_date") @db.Date
+  dueDate DateTime? @map("due_date") @db.Date
+  createdById String? @map("created_by_id") @db.Uuid
+  cancelReason String @default("") @map("cancel_reason")
+  salesOrder SalesOrder? @relation(fields:[salesOrderId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  creator User? @relation("InvoiceCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  payments InvoicePayment[]
   owner String @default("")
   amount Decimal? @db.Decimal(14, 2)
   notes String @default("")
@@ -748,8 +800,21 @@ model Promotion {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
-  status String @default("ใช้งานอยู่")
+  status String @default("ใช้งาน")
   category String @default("")
+  startsOn DateTime? @map("starts_on") @db.Date
+  endsOn DateTime? @map("ends_on") @db.Date
+  minType String @default("จำนวน") @map("min_type")
+  minValue Decimal @default(0) @map("min_value") @db.Decimal(14,2)
+  rewardType String @default("ของแถม") @map("reward_type")
+  discountValue Decimal @default(0) @map("discount_value") @db.Decimal(12,2)
+  createdById String? @map("created_by_id") @db.Uuid
+  cancelReason String @default("") @map("cancel_reason")
+  creator User? @relation("PromotionCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  products PromotionProduct[]
+  gifts PromotionGift[]
+  orders SalesOrder[]
+  quotations Quotation[]
   description String @default("")
   owner String @default("")
   conditions String @default("")
@@ -768,13 +833,18 @@ model StockCountSession {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code String @unique
   name String @default("")
-  status String @default("ใช้งานอยู่")
+  status String @default("กำลังนับ")
   warehouseId String? @map("warehouse_id") @db.Uuid
   warehouse Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
   @@index([warehouseId])
   description String @default("")
   owner String @default("")
   resultText String @default("") @map("result_text")
+  createdById String? @map("created_by_id") @db.Uuid
+  closedAt DateTime? @map("closed_at") @db.Timestamptz(6)
+  cancelReason String @default("") @map("cancel_reason")
+  creator User? @relation("StockCountCreator",fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  lines StockCountLine[]
   notes String @default("")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -823,9 +893,12 @@ model QuotationLine {
   quantity Int
   unitPrice Decimal @map("unit_price") @db.Decimal(12,2)
   discount Decimal @default(0) @db.Decimal(12,2)
+  isGift Boolean @default(false) @map("is_gift")
+  warehouseId String? @map("warehouse_id") @db.Uuid
+  warehouse Warehouse? @relation(fields:[warehouseId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   quotation Quotation @relation(fields:[quotationId],references:[id],onDelete:Restrict,onUpdate:NoAction)
   product Product @relation(fields:[productId],references:[id],onDelete:Restrict,onUpdate:NoAction)
-  @@unique([quotationId,productId])
+  @@unique([quotationId,productId,isGift],map:"quotation_lines_quote_product_gift_key")
   @@index([productId],map:"quotation_lines_product")
   @@map("quotation_lines")
 }
@@ -844,4 +917,77 @@ model PurchaseOrderLine {
   @@unique([purchaseOrderId,productId])
   @@index([productId],map:"purchase_order_lines_product")
   @@map("purchase_order_lines")
+}
+
+model PromotionProduct {
+  promotionId String @map("promotion_id") @db.Uuid
+  productId String @map("product_id") @db.Uuid
+  promotion Promotion @relation(fields:[promotionId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  product Product @relation(fields:[productId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  @@id([promotionId,productId])
+  @@index([productId],map:"promotion_products_product")
+  @@map("promotion_products")
+}
+
+model PromotionGift {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  promotionId String @map("promotion_id") @db.Uuid
+  productId String @map("product_id") @db.Uuid
+  productName String @map("product_name")
+  quantity Int
+  warehouseId String @map("warehouse_id") @db.Uuid
+  promotion Promotion @relation(fields:[promotionId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  product Product @relation(fields:[productId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  warehouse Warehouse @relation(fields:[warehouseId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  @@unique([promotionId,productId])
+  @@index([productId],map:"promotion_gifts_product")
+  @@map("promotion_gifts")
+}
+
+model ExpenseFile {
+  id String @id @db.Uuid
+  expenseId String @map("expense_id") @db.Uuid
+  name String
+  type String
+  size Int
+  path String @unique
+  createdById String @map("created_by_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expense Expense @relation(fields:[expenseId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  creator User @relation(fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  @@index([expenseId],map:"expense_files_expense")
+  @@map("expense_files")
+}
+
+model InvoicePayment {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId String @map("invoice_id") @db.Uuid
+  paidOn DateTime @map("paid_on") @db.Date
+  amount Decimal @db.Decimal(14,2)
+  method String
+  reference String @default("")
+  notes String @default("")
+  createdById String @map("created_by_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  voidedAt DateTime? @map("voided_at") @db.Timestamptz(6)
+  voidReason String @default("") @map("void_reason")
+  invoice Invoice @relation(fields:[invoiceId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  creator User @relation(fields:[createdById],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  @@index([invoiceId],map:"invoice_payments_invoice")
+  @@index([paidOn],map:"invoice_payments_paid_on")
+  @@map("invoice_payments")
+}
+
+model StockCountLine {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId String @map("session_id") @db.Uuid
+  lotId String @map("lot_id") @db.Uuid
+  systemQuantity Int @map("system_quantity")
+  countedQuantity Int? @map("counted_quantity")
+  note String @default("")
+  session StockCountSession @relation(fields:[sessionId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  lot ProductLot @relation(fields:[lotId],references:[id],onDelete:Restrict,onUpdate:NoAction)
+  @@unique([sessionId,lotId])
+  @@index([lotId],map:"stock_count_lines_lot")
+  @@map("stock_count_lines")
 }

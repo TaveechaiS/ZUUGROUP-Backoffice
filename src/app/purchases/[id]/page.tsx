@@ -1,4 +1,5 @@
 'use client';
+import PrintButton from '@/components/ui/print-button';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -141,7 +142,7 @@ export default function Page() {
       aria-label="รายละเอียดใบสั่งซื้อ"
       className="relative min-h-80 min-w-0 w-full space-y-6 px-4 py-6 md:px-6 md:py-8"
     >
-      <Link href="/purchases" className="text-sm text-[#1a58a7] hover:underline">
+      <Link href="/purchases" className="text-sm text-[#1a58a7] hover:underline print:hidden">
         ← กลับรายการใบสั่งซื้อ
       </Link>
       <LoadingComponent isVisible={loading} variant="content" label="กำลังโหลดใบสั่งซื้อ..." />
@@ -159,13 +160,16 @@ export default function Page() {
             <div className="min-w-0">
               <p className="text-sm poppins-medium text-[#1a58a7]">{row.code}</p>
               <h1 className="mt-1 text-xl poppins-semibold break-words text-[#26364b]">
-                {edit ? `แก้ไขใบสั่งซื้อ ${row.code}` : row.supplierName}
+                {edit ? `แก้ไขใบสั่งซื้อ ${row.code}` : `ใบสั่งซื้อ ${row.code}`}
               </h1>
               <p className="mt-2 text-sm poppins-regular text-[#718096]">
                 สร้างโดย {row.createdByName || '—'} · {dateTime(row.createdAt)}
               </p>
             </div>
-            <StatusBadge value={row.status} />
+            <div className="flex items-center gap-3">
+              <PrintButton />
+              <StatusBadge value={row.status} />
+            </div>
           </div>
           {row.closeReason && (
             <div className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 text-sm">
@@ -180,8 +184,6 @@ export default function Page() {
                 options={options}
                 initial={{
                   code: row.code,
-                  supplierId: row.supplierId,
-                  supplierName: row.supplierName,
                   orderDate: row.orderDate,
                   expectedOn: row.expectedOn,
                   notes: row.notes,
@@ -205,25 +207,13 @@ export default function Page() {
               />
             ) : (
               <div className="relative min-h-40">
-                <LoadingComponent isVisible variant="content" label="กำลังโหลดผู้ขายและสินค้า..." />
+                <LoadingComponent isVisible variant="content" label="กำลังโหลดสินค้า..." />
               </div>
             )
           ) : (
             <>
               <Section title="ข้อมูลใบสั่งซื้อ" open>
                 <dl className="m-0 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <Item
-                    label="ผู้ขาย"
-                    value={
-                      <Link
-                        href={`/suppliers/${row.supplierId}`}
-                        className="text-[#1a58a7] hover:underline"
-                      >
-                        {row.supplierCode} · {row.supplierName}
-                      </Link>
-                    }
-                  />
-                  <Item label="เงื่อนไขชำระเงิน" value={row.paymentTerms} />
                   <Item label="วันที่สั่งซื้อ" value={dateOnly(row.orderDate)} />
                   <Item label="วันที่คาดว่าจะได้รับ" value={dateOnly(row.expectedOn)} />
                   <Item
@@ -358,7 +348,7 @@ export default function Page() {
                 )}
               </Section>
               {admin && open && (
-                <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
+                <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6 print:hidden">
                   <h2 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการ</h2>
                   <label className="mt-4 block text-sm poppins-medium text-[#344256]">
                     เหตุผล (บังคับเมื่อ{received ? 'ปิดใบ' : 'ยกเลิก'})

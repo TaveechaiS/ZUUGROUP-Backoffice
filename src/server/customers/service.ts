@@ -1,6 +1,7 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
+import { customerScope } from '@/server/access/scope';
 import { getPrismaClient } from '@/server/db/prisma';
 import { sqlTableOrder } from '@/server/validation/table-sort';
 import { uuidPattern } from '@/server/validation/products';
@@ -39,6 +40,7 @@ function integer(value: string | null, fallback: number, max: number) {
 export async function listCustomers(
   params: URLSearchParams,
   canWrite: boolean,
+  scope: { id: string; roleId: string } = { id: '', roleId: 'ADMIN' },
 ): Promise<CustomerListResponse> {
   const allowed = new Set([
     'search',
@@ -101,6 +103,7 @@ export async function listCustomers(
   const where = Prisma.sql`${deleted === 'true' ? Prisma.sql`c.deleted_at IS NOT NULL` : Prisma.sql`c.deleted_at IS NULL`} AND c.details IS NOT NULL
     ${statusFilter(status)}
     ${territoryId ? Prisma.sql`AND c.territory_id=${territoryId}::uuid` : Prisma.empty}
+    ${customerScope(scope, Prisma.sql`c.id`)}
     ${province ? Prisma.sql`AND c.province=${province}` : Prisma.empty}
     ${licenseStatus ? Prisma.sql`AND (c.license_status=${licenseStatus} OR (${licenseStatus}='ยังไม่ระบุ' AND c.license_status=''))` : Prisma.empty}
     ${search ? Prisma.sql`AND (c.code ILIKE ${pattern} OR c.name ILIKE ${pattern} OR c.province ILIKE ${pattern} OR c.contact_name ILIKE ${pattern} OR c.phone ILIKE ${pattern} OR coalesce(t.name,'') ILIKE ${pattern})` : Prisma.empty}`;
@@ -143,6 +146,7 @@ export async function customerDetail(
   id: string,
   canWrite: boolean,
   includeDeleted = false,
+  scope: { id: string; roleId: string } = { id: '', roleId: 'ADMIN' },
 ): Promise<CustomerDetailResponse> {
   if (includeDeleted && !canWrite) throw new CustomerError('ไม่มีสิทธิ์ดูลูกค้าที่ลบแล้ว', 403);
   if (!uuidPattern.test(id)) throw new CustomerError('ไม่พบลูกค้า', 404);
@@ -152,7 +156,7 @@ export async function customerDetail(
       CASE WHEN ct.id IS NULL THEN NULL ELSE jsonb_build_object('id',ct.id,'name',ct.name,'days',ct.days) END AS "creditTerm",
       (SELECT jsonb_build_object('id',s.id,'name',s.name) FROM customer_options s WHERE s.id=NULLIF(c.details->'fields'->>'creditStartId','')::uuid) AS "creditStart"
       ${joins} LEFT JOIN customer_options g ON g.id=c.code_group_id
-      WHERE c.id=${id}::uuid ${includeDeleted ? Prisma.empty : Prisma.sql`AND c.deleted_at IS NULL`} AND c.details IS NOT NULL`,
+      WHERE c.id=${id}::uuid ${includeDeleted ? Prisma.empty : Prisma.sql`AND c.deleted_at IS NULL`} AND c.details IS NOT NULL ${customerScope(scope, Prisma.sql`c.id`)}`,
   );
   if (!rows[0]) throw new CustomerError('ไม่พบลูกค้า', 404);
   // Creator and latest editor come from the audit trail written by the save/delete/restore actions.

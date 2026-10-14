@@ -148,7 +148,7 @@ export default function Page() {
       aria-label="รายละเอียดคำสั่งซื้อ"
       className="relative min-h-80 min-w-0 w-full space-y-6 px-4 py-6 md:px-6 md:py-8"
     >
-      <Link href="/orders" className="text-sm text-[#1a58a7] hover:underline">
+      <Link href="/orders" className="text-sm text-[#1a58a7] hover:underline print:hidden">
         ← กลับรายการคำสั่งซื้อ
       </Link>
       <LoadingComponent
@@ -205,12 +205,15 @@ export default function Page() {
                 code: row.code,
                 customerId: row.customerId ?? '',
                 notes: row.notes,
-                lines: (row.lines ?? []).map((line) => ({
-                  productId: line.productId,
-                  quantity: String(line.quantity),
-                  discount: line.discount,
-                  unitPrice: line.unitPrice,
-                })),
+                promotionId: row.promotionId,
+                lines: (row.lines ?? [])
+                  .filter((line) => !line.isGift)
+                  .map((line) => ({
+                    productId: line.productId,
+                    quantity: String(line.quantity),
+                    discount: line.discount,
+                    unitPrice: line.unitPrice,
+                  })),
               }}
               busy={busy}
               error={error}
@@ -250,6 +253,14 @@ export default function Page() {
                       )
                     }
                   />
+                  <Item
+                    label="โปรโมชัน"
+                    value={
+                      row.promotion
+                        ? `${row.promotion.code} · ${row.promotion.name}`
+                        : '— (ไม่ใช้โปรโมชัน)'
+                    }
+                  />
                   <Item label="หมายเหตุ" value={row.notes} />
                 </dl>
               </Section>
@@ -277,16 +288,25 @@ export default function Page() {
                       {(row.lines ?? []).map((line, index) => (
                         <tr key={line.id} className="border-b border-[#edf1f5] last:border-b-0">
                           <td className={cellClass}>{index + 1}</td>
-                          <td className={`${cellClass} poppins-medium`}>{line.productName}</td>
+                          <td className={`${cellClass} poppins-medium`}>
+                            {line.productName}
+                            {line.isGift && (
+                              <span className="ml-2 inline-block align-middle">
+                                <StatusBadge value="ของแถม" />
+                              </span>
+                            )}
+                          </td>
                           <td className={`${cellClass} text-right`}>
                             {line.quantity.toLocaleString('th-TH')}
                           </td>
-                          <td className={`${cellClass} text-right`}>{money(line.unitPrice)}</td>
+                          <td className={`${cellClass} text-right`}>
+                            {line.isGift ? '' : money(line.unitPrice)}
+                          </td>
                           <td className={`${cellClass} text-right`}>
                             {Number(line.discount) ? money(line.discount) : '—'}
                           </td>
                           <td className={`${cellClass} text-right poppins-medium`}>
-                            {money(lineTotal(line))}
+                            {line.isGift ? '' : money(lineTotal(line))}
                           </td>
                           <td className={cellClass}>
                             {line.allocations.length ? (
@@ -313,7 +333,7 @@ export default function Page() {
                     </tbody>
                   </table>
                 </div>
-                <Totals lines={row.lines ?? []} />
+                <Totals lines={row.lines ?? []} billDiscount={row.billDiscount} />
                 <dl className="m-0 ml-auto mt-2 grid max-w-sm grid-cols-[1fr_auto] gap-x-6 gap-y-2 text-sm">
                   {row.costAmount !== undefined && (
                     <>
@@ -326,7 +346,7 @@ export default function Page() {
                 </dl>
               </Section>
               {open && (
-                <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
+                <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6 print:hidden">
                   <h2 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการ</h2>
                   <p className="mt-2 text-sm poppins-regular text-[#65758b]">
                     สร้างเอกสารแล้วจองทันที · Manager อนุมัติ · ตัดของเมื่อ Admin ยืนยันเสร็จสิ้น

@@ -6,15 +6,20 @@ import { getCurrentApiUser } from '@/server/auth/current-user';
 export function hasSameOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
   const forwardedProtocol = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
-  const protocol = forwardedProtocol === 'http' || forwardedProtocol === 'https'
-    ? `${forwardedProtocol}:` : request.nextUrl.protocol;
-  const hosts = [request.headers.get('host'), request.headers.get('x-forwarded-host')?.split(',')[0]?.trim()]
-    .filter((host): host is string => Boolean(host));
+  const protocol =
+    forwardedProtocol === 'http' || forwardedProtocol === 'https'
+      ? `${forwardedProtocol}:`
+      : request.nextUrl.protocol;
+  const hosts = [
+    request.headers.get('host'),
+    request.headers.get('x-forwarded-host')?.split(',')[0]?.trim(),
+  ].filter((host): host is string => Boolean(host));
   let sameOrigin = !origin;
   if (origin) {
     try {
       const source = new URL(origin);
-      sameOrigin = source.origin === origin && source.protocol === protocol && hosts.includes(source.host);
+      sameOrigin =
+        source.origin === origin && source.protocol === protocol && hosts.includes(source.host);
     } catch {
       sameOrigin = false;
     }
@@ -28,9 +33,13 @@ export async function authorizeUserManagement(request: NextRequest, resource = '
   }
 
   const user = await getCurrentApiUser(request);
-  if (!user) return { error: NextResponse.json({ error: 'กรุณาเข้าสู่ระบบ' }, { status: 401 }), user: null };
+  if (!user)
+    return { error: NextResponse.json({ error: 'กรุณาเข้าสู่ระบบ' }, { status: 401 }), user: null };
   if (user.userRole?.roleId !== 'ADMIN') {
-    return { error: NextResponse.json({ error: `ไม่มีสิทธิ์จัดการ${resource}` }, { status: 403 }), user: null };
+    return {
+      error: NextResponse.json({ error: `ไม่มีสิทธิ์จัดการ${resource}` }, { status: 403 }),
+      user: null,
+    };
   }
   return { error: null, user };
 }

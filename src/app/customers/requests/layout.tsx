@@ -1,7 +1,9 @@
+import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { requireAdmin } from '@/server/auth/current-user';
+import { requireActiveUser } from '@/server/auth/current-user';
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  await requireAdmin();
+  const user = await requireActiveUser();
+  if (!['ADMIN', 'SALES', 'MANAGER'].includes(user.userRole?.roleId ?? '')) redirect('/customers');
   return children;
 }

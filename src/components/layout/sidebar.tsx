@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/config/app';
+import { canSeePage } from '@/config/access';
 import {
   ADMIN_PAGES,
   NAVIGATION_SECTIONS,
@@ -54,13 +55,17 @@ export function Sidebar({
   const currentPage = getAdminPage(currentPath);
   const activePath = currentPage?.parentHref ?? currentPage?.href ?? currentPath;
   const allowedPages = ADMIN_PAGES.filter(
-    (page) => roleId === 'ADMIN' || !['/users', '/audit-logs', '/settings'].includes(page.href),
+    (page) =>
+      canSeePage(page.href, roleId) ||
+      (page.href === '/purchases' && canSeePage('/expenses', roleId)),
   );
+  const linkFor = (href: string) =>
+    href === '/purchases' && !canSeePage(href, roleId) ? '/expenses' : href;
   const mainPages = allowedPages.filter((page) => !page.secondaryOnly && !page.hiddenFromSidebar);
 
   return (
     <aside
-      className={`sticky inset-x-0 top-0 z-[5] block h-auto w-full overflow-visible bg-blue-700 text-white md:fixed md:inset-y-0 md:right-auto md:flex md:h-full md:overflow-hidden ${collapsed ? 'md:w-[var(--collapsed-sidebar-width)]' : 'md:w-[var(--expanded-sidebar-width)]'}`}
+      className={`sticky inset-x-0 top-0 z-[5] block h-auto w-full print:hidden overflow-visible bg-blue-700 text-white md:fixed md:inset-y-0 md:right-auto md:flex md:h-full md:overflow-hidden ${collapsed ? 'md:w-[var(--collapsed-sidebar-width)]' : 'md:w-[var(--expanded-sidebar-width)]'}`}
       aria-label="เมนูหลัก"
     >
       <div
@@ -124,7 +129,7 @@ export function Sidebar({
                       <li key={page.href}>
                         <Link
                           className={`flex min-h-[35px] items-center gap-[7px] whitespace-nowrap rounded-md border border-white/15 px-2.5 text-xs poppins-regular text-white md:min-h-[43px] md:gap-[13px] md:rounded-sm md:border-0 md:px-3 md:text-sm ${active ? 'border-white bg-white/13 md:shadow-[inset_3px_0_#fff]' : ''}`}
-                          href={page.href}
+                          href={linkFor(page.href)}
                           aria-current={active ? 'page' : undefined}
                         >
                           <NavigationIcon name={page.icon} />
@@ -148,7 +153,7 @@ export function Sidebar({
               <Link
                 className={`grid min-h-12 w-16.5 shrink-0 place-items-center rounded-[5px] text-white hover:bg-white/[0.14] ${active ? 'bg-white/[0.14]' : ''}`}
                 key={page.href}
-                href={page.href}
+                href={linkFor(page.href)}
                 title={page.label}
                 aria-label={page.label}
                 aria-current={active ? 'page' : undefined}

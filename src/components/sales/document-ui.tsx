@@ -137,16 +137,24 @@ export const lineTotal = (line: PricedLine) =>
   round(Math.max(0, line.quantity * Number(line.unitPrice ?? 0) - Number(line.discount ?? 0)));
 
 // Prices include VAT, so VAT is extracted from the total rather than added on top.
-export function Totals({ lines }: { lines: PricedLine[] }) {
+export function Totals({
+  lines,
+  billDiscount = 0,
+}: {
+  lines: PricedLine[];
+  billDiscount?: unknown;
+}) {
   const gross = round(
     lines.reduce((sum, line) => sum + line.quantity * Number(line.unitPrice ?? 0), 0),
   );
   const discount = round(lines.reduce((sum, line) => sum + Number(line.discount ?? 0), 0));
-  const total = round(lines.reduce((sum, line) => sum + lineTotal(line), 0));
+  const bill = round(Number(billDiscount ?? 0));
+  const total = round(Math.max(0, lines.reduce((sum, line) => sum + lineTotal(line), 0) - bill));
   const beforeVat = round((total * 100) / (100 + VAT_RATE));
   const rows: [string, number, boolean?][] = [
     ['ราคารวมก่อนส่วนลด', gross],
     ['ส่วนลดรวม', -discount],
+    ...(bill ? ([['ส่วนลดท้ายบิล (โปรโมชัน)', -bill]] as [string, number][]) : []),
     ['มูลค่าก่อน VAT', beforeVat],
     [`VAT ${VAT_RATE}%`, round(total - beforeVat)],
     ['ยอดรวมทั้งสิ้น (รวม VAT)', total, true],

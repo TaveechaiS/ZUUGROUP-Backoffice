@@ -1,6 +1,7 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
+import { allowRead } from '@/server/access/scope';
 import { getPrismaClient } from '@/server/db/prisma';
 import { RecordError } from '@/server/validation/records';
 import { sqlTableOrder } from '@/server/validation/table-sort';
@@ -19,19 +20,12 @@ import {
   type Actor,
   type Tx,
 } from '@/server/operations/service';
-import {
-  PAYMENT_TERMS,
-  PURCHASE_STATUSES,
-  SUPPLIER_FILTERS,
-  SUPPLIER_STATUSES,
-} from '@/config/purchasing';
+import { PURCHASE_STATUSES } from '@/config/purchasing';
 import type {
   OpenPurchaseLine,
   PurchaseLine,
   PurchaseReceipt,
   PurchaseRow,
-  SupplierOption,
-  SupplierRow,
 } from '@/types/api/purchasing';
 
 const P = {
@@ -43,11 +37,6 @@ const P = {
 
 function optional(value: unknown, label: string, max = 1000) {
   return str(value, label, false, max);
-}
-function oneOf<T extends readonly string[]>(value: unknown, list: T, label: string): T[number] {
-  const v = str(value, label);
-  if (!(list as readonly string[]).includes(v)) throw new RecordError(400, `${label}ไม่ถูกต้อง`);
-  return v;
 }
 function stale(body: Record<string, unknown>, updatedAt: Date) {
   if (
@@ -61,147 +50,6 @@ const uuidOrCode = (alias: Prisma.Sql, value: string) =>
     ? Prisma.sql`(${alias}.id=${value}::uuid OR ${alias}.code=${value})`
     : Prisma.sql`${alias}.code=${value}`;
 const likeOf = (search: string) => '%' + search.replace(/[\\%_]/g, '\\$&') + '%';
-
-function supplierFields(b: Record<string, unknown>) {
-  const taxId = optional(b.taxId, 'เลขประจำตัวผู้เสียภาษี', 13);
-  if (taxId && !/^\d{13}$/.test(taxId))
-    throw new RecordError(400, 'เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก');
-  const email = optional(b.email, 'อีเมล', 200);
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-    throw new RecordError(400, 'อีเมลไม่ถูกต้อง');
-  return {
-    name: str(b.name, 'ชื่อผู้ขาย', true, 200),
-    taxId,
-    address: optional(b.address, 'ที่อยู่'),
-    contact: optional(b.contact, 'ผู้ติดต่อ', 200),
-    phone: optional(b.phone, 'เบอร์โทร', 50),
-    email,
-    paymentTerms: oneOf(b.paymentTerms ?? 'เงินสด', PAYMENT_TERMS, 'เงื่อนไขชำระเงิน'),
-    status: oneOf(b.status ?? 'ใช้งาน', SUPPLIER_STATUSES, 'สถานะ'),
-    notes: optional(b.notes, 'หมายเหตุ'),
-  };
-}
-
-async function nextSupplierCode(tx: Tx) {
-  await tx.$queryRaw(Prisma.sql`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended('SUP-',2))`);
-  const rows = await query<{ value: number }>(
-    tx,
-    Prisma.sql`SELECT COALESCE(MAX(substring(code FROM 5::int)::int),0)+1 AS value FROM suppliers WHERE code ~ '^SUP-[0-9]{4,6}$'`,
-  );
-  if (rows[0].value > 999999) throw new RecordError(409, 'รหัสผู้ขายครบจำนวนแล้ว');
-  return 'SUP-' + String(rows[0].value).padStart(4, '0');
-}
-
-export async function supplierWrite(actor: Actor, raw: unknown, supplierId?: string) {
-  const b = object(raw),
-    action = supplierId ? str(b.action, 'คำสั่ง') : 'create';
-  allow(actor, ['ADMIN']);
-  return command(actor, b, `suppliers.${action}`, async (tx) => {
-    if (action === 'create') {
-      const f = supplierFields(b),
-        newId = randomUUID(),
-        code = await nextSupplierCode(tx);
-      await tx.$executeRaw(
-        Prisma.sql`INSERT INTO suppliers(id,code,name,status,tax_id,address,contact,phone,email,payment_terms,notes,created_by_id) VALUES(${newId}::uuid,${code},${f.name},${f.status},${f.taxId},${f.address},${f.contact},${f.phone},${f.email},${f.paymentTerms},${f.notes},${actor.id}::uuid)`,
-      );
-      return { data: { id: newId, code } };
-    }
-    const sid = id(supplierId);
-    const before = (
-      await query<{ updatedAt: Date; deletedAt: Date | null }>(
-        tx,
-        Prisma.sql`SELECT updated_at AS "updatedAt",deleted_at AS "deletedAt" FROM suppliers WHERE id=${sid}::uuid FOR UPDATE`,
-      )
-    )[0];
-    if (!before) throw new RecordError(404, 'ไม่พบผู้ขาย');
-    stale(b, before.updatedAt);
-    if (action === 'edit') {
-      if (before.deletedAt) throw new RecordError(409, 'ผู้ขายถูกลบแล้ว กู้คืนก่อนแก้ไข');
-      const f = supplierFields(b);
-      await tx.$executeRaw(
-        Prisma.sql`UPDATE suppliers SET name=${f.name},status=${f.status},tax_id=${f.taxId},address=${f.address},contact=${f.contact},phone=${f.phone},email=${f.email},payment_terms=${f.paymentTerms},notes=${f.notes},updated_at=clock_timestamp() WHERE id=${sid}::uuid`,
-      );
-      return { data: { id: sid } };
-    }
-    if (action === 'delete') {
-      if (before.deletedAt) throw new RecordError(409, 'ผู้ขายถูกลบอยู่แล้ว');
-      const reason = str(b.reason, 'เหตุผล');
-      await tx.$executeRaw(
-        Prisma.sql`UPDATE suppliers SET deleted_at=clock_timestamp(),deleted_by_id=${actor.id}::uuid,delete_reason=${reason},updated_at=clock_timestamp() WHERE id=${sid}::uuid`,
-      );
-      return { data: { id: sid, reason } };
-    }
-    if (action === 'restore') {
-      if (!before.deletedAt) throw new RecordError(409, 'ผู้ขายยังไม่ถูกลบ');
-      await tx.$executeRaw(
-        Prisma.sql`UPDATE suppliers SET deleted_at=NULL,deleted_by_id=NULL,delete_reason=NULL,updated_at=clock_timestamp() WHERE id=${sid}::uuid`,
-      );
-      return { data: { id: sid } };
-    }
-    throw new RecordError(400, 'คำสั่งไม่ถูกต้อง');
-  });
-}
-
-const supplierSelect = Prisma.sql`s.id,s.code,s.name,s.status,s.tax_id AS "taxId",s.address,s.contact,s.phone,s.email,s.payment_terms AS "paymentTerms",s.notes,COALESCE(u.name,'-') AS "createdByName",s.created_at AS "createdAt",s.updated_at AS "updatedAt",s.deleted_at AS "deletedAt",s.delete_reason AS "deleteReason",(SELECT count(*)::int FROM purchase_orders po WHERE po.supplier_id=s.id AND po.deleted_at IS NULL) AS "purchaseCount",(SELECT count(*)::int FROM purchase_orders po WHERE po.supplier_id=s.id AND po.deleted_at IS NULL AND po.status IN ('รอรับสินค้า','รับบางส่วน')) AS "openPurchaseCount"`;
-const supplierFrom = Prisma.sql`suppliers s LEFT JOIN users u ON u.id=s.created_by_id`;
-
-export async function supplierRead(actor: Actor, params: URLSearchParams, supplierId?: string) {
-  return getPrismaClient().$transaction(
-    async (tx) => {
-      if (supplierId) {
-        const row = (
-          await query<SupplierRow>(
-            tx,
-            Prisma.sql`SELECT ${supplierSelect} FROM ${supplierFrom} WHERE ${uuidOrCode(Prisma.sql`s`, supplierId)}`,
-          )
-        )[0];
-        if (!row) throw new RecordError(404, 'ไม่พบผู้ขาย');
-        return { data: row, actor };
-      }
-      if (params.get('view') === 'options') {
-        const data = await query<SupplierOption>(
-          tx,
-          Prisma.sql`SELECT id,code,name,payment_terms AS "paymentTerms" FROM suppliers WHERE deleted_at IS NULL AND status='ใช้งาน' ORDER BY name,id`,
-        );
-        return { data, actor };
-      }
-      const { offset, limit, search } = page(params),
-        like = likeOf(search),
-        status = params.get('status') ?? '';
-      if (status && !(SUPPLIER_FILTERS as readonly string[]).includes(status))
-        throw new RecordError(400, 'สถานะไม่ถูกต้อง');
-      const state =
-        status === 'ลบแล้ว'
-          ? Prisma.sql`s.deleted_at IS NOT NULL`
-          : status
-            ? Prisma.sql`s.deleted_at IS NULL AND s.status=${status}`
-            : Prisma.sql`s.deleted_at IS NULL`;
-      const where = Prisma.sql`${state} AND (s.code ILIKE ${like} OR s.name ILIKE ${like} OR s.tax_id ILIKE ${like} OR s.contact ILIKE ${like} OR s.phone ILIKE ${like})`;
-      const order = sqlTableOrder(
-        params,
-        {
-          code: Prisma.sql`s.code`,
-          name: Prisma.sql`s.name`,
-          contact: Prisma.sql`s.contact`,
-          paymentTerms: Prisma.sql`s.payment_terms`,
-          status: Prisma.sql`s.status`,
-        },
-        Prisma.sql`s.code DESC,s.id`,
-        Prisma.sql`s.id`,
-      );
-      const rows = await query<SupplierRow>(
-        tx,
-        Prisma.sql`SELECT ${supplierSelect} FROM ${supplierFrom} WHERE ${where} ORDER BY ${order} OFFSET ${offset} LIMIT ${limit}`,
-      );
-      const count = await query<{ total: number }>(
-        tx,
-        Prisma.sql`SELECT count(*)::int AS total FROM ${supplierFrom} WHERE ${where}`,
-      );
-      return { ...pageResult(rows, count[0].total, offset, limit), actor };
-    },
-    { isolationLevel: 'RepeatableRead' },
-  );
-}
 
 function purchaseLines(value: unknown) {
   if (!Array.isArray(value) || !value.length || value.length > 50)
@@ -218,17 +66,6 @@ function purchaseLines(value: unknown) {
   if (new Set(lines.map((l) => l.productId)).size !== lines.length)
     throw new RecordError(400, 'สินค้าในเอกสารต้องไม่ซ้ำกัน');
   return lines;
-}
-
-async function activeSupplier(tx: Tx, supplierId: string) {
-  const supplier = (
-    await query<{ name: string }>(
-      tx,
-      Prisma.sql`SELECT name FROM suppliers WHERE id=${supplierId}::uuid AND deleted_at IS NULL AND status='ใช้งาน' FOR KEY SHARE`,
-    )
-  )[0];
-  if (!supplier) throw new RecordError(400, 'ผู้ขายไม่พร้อมใช้งาน');
-  return supplier;
 }
 
 function dates(b: Record<string, unknown>, fallbackOrderDate?: string) {
@@ -275,8 +112,6 @@ export async function purchaseWrite(actor: Actor, raw: unknown, orderId?: string
   return command(actor, b, `purchases.${action}`, async (tx) => {
     if (action === 'create') {
       const lines = purchaseLines(b.lines),
-        supplierId = id(b.supplierId, 'ผู้ขาย'),
-        supplier = await activeSupplier(tx, supplierId),
         { orderDate, expectedOn } = dates(b);
       await lockProducts(
         tx,
@@ -285,7 +120,7 @@ export async function purchaseWrite(actor: Actor, raw: unknown, orderId?: string
       const newId = randomUUID(),
         code = await nextDocumentCode(tx, 'PO');
       await tx.$executeRaw(
-        Prisma.sql`INSERT INTO purchase_orders(id,code,name,status,supplier_id,owner,notes,order_date,expected_on,created_by_id) VALUES(${newId}::uuid,${code},${supplier.name},${P.waiting},${supplierId}::uuid,${actor.name},${optional(b.notes, 'หมายเหตุ')},${orderDate}::date,${expectedOn}::date,${actor.id}::uuid)`,
+        Prisma.sql`INSERT INTO purchase_orders(id,code,status,owner,notes,order_date,expected_on,created_by_id) VALUES(${newId}::uuid,${code},${P.waiting},${actor.name},${optional(b.notes, 'หมายเหตุ')},${orderDate}::date,${expectedOn}::date,${actor.id}::uuid)`,
       );
       const amount = await writeLines(tx, newId, lines);
       await tx.$executeRaw(
@@ -308,8 +143,6 @@ export async function purchaseWrite(actor: Actor, raw: unknown, orderId?: string
       if (before.received)
         throw new RecordError(409, 'รับสินค้าแล้ว แก้ใบสั่งซื้อไม่ได้ ใช้ปิดใบแทน');
       const lines = purchaseLines(b.lines),
-        supplierId = id(b.supplierId, 'ผู้ขาย'),
-        supplier = await activeSupplier(tx, supplierId),
         { orderDate, expectedOn } = dates(b, before.orderDate);
       const oldLines = await query<{ productId: string }>(
         tx,
@@ -324,7 +157,7 @@ export async function purchaseWrite(actor: Actor, raw: unknown, orderId?: string
       );
       const amount = await writeLines(tx, pid, lines);
       await tx.$executeRaw(
-        Prisma.sql`UPDATE purchase_orders SET supplier_id=${supplierId}::uuid,name=${supplier.name},order_date=${orderDate}::date,expected_on=${expectedOn}::date,notes=${optional(b.notes, 'หมายเหตุ')},amount=${amount}::numeric,updated_at=clock_timestamp() WHERE id=${pid}::uuid`,
+        Prisma.sql`UPDATE purchase_orders SET order_date=${orderDate}::date,expected_on=${expectedOn}::date,notes=${optional(b.notes, 'หมายเหตุ')},amount=${amount}::numeric,updated_at=clock_timestamp() WHERE id=${pid}::uuid`,
       );
       return { data: { id: pid } };
     }
@@ -345,10 +178,11 @@ export async function purchaseWrite(actor: Actor, raw: unknown, orderId?: string
 }
 
 const totals = Prisma.sql`LEFT JOIN LATERAL (SELECT COALESCE(sum(li.quantity),0)::int AS ordered,COALESCE(sum(${receivedOnLine(Prisma.sql`li.id`)}),0)::int AS received FROM purchase_order_lines li WHERE li.purchase_order_id=po.id) t ON true`;
-const purchaseFrom = Prisma.sql`purchase_orders po JOIN suppliers s ON s.id=po.supplier_id LEFT JOIN users u ON u.id=po.created_by_id ${totals}`;
-const purchaseSelect = Prisma.sql`po.id,po.code,po.status,po.supplier_id AS "supplierId",s.code AS "supplierCode",s.name AS "supplierName",s.payment_terms AS "paymentTerms",po.order_date::text AS "orderDate",po.expected_on::text AS "expectedOn",COALESCE(po.amount,0)::text AS amount,t.ordered,t.received,po.notes,po.close_reason AS "closeReason",COALESCE(u.name,po.owner) AS "createdByName",po.created_at AS "createdAt",po.updated_at AS "updatedAt"`;
+const purchaseFrom = Prisma.sql`purchase_orders po LEFT JOIN users u ON u.id=po.created_by_id ${totals}`;
+const purchaseSelect = Prisma.sql`po.id,po.code,po.status,po.order_date::text AS "orderDate",po.expected_on::text AS "expectedOn",COALESCE(po.amount,0)::text AS amount,t.ordered,t.received,po.notes,po.close_reason AS "closeReason",COALESCE(u.name,po.owner) AS "createdByName",po.created_at AS "createdAt",po.updated_at AS "updatedAt"`;
 
 export async function purchaseRead(actor: Actor, params: URLSearchParams, orderId?: string) {
+  allowRead(actor, ['ADMIN', 'ACCOUNTING_CFO']);
   return getPrismaClient().$transaction(
     async (tx) => {
       if (orderId) {
@@ -378,16 +212,14 @@ export async function purchaseRead(actor: Actor, params: URLSearchParams, orderI
       }
       const { offset, limit, search } = page(params),
         like = likeOf(search),
-        status = params.get('status') ?? '',
-        supplierId = params.get('supplierId') ?? '';
+        status = params.get('status') ?? '';
       if (status && !(PURCHASE_STATUSES as readonly string[]).includes(status))
         throw new RecordError(400, 'สถานะไม่ถูกต้อง');
-      const where = Prisma.sql`po.deleted_at IS NULL AND (po.code ILIKE ${like} OR s.name ILIKE ${like} OR s.code ILIKE ${like}) ${status ? Prisma.sql`AND po.status=${status}` : Prisma.empty} ${supplierId ? Prisma.sql`AND po.supplier_id=${id(supplierId, 'ผู้ขาย')}::uuid` : Prisma.empty}`;
+      const where = Prisma.sql`po.deleted_at IS NULL AND (po.code ILIKE ${like} OR po.notes ILIKE ${like} OR EXISTS (SELECT 1 FROM purchase_order_lines sl WHERE sl.purchase_order_id=po.id AND sl.product_name ILIKE ${like})) ${status ? Prisma.sql`AND po.status=${status}` : Prisma.empty}`;
       const order = sqlTableOrder(
         params,
         {
           code: Prisma.sql`po.code`,
-          supplierName: Prisma.sql`s.name`,
           orderDate: Prisma.sql`po.order_date`,
           expectedOn: Prisma.sql`po.expected_on`,
           amount: Prisma.sql`po.amount`,

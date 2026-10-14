@@ -1,6 +1,10 @@
 import { NextRequest } from 'next/server';
-import {recordHandler} from '@/server/records/handlers';
-export const dynamic='force-dynamic';
-export const runtime='nodejs';
-export function GET(request:NextRequest){return recordHandler(request,'expenses');}
-export function POST(request:NextRequest){return recordHandler(request,'expenses');}
+import { expensesHandler } from '@/server/expenses/handler';
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export function GET(request: NextRequest) {
+  return expensesHandler(request);
+}
+export function POST(request: NextRequest) {
+  return expensesHandler(request);
+}

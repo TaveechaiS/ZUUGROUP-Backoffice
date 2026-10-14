@@ -3,15 +3,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SecondarySidebarFrame from '@/components/layout/secondary-sidebar-frame';
+import { canSeePage } from '@/config/access';
 
 export default function PurchasingSecondarySidebar({ roleId }: { roleId: string }) {
   const pathname = usePathname();
   const admin = roleId === 'ADMIN';
   const pages = [
-    { href: '/purchases', label: 'รายการใบสั่งซื้อ' },
+    ...(canSeePage('/purchases', roleId)
+      ? [{ href: '/purchases', label: 'รายการใบสั่งซื้อ' }]
+      : []),
     ...(admin ? [{ href: '/purchases/create', label: 'สร้างใบสั่งซื้อ' }] : []),
-    { href: '/suppliers', label: 'ผู้ขาย' },
-    ...(admin ? [{ href: '/suppliers/create', label: 'เพิ่มผู้ขาย' }] : []),
+    ...(canSeePage('/expenses', roleId) ? [{ href: '/expenses', label: 'ค่าใช้จ่าย' }] : []),
+    ...(admin || roleId === 'ACCOUNTING_CFO'
+      ? [{ href: '/expenses/create', label: 'เพิ่มค่าใช้จ่าย' }]
+      : []),
   ];
   const isActive = (href: string) =>
     href.endsWith('/create')
@@ -21,7 +26,7 @@ export default function PurchasingSecondarySidebar({ roleId }: { roleId: string 
   return (
     <SecondarySidebarFrame>
       <nav
-        aria-label="เมนูจัดซื้อ"
+        aria-label="เมนูจัดซื้อและค่าใช้จ่าย"
         className="flex gap-1 overflow-x-auto p-2 md:flex-col md:gap-2 md:px-0 md:py-5"
       >
         {pages.map((page) => {

@@ -78,7 +78,13 @@ try {
   await db.user.create({
     data: { id: uid, employeeCode: prefix, email: prefix + '@example.invalid', name: admin.name },
   });
-  await db.customer.create({ data: { id: cid, code: prefix, name: 'ลูกค้าทดสอบ' } });
+  const salesTerritory = crypto.randomUUID();
+  territories.push(salesTerritory);
+  await db.$executeRaw`INSERT INTO sales_territories(id,code,name) VALUES(${salesTerritory}::uuid,${prefix + 'T'},${prefix + 'T'})`;
+  await db.$executeRaw`INSERT INTO sales_territory_sales(territory_id,user_id) VALUES(${salesTerritory}::uuid,${uid}::uuid)`;
+  await db.customer.create({
+    data: { id: cid, code: prefix, name: 'ลูกค้าทดสอบ', territoryId: salesTerritory },
+  });
   await db.user.create({
     data: {
       id: managerId,
@@ -168,7 +174,8 @@ try {
   });
   main = (await db.warehouse.findUnique({ where: { code: 'MAIN' } })).id;
   marketing = (await db.warehouse.findUnique({ where: { code: 'MARKETING' } })).id;
-  await test('TASK094 สินค้าไม่มีล็อตยังแสดงยอดศูนย์ และไม่อยู่หน้าคลัง', async () => {
+  await db.customer.update({ where: { id: cid }, data: { territoryId: salesTerritory } });
+  await test('TASK094 สินค้าไม่มีล็อตยังแสดงยอดศูนย์ และหน้าคลังหลักแสดงสินค้า MAIN=0', async () => {
     const all = await ops.inventoryRead(
       admin,
       new URLSearchParams({ view: 'products', search: prefix }),
@@ -180,7 +187,8 @@ try {
       admin,
       new URLSearchParams({ view: 'products', search: prefix, warehouseCode: 'MAIN' }),
     );
-    assert.equal(warehouse.pagination.total, 0);
+    assert.equal(warehouse.pagination.total, 1);
+    assert.equal(warehouse.data[0].quantity, 0);
   });
   const receive = {
     action: 'receive',
@@ -503,8 +511,9 @@ try {
     assert.ok(!JSON.stringify(response).includes('beforeData'));
   });
   await test('7 วันนับจากรับเข้าครั้งแรก', async () => {
+    const { receiptId } = await db.productLot.findUnique({ where: { id: lot2 } });
     await db.stockReceipt.update({
-      where: { id: receipt },
+      where: { id: receiptId },
       data: { createdAt: new Date(Date.now() - 8 * 86400000) },
     });
     await rejects(

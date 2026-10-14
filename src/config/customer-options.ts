@@ -29,6 +29,12 @@ export const CUSTOMER_OPTION_KINDS = {
     codeRequired: false,
     daysRequired: false,
   },
+  expenseCategory: {
+    label: 'หมวดค่าใช้จ่าย',
+    group: 'ค่าใช้จ่าย',
+    codeRequired: false,
+    daysRequired: false,
+  },
 } as const;
 
 export type CustomerOptionKind = keyof typeof CUSTOMER_OPTION_KINDS;

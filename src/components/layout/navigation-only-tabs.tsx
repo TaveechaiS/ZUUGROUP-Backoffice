@@ -10,7 +10,9 @@ function tabsFor(pathname: string, roleId: string): string[] {
   }
   if (pathname === '/products/stock') return ['ทั้งหมด', 'ใกล้หมดอายุ', 'หมดอายุ'];
   // Other stock pages have a single tab; create/detail pages have none.
-  const pageDefinition = RECORD_MODULES.find((item) => item.page === pathname && item.key !== 'orders');
+  const pageDefinition = RECORD_MODULES.find(
+    (item) => item.page === pathname && item.key !== 'orders',
+  );
   if (!pageDefinition) return [];
   return [...pageDefinition.tabs, ...(roleId === 'ADMIN' ? ['ลบแล้ว'] : [])];
 }

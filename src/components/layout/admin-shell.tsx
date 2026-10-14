@@ -60,13 +60,16 @@ export function AdminShell({
   const promotionSection = currentPath === '/promotions' || currentPath.startsWith('/promotions/');
   const quoteSection = currentPath === '/quotes' || currentPath.startsWith('/quotes/');
   const orderSection = currentPath === '/orders' || currentPath.startsWith('/orders/');
+  const billingSection = currentPath === '/billing' || currentPath.startsWith('/billing/');
   const purchasingSection =
     currentPath === '/purchases' ||
     currentPath.startsWith('/purchases/') ||
-    currentPath === '/suppliers' ||
-    currentPath.startsWith('/suppliers/');
+    currentPath === '/expenses' ||
+    currentPath.startsWith('/expenses/');
   const salesReportSection =
     currentPath === '/reports/sales' || currentPath.startsWith('/reports/sales/');
+  const financeReportSection =
+    currentPath === '/reports/finance' || currentPath.startsWith('/reports/finance/');
   const inventoryReportSection =
     currentPath === '/reports/inventory' || currentPath.startsWith('/reports/inventory/');
 
@@ -104,11 +107,11 @@ export function AdminShell({
         roleId={account?.roleId ?? ''}
       />
       <section
-        className={`${collapsed ? 'min-h-[calc(100vh-64px)]' : 'min-h-[calc(100vh-102px)]'} bg-blue-700 md:min-h-screen ${collapsed ? 'md:ml-[var(--collapsed-sidebar-width)]' : 'md:ml-[var(--expanded-sidebar-width)]'}`}
+        className={`${collapsed ? 'min-h-[calc(100vh-64px)]' : 'min-h-[calc(100vh-102px)]'} bg-blue-700 md:min-h-screen print:!ml-0 print:bg-white ${collapsed ? 'md:ml-[var(--collapsed-sidebar-width)]' : 'md:ml-[var(--expanded-sidebar-width)]'}`}
       >
         <div
           ref={topbarRef}
-          className="sticky top-[var(--main-sidebar-height,0px)] z-[5] border-t-[10px] border-blue-700 bg-blue-700 md:top-0"
+          className="sticky top-[var(--main-sidebar-height,0px)] z-[5] border-t-[10px] border-blue-700 bg-blue-700 md:top-0 print:hidden"
         >
           <header className="relative flex min-h-20 items-center justify-between gap-3 border-b border-[#d7e3f0] bg-blue-50 px-4 py-2.5 md:min-h-18 md:gap-6 md:rounded-tl-[25px] md:px-7.5 md:py-0">
             <div className="min-w-0 flex-1">
@@ -129,15 +132,19 @@ export function AdminShell({
                               ? 'รายงานยอดขาย'
                               : inventoryReportSection
                                 ? 'รายงานคลังสินค้า'
-                                : quoteSection
-                                  ? 'ใบเสนอราคา'
-                                  : orderSection
-                                    ? 'คำสั่งซื้อ'
-                                    : purchasingSection
-                                      ? 'จัดซื้อ'
-                                      : settingsSection
-                                        ? 'ตั้งค่าระบบ'
-                                        : page.label}
+                                : financeReportSection
+                                  ? 'รายงานการเงิน'
+                                  : quoteSection
+                                    ? 'ใบเสนอราคา'
+                                    : orderSection
+                                      ? 'คำสั่งซื้อ'
+                                      : billingSection
+                                        ? 'วางบิล & ลูกหนี้'
+                                        : purchasingSection
+                                          ? 'จัดซื้อ & ค่าใช้จ่าย'
+                                          : settingsSection
+                                            ? 'ตั้งค่าระบบ'
+                                            : page.label}
               </h1>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 text-xs text-[#59677e] md:gap-5">
@@ -215,9 +222,13 @@ export function AdminShell({
             {orderSection && (
               <SalesDocumentSecondarySidebar parentHref="/orders" roleId={account?.roleId ?? ''} />
             )}
+            {billingSection && (
+              <SalesDocumentSecondarySidebar parentHref="/billing" roleId={account?.roleId ?? ''} />
+            )}
             {purchasingSection && <PurchasingSecondarySidebar roleId={account?.roleId ?? ''} />}
             {salesReportSection && <ReportSecondarySidebar parentHref="/reports/sales" />}
             {inventoryReportSection && <ReportSecondarySidebar parentHref="/reports/inventory" />}
+            {financeReportSection && <ReportSecondarySidebar parentHref="/reports/finance" />}
             {settingsSection && account?.roleId === 'ADMIN' && <SettingsSecondarySidebar />}
             <div className="flex min-w-0 flex-1 flex-col">
               {showProductTable ||
@@ -231,10 +242,12 @@ export function AdminShell({
                   currentPath === '/customers/list' ||
                   currentPath === '/customers/create' ||
                   currentPath === '/customers/list/create' ||
+                  currentPath === '/customers/dashboard' ||
+                  currentPath.startsWith('/customers/dashboard/') ||
+                  currentPath === '/customers/documents' ||
                   (/^\/customers\/[^/]+$/.test(currentPath) &&
                     !['groups', 'documents', 'dashboard'].includes(currentPath.split('/')[2])) ||
-                  (/^\/customers\/requests\/[^/]+$/.test(currentPath) &&
-                    account?.roleId === 'ADMIN') ||
+                  /^\/customers\/requests\/[^/]+$/.test(currentPath) ||
                   (/^\/customers\/[^/]+\/edit$/.test(currentPath) &&
                     !['territories', 'groups', 'documents', 'dashboard', 'list'].includes(
                       currentPath.split('/')[2],
@@ -245,6 +258,13 @@ export function AdminShell({
               orderSection ||
               quoteSection ||
               purchasingSection ||
+              billingSection ||
+              currentPath === '/stock-counts' ||
+              currentPath.startsWith('/stock-counts/') ||
+              promotionSection ||
+              salesReportSection ||
+              inventoryReportSection ||
+              financeReportSection ||
               (currentPath === '/products/create' && account?.roleId === 'ADMIN') ||
               ((currentPath === '/settings/product-options' ||
                 currentPath === '/settings/customer-options') &&

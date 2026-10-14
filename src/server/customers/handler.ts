@@ -40,12 +40,21 @@ export async function customerHandler(request: NextRequest, action: Action, id?:
     if (!user?.userRole) throw new CustomerError('กรุณาเข้าสู่ระบบ', 401);
     const admin = user.userRole.roleId === 'ADMIN';
     if (action === 'list')
-      return NextResponse.json(await listCustomers(request.nextUrl.searchParams, admin), {
-        headers,
-      });
+      return NextResponse.json(
+        await listCustomers(request.nextUrl.searchParams, admin, {
+          id: user.id,
+          roleId: user.userRole.roleId,
+        }),
+        {
+          headers,
+        },
+      );
     if (action === 'detail')
       return NextResponse.json(
-        await customerDetail(id!, admin, request.nextUrl.searchParams.get('deleted') === 'true'),
+        await customerDetail(id!, admin, request.nextUrl.searchParams.get('deleted') === 'true', {
+          id: user.id,
+          roleId: user.userRole.roleId,
+        }),
         { headers },
       );
     if (action === 'file') {
@@ -61,7 +70,10 @@ export async function customerHandler(request: NextRequest, action: Action, id?:
         },
       });
     }
-    if (!admin) throw new CustomerError('ไม่มีสิทธิ์จัดการข้อมูลลูกค้า', 403);
+    const requester =
+      ['SALES', 'MANAGER'].includes(user.userRole.roleId) &&
+      ['begin', 'upload', 'status', 'cancel', 'next'].includes(action);
+    if (!admin && !requester) throw new CustomerError('ไม่มีสิทธิ์จัดการข้อมูลลูกค้า', 403);
     if (action !== 'next' && action !== 'status' && !hasSameOrigin(request))
       throw new CustomerError('คำขอไม่ถูกต้อง', 403);
     if (action === 'next')

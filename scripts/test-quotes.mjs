@@ -115,6 +115,8 @@ try {
         otherSales = await user('SALES', 'SALES2');
       const [territory] =
         await tx.$queryRaw`INSERT INTO sales_territories(code,name,manager_id) VALUES(${prefix},${prefix},${manager.id}::uuid) RETURNING id`;
+      for (const member of [sales, otherSales])
+        await tx.$executeRaw`INSERT INTO sales_territory_sales(territory_id,user_id) VALUES(${territory.id}::uuid,${member.id}::uuid)`;
       const customerId = key();
       await tx.customer.create({
         data: {

@@ -1,4 +1,5 @@
 // TASK-275 quotation API shapes. Status constants live in src/config/quotes.ts.
+import type { PromotionSnapshot } from '@/types/api/promotions';
 
 export type QuoteLine = {
   id: string;
@@ -9,6 +10,7 @@ export type QuoteLine = {
   quantity: number;
   unitPrice: string;
   discount: string;
+  isGift: boolean;
 };
 
 export type QuoteRow = {
@@ -34,6 +36,9 @@ export type QuoteRow = {
   workflowManaged: boolean;
   orderId: string | null;
   orderCode: string | null;
+  promotionId: string | null;
+  promotion: PromotionSnapshot | null;
+  billDiscount: string;
   lines?: QuoteLine[];
 };
 

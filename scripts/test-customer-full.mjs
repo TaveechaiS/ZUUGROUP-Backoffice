@@ -524,10 +524,12 @@ try {
         await rejects(() => service.commitCustomerRequest(cancelId, admin.id), /ยกเลิก/);
         await rejects(() => service.cancelCustomerRequest(requestId, admin.id), /บันทึกแล้ว/);
       });
-      await test('Roles: Sales reads but cannot write; anonymous 401; origin checked', async () => {
+      await test('Roles: Sales reads, may start requests (TASK-288) but cannot commit; anonymous 401; origin checked', async () => {
         identity = { ...admin, userRole: { roleId: 'SALES' } };
         assert.equal((await call('list', { include: 'config' })).config.canWrite, false);
-        await call('next', { codeGroupId: group.id }, undefined, 403);
+        await call('next', { codeGroupId: group.id });
+        await call('commit', {}, requestId, 403);
+        await call('restore', {}, requestId, 403);
         identity = admin;
         sameOrigin = false;
         await call('begin', {}, undefined, 403);

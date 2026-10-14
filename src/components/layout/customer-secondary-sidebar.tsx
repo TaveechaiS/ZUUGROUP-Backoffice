@@ -25,7 +25,10 @@ export default function CustomerSecondarySidebar({ roleId }: { roleId: string })
   const pages = ADMIN_PAGES.filter(
     (page) =>
       page.parentHref === '/customers' &&
-      (!['/customers/create', '/customers/requests'].includes(page.href) || roleId === 'ADMIN'),
+      (!['/customers/create', '/customers/requests'].includes(page.href) ||
+        ['ADMIN', 'SALES', 'MANAGER'].includes(roleId)) &&
+      (page.href !== '/customers/dashboard/create' ||
+        ['ADMIN', 'MANAGER', 'SALES'].includes(roleId)),
   );
 
   return (
@@ -40,7 +43,13 @@ export default function CustomerSecondarySidebar({ roleId }: { roleId: string })
               ? creating
               : page.href === '/customers/requests'
                 ? requests
-                : listing && !creating && !requests;
+                : page.href === '/customers/dashboard/create'
+                  ? pathname === page.href
+                  : page.href === '/customers/dashboard'
+                    ? pathname.startsWith(page.href) && pathname !== '/customers/dashboard/create'
+                    : page.href === '/customers/documents'
+                      ? pathname.startsWith(page.href)
+                      : listing && !creating && !requests;
           return (
             <Link
               key={page.href}

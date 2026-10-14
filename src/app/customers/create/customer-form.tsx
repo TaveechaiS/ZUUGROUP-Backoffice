@@ -12,7 +12,8 @@ import CustomerAddressPicker from './customer-address-picker';
 import ChevronDown from '@/components/ui/chevron-down';
 import LoadingComponent from '@/components/ui/loading-component';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
-import { Delete, Get, HttpError, Post } from '@/service/http';
+import { Delete, Get, HttpError, Post, Update } from '@/service/http';
+import { useRouteData } from '@/components/ui/route-data';
 import {
   CUSTOMER_OPTION_FIELDS,
   CUSTOMER_TEXT_FIELDS,
@@ -212,6 +213,9 @@ type Customer = CustomerDetailResponse['data'];
 // One form for create and edit (TASK-268); `initial` switches to edit mode.
 export default function CustomerForm({ initial }: { initial?: Customer }) {
   const router = useRouter();
+  const routeData = useRouteData();
+  const asRequest = !initial && routeData.isAdmin === false;
+  const [submitted, setSubmitted] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const lock = useRef(false);
   const pending = useRef<{ id: string; signature: string; created?: boolean } | null>(null);
@@ -334,6 +338,12 @@ export default function CustomerForm({ initial }: { initial?: Customer }) {
           await Post(`/api/customers/requests/${request.id}/files`, body);
         }
       }
+      if (asRequest) {
+        setProgress('ส่งคำขอ');
+        await Update(`/api/customer-requests/${request.id}`, { action: 'submit' });
+        setSubmitted(request.id);
+        return;
+      }
       setProgress('บันทึกลูกค้า');
       const result = await Post<{ customer: { id: string; code: string } }>(
         `/api/customers/requests/${request.id}`,
@@ -440,7 +450,10 @@ export default function CustomerForm({ initial }: { initial?: Customer }) {
           <option key={item.id} value={item.name} />
         ))}
       </datalist>
-      <fieldset disabled={busy || Boolean(saved)} className="min-w-0 border-0 p-0">
+      <fieldset
+        disabled={busy || Boolean(saved) || Boolean(submitted)}
+        className="min-w-0 border-0 p-0"
+      >
         <div className="space-y-9">
           {sections.map((section, index) => (
             <details
@@ -519,7 +532,7 @@ export default function CustomerForm({ initial }: { initial?: Customer }) {
         )}
         <button
           type="button"
-          disabled={busy || Boolean(saved)}
+          disabled={busy || Boolean(saved) || Boolean(submitted)}
           onClick={() => void cancel()}
           className="w-36 rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-center text-sm poppins-medium text-[#344256] hover:bg-gray-50 disabled:opacity-50"
         >
@@ -527,12 +540,20 @@ export default function CustomerForm({ initial }: { initial?: Customer }) {
         </button>
         <button
           type="submit"
-          disabled={busy || Boolean(saved)}
+          disabled={busy || Boolean(saved) || Boolean(submitted)}
           className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
         >
-          {busy ? 'กำลังบันทึก...' : 'บันทึก'}
+          {busy ? 'กำลังบันทึก...' : asRequest ? 'ส่งคำขอ' : 'บันทึก'}
         </button>
       </div>
+      <SuccessAlertComponent
+        isOpen={Boolean(submitted)}
+        title="ส่งคำขอเพิ่มลูกค้าแล้ว"
+        description="Admin จะตรวจและอนุมัติ ติดตามสถานะได้ที่ คำขอของฉัน"
+        onClose={() => {
+          if (submitted) router.push(`/customers/requests/${submitted}`);
+        }}
+      />
       <SuccessAlertComponent
         isOpen={Boolean(saved)}
         title={

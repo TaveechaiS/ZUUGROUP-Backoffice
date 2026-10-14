@@ -6,7 +6,6 @@ import { CloseIcon } from '@/components/icons/status-icons';
 import {
   DateInput,
   FieldLabel,
-  Item,
   Section,
   Totals,
   bangkokToday,
@@ -19,7 +18,6 @@ import {
 
 type LineInput = { productId: string; quantity: string; unitCost: string; discount: string };
 export type PurchaseDraft = {
-  supplierId: string;
   orderDate: string;
   expectedOn: string;
   notes: string;
@@ -40,8 +38,6 @@ export default function PurchaseForm({
   options: ReceiveOptions;
   initial?: {
     code: string;
-    supplierId: string;
-    supplierName: string;
     orderDate: string;
     expectedOn: string | null;
     notes: string;
@@ -53,7 +49,6 @@ export default function PurchaseForm({
   onSubmit: (draft: PurchaseDraft) => void;
   onCancel: () => void;
 }) {
-  const [supplierId, setSupplierId] = useState(initial?.supplierId ?? '');
   const [orderDate, setOrderDate] = useState(initial?.orderDate ?? bangkokToday());
   const [expectedOn, setExpectedOn] = useState(initial?.expectedOn ?? '');
   const [notes, setNotes] = useState(initial?.notes ?? '');
@@ -66,14 +61,6 @@ export default function PurchaseForm({
     commandKey.current = crypto.randomUUID();
     setInvalid('');
   };
-  const supplier = options.suppliers.find((item) => item.id === supplierId);
-  const supplierChoices =
-    initial && !options.suppliers.some((item) => item.id === initial.supplierId)
-      ? [
-          { id: initial.supplierId, code: '', name: initial.supplierName, paymentTerms: '' },
-          ...options.suppliers,
-        ]
-      : options.suppliers;
   const product = (id: string) => options.products.find((item) => item.id === id);
   const priced = lines.map((line) => ({
     quantity: Number(line.quantity || 0),
@@ -90,7 +77,6 @@ export default function PurchaseForm({
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        if (!supplierId) return setInvalid('กรุณาเลือกผู้ขาย');
         if (!orderDate || orderDate > bangkokToday())
           return setInvalid('วันที่สั่งซื้อต้องไม่เกินวันนี้');
         if (expectedOn && expectedOn < orderDate)
@@ -107,7 +93,6 @@ export default function PurchaseForm({
         if (new Set(lines.map((line) => line.productId)).size !== lines.length)
           return setInvalid('สินค้าในใบสั่งซื้อต้องไม่ซ้ำกัน');
         onSubmit({
-          supplierId,
           orderDate,
           expectedOn,
           notes,
@@ -132,31 +117,6 @@ export default function PurchaseForm({
                 disabled
                 className={inputClass}
               />
-            </label>
-            <label className="min-w-0">
-              <FieldLabel text="ผู้ขาย" required />
-              <select
-                required
-                value={supplierId}
-                onChange={(event) => {
-                  setSupplierId(event.target.value);
-                  touch();
-                }}
-                className={inputClass}
-              >
-                <option value="">เลือกผู้ขาย</option>
-                {supplierChoices.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                    {item.code ? ` · ${item.code}` : ''}
-                  </option>
-                ))}
-              </select>
-              {!options.suppliers.length && (
-                <span className="mt-1 block text-xs text-[#718096]">
-                  ยังไม่มีผู้ขายที่ใช้งาน — เพิ่มผู้ขายก่อน
-                </span>
-              )}
             </label>
             <div className="min-w-0">
               <FieldLabel text="วันที่สั่งซื้อ" required />
@@ -184,12 +144,6 @@ export default function PurchaseForm({
               />
             </div>
           </div>
-          {supplier && (
-            <dl className="m-0 mt-5 grid grid-cols-1 gap-x-8 gap-y-4 rounded-lg bg-[#f7f9fc] p-4 sm:grid-cols-2">
-              <Item label="รหัสผู้ขาย" value={supplier.code} />
-              <Item label="เงื่อนไขชำระเงิน" value={supplier.paymentTerms} />
-            </dl>
-          )}
         </Section>
         <Section title="รายการสินค้า" open>
           <div className="overflow-x-auto rounded-lg border border-[#d9e3ee]">

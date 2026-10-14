@@ -3,6 +3,7 @@ import 'server-only';
 // quotes never reserve stock; an approved, unexpired quote converts once into a sales order.
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
+import { assertCustomerInScope, customerScope } from '@/server/access/scope';
 import { getPrismaClient } from '@/server/db/prisma';
 import { RecordError } from '@/server/validation/records';
 import { sqlTableOrder } from '@/server/validation/table-sort';
@@ -28,6 +29,7 @@ import {
   type Tx,
 } from '@/server/operations/service';
 import { QUOTE_DISPLAY_STATUSES, QUOTE_VALID_DAYS } from '@/config/quotes';
+import { evaluatePromotion, promotionIdOf } from '@/server/promotions/apply';
 import type { QuoteLine, QuoteRow } from '@/types/api/quotes';
 
 const Q = {
@@ -43,7 +45,7 @@ const quoteFrom = Prisma.sql`quotations q LEFT JOIN customers c ON c.id=q.custom
 const displayStatus = (today: string) =>
   Prisma.sql`CASE WHEN q.workflow_managed AND q.status IN (${Prisma.join(open)}) AND so.id IS NULL AND q.valid_until<${today}::date THEN 'หมดอายุ' ELSE q.status END`;
 const quoteSelect = (today: string) =>
-  Prisma.sql`q.id,q.code,q.status,${displayStatus(today)} AS "displayStatus",q.customer_id AS "customerId",COALESCE(c.code,'') AS "customerCode",COALESCE(c.name,q.name,'-') AS "customerName",COALESCE(t.name,'-') AS "territoryName",COALESCE(s.name,'-') AS "salesName",COALESCE(m.name,'-') AS "managerName",COALESCE(creator.name,q.owner) AS "createdByName",q.created_by_id AS "createdById",COALESCE(approver.name,'-') AS "approvedByName",q.return_reason AS "returnReason",q.notes,COALESCE(q.amount,0)::text AS amount,q.valid_until::text AS "validUntil",q.created_at AS "createdAt",q.updated_at AS "updatedAt",q.workflow_managed AS "workflowManaged",so.id AS "orderId",so.code AS "orderCode"`;
+  Prisma.sql`q.id,q.code,q.status,${displayStatus(today)} AS "displayStatus",q.customer_id AS "customerId",COALESCE(c.code,'') AS "customerCode",COALESCE(c.name,q.name,'-') AS "customerName",COALESCE(t.name,'-') AS "territoryName",COALESCE(s.name,'-') AS "salesName",COALESCE(m.name,'-') AS "managerName",COALESCE(creator.name,q.owner) AS "createdByName",q.created_by_id AS "createdById",COALESCE(approver.name,'-') AS "approvedByName",q.return_reason AS "returnReason",q.notes,COALESCE(q.amount,0)::text AS amount,q.valid_until::text AS "validUntil",q.created_at AS "createdAt",q.updated_at AS "updatedAt",q.workflow_managed AS "workflowManaged",so.id AS "orderId",so.code AS "orderCode",q.promotion_id AS "promotionId",q.promotion_snapshot AS "promotion",q.bill_discount::text AS "billDiscount"`;
 
 function validUntil(value: unknown) {
   if (value === undefined || value === null || value === '')
@@ -84,6 +86,34 @@ async function writeLines(
   return total.toFixed(2);
 }
 
+async function applyQuotePromotion(
+  tx: Tx,
+  quoteId: string,
+  paidTotal: string,
+  promotionId: string | null,
+) {
+  const lines = await query<{
+    productId: string;
+    quantity: number;
+    unitPrice: string;
+    discount: string;
+  }>(
+    tx,
+    Prisma.sql`SELECT product_id AS "productId",quantity,unit_price::text AS "unitPrice",discount::text AS discount FROM quotation_lines WHERE quotation_id=${quoteId}::uuid AND NOT is_gift`,
+  );
+  const applied = promotionId ? await evaluatePromotion(tx, promotionId, lines) : null;
+  for (const gift of applied?.gifts ?? [])
+    await tx.$executeRaw(
+      Prisma.sql`INSERT INTO quotation_lines(id,quotation_id,product_id,product_name,quantity,unit_price,discount,is_gift,warehouse_id) VALUES(${randomUUID()}::uuid,${quoteId}::uuid,${gift.productId}::uuid,${gift.productName},${gift.quantity},0,0,true,${gift.warehouseId}::uuid)`,
+    );
+  const discount = new Prisma.Decimal(applied?.billDiscount ?? '0');
+  const amount = Prisma.Decimal.max(new Prisma.Decimal(paidTotal).sub(discount), 0).toFixed(2);
+  await tx.$executeRaw(
+    Prisma.sql`UPDATE quotations SET amount=${amount}::numeric,promotion_id=${applied?.promotionId ?? null}::uuid,promotion_snapshot=${applied ? JSON.stringify(applied.snapshot) : null}::jsonb,bill_discount=${discount.toFixed(2)}::numeric WHERE id=${quoteId}::uuid`,
+  );
+  return amount;
+}
+
 export async function quoteWrite(actor: Actor, raw: unknown, quoteId?: string) {
   const b = object(raw),
     action = quoteId ? str(b.action, 'คำสั่ง') : 'create';
@@ -113,6 +143,7 @@ export async function quoteWrite(actor: Actor, raw: unknown, quoteId?: string) {
         )
       )[0];
       if (!customer) throw new RecordError(400, 'ไม่พบลูกค้า');
+      await assertCustomerInScope(tx, actor, customerId);
       const newId = randomUUID(),
         code = await nextDocumentCode(tx, 'QT'),
         admin = actor.roleId === 'ADMIN',
@@ -120,10 +151,8 @@ export async function quoteWrite(actor: Actor, raw: unknown, quoteId?: string) {
       await tx.$executeRaw(
         Prisma.sql`INSERT INTO quotations(id,code,name,status,customer_id,territory_id,owner,notes,workflow_managed,valid_until,created_by_id,approved_by_id) VALUES(${newId}::uuid,${code},${customer.name},${status},${customerId}::uuid,${customer.territoryId}::uuid,${actor.name},${str(b.notes, 'หมายเหตุ', false)},true,${validUntil(b.validUntil)}::date,${actor.id}::uuid,${admin ? actor.id : null}::uuid)`,
       );
-      const amount = await writeLines(tx, newId, lines, new Map());
-      await tx.$executeRaw(
-        Prisma.sql`UPDATE quotations SET amount=${amount}::numeric WHERE id=${newId}::uuid`,
-      );
+      const paidTotal = await writeLines(tx, newId, lines, new Map());
+      await applyQuotePromotion(tx, newId, paidTotal, promotionIdOf(b.promotionId));
       return { data: { id: newId, code, status } };
     }
     const qid = id(quoteId);
@@ -138,9 +167,12 @@ export async function quoteWrite(actor: Actor, raw: unknown, quoteId?: string) {
         validUntil: string | null;
         notes: string;
         orderId: string | null;
+        promotionId: string | null;
+        promotionSnapshot: Record<string, unknown> | null;
+        billDiscount: string;
       }>(
         tx,
-        Prisma.sql`SELECT q.status,q.workflow_managed AS "workflowManaged",q.updated_at AS "updatedAt",q.created_by_id AS "createdById",q.approved_by_id AS "approvedById",q.customer_id AS "customerId",q.valid_until::text AS "validUntil",q.notes,(SELECT so.id FROM sales_orders so WHERE so.quotation_id=q.id) AS "orderId" FROM quotations q WHERE q.id=${qid}::uuid AND q.deleted_at IS NULL FOR UPDATE OF q`,
+        Prisma.sql`SELECT q.status,q.workflow_managed AS "workflowManaged",q.updated_at AS "updatedAt",q.created_by_id AS "createdById",q.approved_by_id AS "approvedById",q.customer_id AS "customerId",q.valid_until::text AS "validUntil",q.notes,q.promotion_id AS "promotionId",q.promotion_snapshot AS "promotionSnapshot",q.bill_discount::text AS "billDiscount",(SELECT so.id FROM sales_orders so WHERE so.quotation_id=q.id) AS "orderId" FROM quotations q WHERE q.id=${qid}::uuid AND q.deleted_at IS NULL FOR UPDATE OF q`,
       )
     )[0];
     if (!before) throw new RecordError(404, 'ไม่พบใบเสนอราคา');
@@ -169,18 +201,24 @@ export async function quoteWrite(actor: Actor, raw: unknown, quoteId?: string) {
       const lines = requestedLines(b.lines);
       const oldLines = await query<{ productId: string; unitPrice: string }>(
         tx,
-        Prisma.sql`SELECT product_id AS "productId",unit_price::text AS "unitPrice" FROM quotation_lines WHERE quotation_id=${qid}::uuid`,
+        Prisma.sql`SELECT product_id AS "productId",unit_price::text AS "unitPrice" FROM quotation_lines WHERE quotation_id=${qid}::uuid AND NOT is_gift`,
       );
       await lockProducts(
         tx,
         [...oldLines, ...lines].map((line) => line.productId),
       );
       await tx.$executeRaw(Prisma.sql`DELETE FROM quotation_lines WHERE quotation_id=${qid}::uuid`);
-      const amount = await writeLines(
+      const paidTotal = await writeLines(
         tx,
         qid,
         lines,
         new Map(oldLines.map((line) => [line.productId, line.unitPrice])),
+      );
+      const amount = await applyQuotePromotion(
+        tx,
+        qid,
+        paidTotal,
+        b.promotionId === undefined ? before.promotionId : promotionIdOf(b.promotionId),
       );
       // Any edit needs a fresh Manager approval, except Admin who skips that step.
       const admin = actor.roleId === 'ADMIN';
@@ -224,14 +262,39 @@ export async function quoteWrite(actor: Actor, raw: unknown, quoteId?: string) {
         quantity: number;
         unitPrice: string;
         discount: string;
+        isGift: boolean;
+        warehouseId: string | null;
+        productName: string;
       }>(
         tx,
-        Prisma.sql`SELECT product_id AS "productId",quantity,unit_price::text AS "unitPrice",discount::text AS discount FROM quotation_lines WHERE quotation_id=${qid}::uuid ORDER BY product_name,id`,
+        Prisma.sql`SELECT product_id AS "productId",product_name AS "productName",quantity,unit_price::text AS "unitPrice",discount::text AS discount,is_gift AS "isGift",warehouse_id AS "warehouseId" FROM quotation_lines WHERE quotation_id=${qid}::uuid ORDER BY product_name,id`,
       );
       const order = await createOrder(tx, actor, {
         customerId: before.customerId!,
         notes: before.notes,
-        lines,
+        lines: lines
+          .filter((line) => !line.isGift)
+          .map(({ productId, quantity, unitPrice, discount }) => ({
+            productId,
+            quantity,
+            unitPrice,
+            discount,
+          })),
+        promotion: before.promotionId
+          ? {
+              promotionId: before.promotionId,
+              snapshot: before.promotionSnapshot ?? {},
+              billDiscount: before.billDiscount,
+              gifts: lines
+                .filter((line) => line.isGift)
+                .map((line) => ({
+                  productId: line.productId,
+                  productName: line.productName,
+                  quantity: line.quantity,
+                  warehouseId: line.warehouseId!,
+                })),
+            }
+          : null,
         quotationId: qid,
         // The order is the agreed quote, so it carries the quote approval (TASK-275 owner rule).
         approvedById: before.approvedById ?? actor.id,
@@ -256,13 +319,13 @@ export async function quoteRead(actor: Actor, params: URLSearchParams, quoteId?:
         const row = (
           await query<QuoteRow>(
             tx,
-            Prisma.sql`SELECT ${quoteSelect(today)} FROM ${quoteFrom} WHERE (${match}) AND q.deleted_at IS NULL`,
+            Prisma.sql`SELECT ${quoteSelect(today)} FROM ${quoteFrom} WHERE (${match}) AND q.deleted_at IS NULL ${customerScope(actor, Prisma.sql`q.customer_id`)}`,
           )
         )[0];
         if (!row) throw new RecordError(404, 'ไม่พบใบเสนอราคา');
         row.lines = await query<QuoteLine>(
           tx,
-          Prisma.sql`SELECT li.id,li.product_id AS "productId",COALESCE(p.code,'') AS "productCode",li.product_name AS "productName",COALESCE(p.unit,'') AS unit,li.quantity,li.unit_price::text AS "unitPrice",li.discount::text AS discount FROM quotation_lines li LEFT JOIN products p ON p.id=li.product_id WHERE li.quotation_id=${row.id}::uuid ORDER BY li.product_name,li.id`,
+          Prisma.sql`SELECT li.id,li.product_id AS "productId",COALESCE(p.code,'') AS "productCode",li.product_name AS "productName",COALESCE(p.unit,'') AS unit,li.quantity,li.unit_price::text AS "unitPrice",li.discount::text AS discount,li.is_gift AS "isGift" FROM quotation_lines li LEFT JOIN products p ON p.id=li.product_id WHERE li.quotation_id=${row.id}::uuid ORDER BY li.is_gift,li.product_name,li.id`,
         );
         return { data: row, actor };
       }
@@ -271,7 +334,7 @@ export async function quoteRead(actor: Actor, params: URLSearchParams, quoteId?:
         status = params.get('status') ?? '';
       if (status && !(QUOTE_DISPLAY_STATUSES as readonly string[]).includes(status))
         throw new RecordError(400, 'สถานะไม่ถูกต้อง');
-      const where = Prisma.sql`q.deleted_at IS NULL AND (q.code ILIKE ${like} OR c.name ILIKE ${like} OR c.code ILIKE ${like}) ${status ? Prisma.sql`AND ${displayStatus(today)}=${status}` : Prisma.empty}`;
+      const where = Prisma.sql`q.deleted_at IS NULL AND (q.code ILIKE ${like} OR c.name ILIKE ${like} OR c.code ILIKE ${like}) ${status ? Prisma.sql`AND ${displayStatus(today)}=${status}` : Prisma.empty} ${customerScope(actor, Prisma.sql`q.customer_id`)}`;
       const order = sqlTableOrder(
         params,
         {

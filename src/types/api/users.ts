@@ -28,7 +28,14 @@ export type UserUpdateRequest =
   | { action: 'role'; roleId: RoleId }
   | { action: 'status'; status: UserRow['status'] }
   | { action: 'password'; password: string }
-  | { action: 'profile'; employeeCode: string; name: string; email: string; team: string; territoryId?: string | null }
+  | {
+      action: 'profile';
+      employeeCode: string;
+      name: string;
+      email: string;
+      team: string;
+      territoryId?: string | null;
+    }
   | { action: 'restore'; reason: string };
 export type UsersListResponse = { users: UserRow[]; pagination: Pagination };
 export type UserCreatedResponse = { ok: true; employeeCode: string };

@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sortable-table';
 import PaginationControls from '@/components/ui/pagination-controls';
 import StatusBadge from '@/components/ui/status-badge';
@@ -14,13 +13,12 @@ import { PURCHASE_STATUSES } from '@/config/purchasing';
 import type { PurchasePage } from '@/types/api/purchasing';
 import { dateOnly, money } from '@/components/sales/document-ui';
 
-const columns = ['code', 'supplierName', 'orderDate', 'expectedOn', null, 'amount', 'status'];
+const columns = ['code', 'orderDate', 'expectedOn', null, 'amount', 'status'];
 const cellClass = 'px-5 py-4 align-top';
 const ALL = '';
 
 export default function Page() {
   const router = useRouter();
-  const supplierId = useSearchParams().get('supplierId') ?? '';
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState(ALL);
   const [offset, setOffset] = useState(0);
@@ -41,7 +39,6 @@ export default function Page() {
         new URLSearchParams({
           search,
           status,
-          supplierId,
           offset: String(offset),
           limit: String(pageSize),
         });
@@ -67,13 +64,12 @@ export default function Page() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [search, status, supplierId, offset, pageSize, refresh, sort.key, sort.direction]);
+  }, [search, status, offset, pageSize, refresh, sort.key, sort.direction]);
 
   function resetFilters() {
     setSearch('');
     setStatus(ALL);
     setOffset(0);
-    if (supplierId) router.push('/purchases');
   }
   const rows = result?.data ?? [];
   const open = (id: string) => router.push(`/purchases/${id}`);
@@ -82,14 +78,6 @@ export default function Page() {
     <section aria-label="ใบสั่งซื้อ" className="min-w-0 w-full px-4 py-6 md:px-6 md:py-8">
       <div className="mb-6">
         <h1 className="text-xl poppins-semibold text-[#26364b]">ใบสั่งซื้อ</h1>
-        {supplierId && (
-          <p className="mt-2 text-sm text-[#718096]">
-            เฉพาะผู้ขาย {rows[0]?.supplierName ?? ''} ·{' '}
-            <Link href="/purchases" className="text-[#1a58a7] hover:underline">
-              แสดงทุกผู้ขาย
-            </Link>
-          </p>
-        )}
       </div>
       <div
         role="tablist"
@@ -124,7 +112,7 @@ export default function Page() {
                 setSearch(event.target.value);
                 setOffset(0);
               }}
-              placeholder="เลขที่ใบสั่งซื้อ รหัสหรือชื่อผู้ขาย"
+              placeholder="เลขที่ใบสั่งซื้อ ชื่อสินค้า หรือหมายเหตุ"
               className="h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white pl-10 pr-3 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#9ba7b6] focus:border-[#1a58a7]"
             />
           </div>
@@ -152,7 +140,6 @@ export default function Page() {
               <tr>
                 {[
                   'เลขที่',
-                  'ผู้ขาย',
                   'วันที่สั่งซื้อ',
                   'คาดว่าจะได้รับ',
                   'รับแล้ว / สั่ง',
@@ -182,10 +169,6 @@ export default function Page() {
                   >
                     <td className={`${cellClass} whitespace-nowrap poppins-medium text-[#1a58a7]`}>
                       {po.code}
-                    </td>
-                    <td className={cellClass}>
-                      <p className="poppins-medium">{po.supplierName}</p>
-                      <p className="mt-1 text-xs text-[#718096]">{po.supplierCode}</p>
                     </td>
                     <td className={`${cellClass} whitespace-nowrap`}>{dateOnly(po.orderDate)}</td>
                     <td className={`${cellClass} whitespace-nowrap`}>{dateOnly(po.expectedOn)}</td>

@@ -3,25 +3,18 @@ import { getCurrentApiUser } from '@/server/auth/current-user';
 import { hasSameOrigin } from '@/server/auth/api-authorization';
 import { RecordError } from '@/server/validation/records';
 import type { Actor } from '@/server/operations/service';
-import { purchaseRead, purchaseWrite, supplierRead, supplierWrite } from './service';
+import { purchaseRead, purchaseWrite } from './service';
 
 const headers = { 'Cache-Control': 'private, no-store' };
 
-export async function purchasingHandler(
-  request: NextRequest,
-  resource: 'suppliers' | 'purchases',
-  recordId?: string,
-) {
+export async function purchasingHandler(request: NextRequest, recordId?: string) {
   try {
     const user = await getCurrentApiUser(request);
     if (!user?.userRole) throw new RecordError(401, 'กรุณาเข้าสู่ระบบ');
     const actor: Actor = { id: user.id, name: user.name, roleId: user.userRole.roleId };
     if (request.method === 'GET') {
       const params = request.nextUrl.searchParams;
-      const result =
-        resource === 'suppliers'
-          ? await supplierRead(actor, params, recordId)
-          : await purchaseRead(actor, params, recordId);
+      const result = await purchaseRead(actor, params, recordId);
       return Response.json(result, { headers });
     }
     if (!hasSameOrigin(request)) throw new RecordError(403, 'คำขอไม่ถูกต้อง');
@@ -31,12 +24,8 @@ export async function purchasingHandler(
     } catch {
       throw new RecordError(400, 'กรุณาส่ง JSON ที่ถูกต้อง');
     }
-    if (request.method === 'DELETE')
-      body = { ...(body as object), action: resource === 'suppliers' ? 'delete' : 'cancel' };
-    const result =
-      resource === 'suppliers'
-        ? await supplierWrite(actor, body, recordId)
-        : await purchaseWrite(actor, body, recordId);
+    if (request.method === 'DELETE') body = { ...(body as object), action: 'cancel' };
+    const result = await purchaseWrite(actor, body, recordId);
     return Response.json(result, { status: request.method === 'POST' ? 201 : 200, headers });
   } catch (error) {
     const known = error instanceof RecordError;

@@ -135,22 +135,8 @@ try {
         p2 = await product(2);
       const main = (await tx.warehouse.findUnique({ where: { code: 'MAIN' } })).id;
 
-      const supplier = (actor, extra = {}) =>
-        buy.supplierWrite(actor, {
-          idempotencyKey: key(),
-          name: 'ผู้ขายทดสอบ ' + prefix,
-          taxId: '0105551234567',
-          phone: '021234567',
-          email: 'buy@example.invalid',
-          paymentTerms: '30 วัน',
-          ...extra,
-        });
-      const supplierAct = (id, action, extra = {}) =>
-        buy.supplierWrite(admin, { idempotencyKey: key(), action, ...extra }, id);
-      const readSupplier = async (id) =>
-        (await buy.supplierRead(admin, new URLSearchParams(), id)).data;
-      const createPo = (actor, supplierId, lines, extra = {}) =>
-        buy.purchaseWrite(actor, { idempotencyKey: key(), supplierId, lines, ...extra });
+      const createPo = (actor, lines, extra = {}) =>
+        buy.purchaseWrite(actor, { idempotencyKey: key(), lines, ...extra });
       const poAct = (id, action, extra = {}) =>
         buy.purchaseWrite(admin, { idempotencyKey: key(), action, ...extra }, id);
       const readPo = async (id) => (await buy.purchaseRead(admin, new URLSearchParams(), id)).data;
@@ -172,56 +158,10 @@ try {
           ],
         });
 
-      let supplierId;
-      await test('ผู้ขาย: Admin สร้างได้รหัส SUP ต่อเนื่อง; Sales สร้างไม่ได้; ข้อมูลผิดถูกปฏิเสธ', async () => {
-        const created = await supplier(admin);
-        supplierId = created.data.id;
-        assert.match(created.data.code, /^SUP-\d{4,6}$/);
-        const next = await supplier(admin, { name: 'ผู้ขายสอง ' + prefix });
-        assert.equal(Number(next.data.code.slice(4)), Number(created.data.code.slice(4)) + 1);
-        const row = await readSupplier(supplierId);
-        assert.equal(row.status, 'ใช้งาน');
-        assert.equal(row.paymentTerms, '30 วัน');
-        assert.equal(row.createdByName, admin.name);
-        await rejects(() => supplier(sales), 403);
-        await rejects(() => supplier(admin, { taxId: '123' }), 400);
-        await rejects(() => supplier(admin, { email: 'bad' }), 400);
-        await rejects(() => supplier(admin, { paymentTerms: '45 วัน' }), 400);
-      });
-
-      await test('ผู้ขาย: แก้ไข, ระงับใช้กับใบสั่งซื้อใหม่ไม่ได้, ลบต้องมีเหตุผล, กู้คืนได้', async () => {
-        const id = (await supplier(admin, { name: 'ผู้ขายแก้ ' + prefix })).data.id;
-        const before = await readSupplier(id);
-        await supplierAct(id, 'edit', {
-          name: 'ผู้ขายแก้แล้ว ' + prefix,
-          status: 'ระงับ',
-          paymentTerms: 'เงินสด',
-          expectedUpdatedAt: before.updatedAt.toISOString?.() ?? before.updatedAt,
-        });
-        const edited = await readSupplier(id);
-        assert.equal(edited.status, 'ระงับ');
-        assert.equal(edited.name, 'ผู้ขายแก้แล้ว ' + prefix);
-        await rejects(
-          () => createPo(admin, id, [{ productId: p1, quantity: 1, unitCost: '1' }]),
-          400,
-        );
-        await rejects(() => supplierAct(id, 'delete'), 400);
-        await supplierAct(id, 'delete', { reason: 'ทดสอบลบ' });
-        assert.ok((await readSupplier(id)).deletedAt);
-        const deletedList = await buy.supplierRead(
-          admin,
-          new URLSearchParams({ status: 'ลบแล้ว', search: prefix }),
-        );
-        assert.ok(deletedList.data.some((row) => row.id === id));
-        await supplierAct(id, 'restore');
-        assert.equal((await readSupplier(id)).deletedAt, null);
-      });
-
       let poId;
       await test('ใบสั่งซื้อ: Admin สร้าง → PO ปี พ.ศ. รอรับสินค้า ยอดหักส่วนลด; Sales สร้างไม่ได้', async () => {
         const created = await createPo(
           admin,
-          supplierId,
           [
             { productId: p1, quantity: 10, unitCost: '50', discount: '20' },
             { productId: p2, quantity: 4, unitCost: '12.50' },
@@ -237,21 +177,14 @@ try {
         assert.equal(row.ordered, 14);
         assert.equal(row.received, 0);
         assert.equal(row.lines.length, 2);
-        assert.equal(row.supplierName, 'ผู้ขายทดสอบ ' + prefix);
+        await rejects(() => createPo(sales, [{ productId: p1, quantity: 1, unitCost: '1' }]), 403);
         await rejects(
-          () => createPo(sales, supplierId, [{ productId: p1, quantity: 1, unitCost: '1' }]),
-          403,
-        );
-        await rejects(
-          () =>
-            createPo(admin, supplierId, [
-              { productId: p1, quantity: 1, unitCost: '1', discount: '2' },
-            ]),
+          () => createPo(admin, [{ productId: p1, quantity: 1, unitCost: '1', discount: '2' }]),
           400,
         );
         await rejects(
           () =>
-            createPo(admin, supplierId, [{ productId: p1, quantity: 1, unitCost: '1' }], {
+            createPo(admin, [{ productId: p1, quantity: 1, unitCost: '1' }], {
               orderDate: addDays(today, 1),
             }),
           400,
@@ -261,7 +194,6 @@ try {
       await test('ใบสั่งซื้อ: แก้ไขได้ก่อนรับของ ข้อมูลเก่าถูกปฏิเสธ', async () => {
         const before = await readPo(poId);
         await poAct(poId, 'edit', {
-          supplierId,
           expectedUpdatedAt: before.updatedAt.toISOString?.() ?? before.updatedAt,
           lines: [
             { productId: p1, quantity: 10, unitCost: '50', discount: '20' },
@@ -274,7 +206,6 @@ try {
         await rejects(
           () =>
             poAct(poId, 'edit', {
-              supplierId,
               expectedUpdatedAt: '2000-01-01T00:00:00.000Z',
               lines: [{ productId: p1, quantity: 1, unitCost: '1' }],
             }),
@@ -282,19 +213,18 @@ try {
         );
       });
 
-      await test('รับเข้าจากใบสั่งซื้อ: บางส่วน → รับบางส่วน, รับเกินไม่ได้, สินค้าไม่ตรงไม่ได้, ผู้ขายติดใบรับเข้า', async () => {
+      await test('รับเข้าจากใบสั่งซื้อ: บางส่วน → รับบางส่วน, รับเกินไม่ได้, สินค้าไม่ตรงไม่ได้, ใบรับเข้าผูกบรรทัดใบสั่งซื้อ', async () => {
         const lines = (await readPo(poId)).lines;
         const l1 = lines.find((l) => l.productId === p1),
           l2 = lines.find((l) => l.productId === p2);
         const options = (await ops.operationOptions(admin, 'receive')).data;
         assert.ok(options.openLines.some((l) => l.id === l1.id && l.remaining === 10));
-        assert.ok(options.suppliers.some((s) => s.id === supplierId));
         const first = await receive(6, { purchaseOrderLineId: l1.id });
         assert.equal(first.data.purchaseOrderId, poId);
         const [receipt] =
-          await tx.$queryRaw`SELECT supplier_id AS "supplierId",source FROM stock_receipts WHERE id=${first.data.id}::uuid`;
-        assert.equal(receipt.supplierId, supplierId);
-        assert.equal(receipt.source, 'ผู้ขายทดสอบ ' + prefix);
+          await tx.$queryRaw`SELECT supplier_id AS "supplierId",purchase_order_line_id AS "lineId" FROM stock_receipts WHERE id=${first.data.id}::uuid`;
+        assert.equal(receipt.supplierId, null);
+        assert.equal(receipt.lineId, l1.id);
         let row = await readPo(poId);
         assert.equal(row.status, 'รับบางส่วน');
         assert.equal(row.received, 6);
@@ -305,7 +235,6 @@ try {
         await rejects(
           () =>
             poAct(poId, 'edit', {
-              supplierId,
               lines: [{ productId: p1, quantity: 1, unitCost: '1' }],
             }),
           409,
@@ -344,15 +273,14 @@ try {
 
       await test('ปิดใบที่รับบางส่วน (เหตุผล) → ปิดแล้ว รับต่อไม่ได้; ใบที่ยังไม่รับ → ยกเลิก', async () => {
         await rejects(() => poAct(poId, 'close'), 400);
-        await poAct(poId, 'close', { reason: 'ผู้ขายของหมด' });
+        await poAct(poId, 'close', { reason: 'ของหมด' });
         const row = await readPo(poId);
         assert.equal(row.status, 'ปิดแล้ว');
-        assert.equal(row.closeReason, 'ผู้ขายของหมด');
+        assert.equal(row.closeReason, 'ของหมด');
         const l1 = row.lines.find((l) => l.productId === p1);
         await rejects(() => receive(1, { purchaseOrderLineId: l1.id }), 409);
-        const other = (
-          await createPo(admin, supplierId, [{ productId: p1, quantity: 2, unitCost: '1' }])
-        ).data.id;
+        const other = (await createPo(admin, [{ productId: p1, quantity: 2, unitCost: '1' }])).data
+          .id;
         await rejects(() => poAct(other, 'close', { reason: 'x' }), 409);
         await poAct(other, 'cancel', { reason: 'สั่งผิด' });
         assert.equal((await readPo(other)).status, 'ยกเลิก');
@@ -363,17 +291,17 @@ try {
         assert.ok(list.data.some((po) => po.id === other));
       });
 
-      await test('รับเข้าแบบไม่มีใบสั่งซื้อยังได้ และเลือกผู้ขายได้', async () => {
+      await test('รับเข้าแบบไม่มีใบสั่งซื้อยังได้ และไม่มีผู้ขายใน options', async () => {
         const plain = await receive(3);
         assert.equal(plain.data.purchaseOrderId, null);
-        const withSupplier = await receive(2, { supplierId });
         const [receipt] =
-          await tx.$queryRaw`SELECT supplier_id AS "supplierId",purchase_order_line_id AS "lineId" FROM stock_receipts WHERE id=${withSupplier.data.id}::uuid`;
-        assert.equal(receipt.supplierId, supplierId);
+          await tx.$queryRaw`SELECT supplier_id AS "supplierId",purchase_order_line_id AS "lineId" FROM stock_receipts WHERE id=${plain.data.id}::uuid`;
+        assert.equal(receipt.supplierId, null);
         assert.equal(receipt.lineId, null);
+        assert.equal((await ops.operationOptions(admin, 'receive')).data.suppliers, undefined);
       });
 
-      await test('Handler: 401 ไม่ login, DELETE ผู้ขาย = ลบ (ต้องมีเหตุผล), Sales อ่านได้แต่เขียนไม่ได้', async () => {
+      await test('Handler: 401 ไม่ login, Sales อ่าน/เขียนไม่ได้ (TASK-290 ต้นทุนเฉพาะ Admin/CFO), DELETE ใบสั่งซื้อ = ยกเลิก', async () => {
         const request = (method, body, params = {}) => ({
           method,
           headers: new Headers(),
@@ -381,44 +309,34 @@ try {
           json: async () => body,
         });
         identity = null;
-        assert.equal((await purchasingHandler(request('GET'), 'suppliers')).status, 401);
+        assert.equal((await purchasingHandler(request('GET'))).status, 401);
         identity = await tx.user.findUnique({
           where: { id: sales.id },
           include: { userRole: true },
         });
         assert.equal(
-          (await purchasingHandler(request('GET', undefined, { search: prefix }), 'purchases'))
-            .status,
-          200,
+          (await purchasingHandler(request('GET', undefined, { search: prefix }))).status,
+          403,
         );
         assert.equal(
-          (await purchasingHandler(request('POST', { idempotencyKey: key() }), 'suppliers')).status,
+          (await purchasingHandler(request('POST', { idempotencyKey: key() }))).status,
           403,
         );
         identity = await tx.user.findUnique({
           where: { id: admin.id },
           include: { userRole: true },
         });
-        const id = (await supplier(admin, { name: 'ผู้ขายลบ ' + prefix })).data.id;
+        const id = (await createPo(admin, [{ productId: p1, quantity: 1, unitCost: '1' }])).data.id;
         await savepoint(async () => {
-          const missing = await purchasingHandler(
-            request('DELETE', { idempotencyKey: key() }),
-            'suppliers',
-            id,
-          );
+          const missing = await purchasingHandler(request('DELETE', { idempotencyKey: key() }), id);
           assert.equal(missing.status, 400);
         });
         const ok = await purchasingHandler(
           request('DELETE', { idempotencyKey: key(), reason: 'ทดสอบ' }),
-          'suppliers',
           id,
         );
         assert.equal(ok.status, 200);
-        assert.ok((await readSupplier(id)).deletedAt);
-        const options = await (
-          await purchasingHandler(request('GET', undefined, { view: 'options' }), 'suppliers')
-        ).json();
-        assert.ok(!options.data.some((s) => s.id === id));
+        assert.equal((await readPo(id)).status, 'ยกเลิก');
       });
 
       await test('purchase_order_lines เปิด RLS และ client ไม่มีสิทธิ์', async () => {

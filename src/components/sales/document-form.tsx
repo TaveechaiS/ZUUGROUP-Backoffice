@@ -2,7 +2,10 @@
 
 // Shared create/edit form for sales orders (TASK-274) and quotations (TASK-275). Saving goes
 // through the caller so the confirmation dialog, idempotency key and API call stay with each page.
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Get } from '@/service/http';
+import type { PromotionPage, PromotionRow } from '@/types/api/promotions';
+import { conditionText, rewardText } from '@/components/promotions/promotion-form';
 import type { OperationOptions } from '@/types/api/operations';
 import { CloseIcon } from '@/components/icons/status-icons';
 import {
@@ -26,6 +29,7 @@ export type DocumentDraft = {
   customerId: string;
   notes: string;
   validUntil?: string;
+  promotionId: string;
   lines: { productId: string; quantity: number; discount: string }[];
   idempotencyKey: string;
 };
@@ -52,6 +56,7 @@ export default function DocumentForm({
     customerId: string;
     notes: string;
     validUntil?: string | null;
+    promotionId?: string | null;
     lines: LineInput[];
   };
   busy: boolean;
@@ -65,6 +70,16 @@ export default function DocumentForm({
   const [customerId, setCustomerId] = useState(initial?.customerId ?? '');
   const [notes, setNotes] = useState(initial?.notes ?? '');
   const [validUntil, setValidUntil] = useState(initial?.validUntil ?? bangkokToday(30));
+  const [promotionId, setPromotionId] = useState(initial?.promotionId ?? '');
+  const [promotions, setPromotions] = useState<PromotionRow[]>([]);
+  useEffect(() => {
+    const controller = new AbortController();
+    Get<PromotionPage>('/api/promotions?status=ใช้งาน&limit=100', controller.signal)
+      .then((response) => setPromotions(response.data))
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
+  const promotion = promotions.find((item) => item.id === promotionId);
   const [lines, setLines] = useState<LineInput[]>(
     initial?.lines.length ? initial.lines : [blankLine()],
   );
@@ -94,6 +109,7 @@ export default function DocumentForm({
           customerId,
           notes,
           ...(kind === 'quote' ? { validUntil } : {}),
+          promotionId,
           lines: lines.map((line) => ({
             productId: line.productId,
             quantity: Number(line.quantity),
@@ -267,6 +283,35 @@ export default function DocumentForm({
             + เพิ่มสินค้า
           </button>
           <Totals lines={priced} />
+        </Section>
+        <Section title="โปรโมชัน" open={Boolean(promotionId)}>
+          <label className="block min-w-0">
+            <FieldLabel text="โปรโมชันที่ใช้ (1 โปรต่อเอกสาร)" />
+            <select
+              value={promotionId}
+              onChange={(event) => {
+                setPromotionId(event.target.value);
+                touch();
+              }}
+              className={inputClass}
+            >
+              <option value="">ไม่ใช้โปรโมชัน</option>
+              {initial?.promotionId && !promotion && (
+                <option value={initial.promotionId}>โปรโมชันเดิมของเอกสารนี้</option>
+              )}
+              {promotions.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.code} · {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {promotion && (
+            <p className="mt-3 text-sm text-[#53647c]">
+              เงื่อนไข {conditionText(promotion)} จากสินค้าที่ร่วม {promotion.productCount} รายการ →{' '}
+              {rewardText(promotion)}. ระบบตรวจเงื่อนไขและเพิ่มของแถม/ส่วนลดท้ายบิลเมื่อบันทึก
+            </p>
+          )}
         </Section>
         <Section title="หมายเหตุ" open={Boolean(initial?.notes)}>
           <textarea

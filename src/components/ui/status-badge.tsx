@@ -15,6 +15,13 @@ const statusTones: Record<string, StatusTone> = {
   รอตรวจ: 'warning',
   ส่งกลับแก้ไข: 'warning',
   รอรับสินค้า: 'info',
+  ค้างชำระ: 'warning',
+  ชำระบางส่วน: 'info',
+  ชำระครบ: 'success',
+  ของแถม: 'success',
+  เสร็จแล้ว: 'success',
+  ครบนัดวันนี้: 'warning',
+  เกินนัด: 'danger',
   ปิดแล้ว: 'neutral',
   // Customer license check results (TASK-265).
   ผ่าน: 'success',

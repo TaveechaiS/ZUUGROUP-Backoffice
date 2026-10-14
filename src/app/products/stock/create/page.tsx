@@ -15,7 +15,6 @@ const inputClass =
   'mt-2 block h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#8994a5] focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
 const initial = {
   purchaseOrderLineId: '',
-  supplierId: '',
   productId: '',
   warehouseId: '',
   code: '',
@@ -30,7 +29,6 @@ const sections = [
     title: 'ข้อมูลการรับเข้า',
     fields: [
       ['purchaseOrderLineId', 'ใบสั่งซื้อ'],
-      ['supplierId', 'ผู้ขาย'],
       ['productId', 'สินค้า'],
       ['warehouseId', 'คลังปลายทาง'],
       ['code', 'ID'],
@@ -134,7 +132,7 @@ export default function Page() {
         const line = options?.openLines.find((item) => item.id === value);
         return line
           ? { ...current, ...fromLine(line, line.remaining) }
-          : { ...current, purchaseOrderLineId: '', supplierId: '' };
+          : { ...current, purchaseOrderLineId: '' };
       }
       if (key === 'quantity' && orderLine && /^[1-9]\d*$/.test(value))
         return { ...current, ...fromLine(orderLine, Number(value)) };
@@ -181,11 +179,7 @@ export default function Page() {
       idempotencyKey: crypto.randomUUID(),
       code: idPrefix + sequence.padStart(5, '0'),
       notes: values.notes.trim(),
-      ...(values.purchaseOrderLineId
-        ? { purchaseOrderLineId: values.purchaseOrderLineId }
-        : values.supplierId
-          ? { supplierId: values.supplierId }
-          : {}),
+      ...(values.purchaseOrderLineId ? { purchaseOrderLineId: values.purchaseOrderLineId } : {}),
       lots: [
         {
           productId: values.productId,
@@ -281,12 +275,7 @@ export default function Page() {
                   </summary>
                   <div className="mt-4 flex flex-wrap gap-x-8 gap-y-5">
                     {section.fields.map(([key, label]) => {
-                      const required = ![
-                        'unitCost',
-                        'notes',
-                        'purchaseOrderLineId',
-                        'supplierId',
-                      ].includes(key);
+                      const required = !['unitCost', 'notes', 'purchaseOrderLineId'].includes(key);
                       const isDate = key === 'manufacturedOn' || key === 'expiresOn';
                       return (
                         <div
@@ -319,29 +308,6 @@ export default function Page() {
                                 <option key={line.id} value={line.id}>
                                   {line.purchaseOrderCode} · {line.productName} · ค้างรับ{' '}
                                   {line.remaining} {line.unit}
-                                </option>
-                              ))}
-                            </select>
-                          ) : key === 'supplierId' ? (
-                            <select
-                              id="stock-supplierId"
-                              value={values.supplierId}
-                              disabled={Boolean(orderLine)}
-                              onChange={(event) => change(key, event.target.value)}
-                              className={inputClass + ' disabled:bg-blue-50'}
-                            >
-                              <option value="">ไม่ระบุผู้ขาย</option>
-                              {orderLine &&
-                                !options.suppliers.some(
-                                  (item) => item.id === orderLine.supplierId,
-                                ) && (
-                                  <option value={orderLine.supplierId}>
-                                    {orderLine.supplierName}
-                                  </option>
-                                )}
-                              {options.suppliers.map((supplier) => (
-                                <option key={supplier.id} value={supplier.id}>
-                                  {supplier.name} · {supplier.code}
                                 </option>
                               ))}
                             </select>
@@ -586,7 +552,6 @@ function fromLine(line: OpenPurchaseLine, quantity: number) {
     Number(line.unitCost) * quantity - (Number(line.discount) * quantity) / line.quantity;
   return {
     purchaseOrderLineId: line.id,
-    supplierId: line.supplierId,
     productId: line.productId,
     quantity: String(quantity),
     totalCost: (Math.round(Math.max(0, total) * 100) / 100).toFixed(2),

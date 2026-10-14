@@ -69,7 +69,7 @@ export default function Page() {
             </button>
           </div>
         ) : (
-          <LoadingComponent isVisible variant="content" label="กำลังโหลดผู้ขายและสินค้า..." />
+          <LoadingComponent isVisible variant="content" label="กำลังโหลดสินค้า..." />
         )
       ) : (
         <PurchaseForm

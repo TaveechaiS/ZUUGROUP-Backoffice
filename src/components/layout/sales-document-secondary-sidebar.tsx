@@ -9,22 +9,26 @@ export default function SalesDocumentSecondarySidebar({
   parentHref,
   roleId,
 }: {
-  parentHref: '/quotes' | '/orders';
+  parentHref: '/quotes' | '/orders' | '/billing';
   roleId: string;
 }) {
   const pathname = usePathname();
   const quote = parentHref === '/quotes';
   const creating = pathname === `${parentHref}/create`;
-  const canCreate = ['ADMIN', 'SALES'].includes(roleId);
+  const billing = parentHref === '/billing';
+  const canCreate = (billing ? ['ADMIN', 'ACCOUNTING_CFO'] : ['ADMIN', 'SALES']).includes(roleId);
   const pages = [
-    { href: parentHref, label: quote ? 'รายการใบเสนอราคา' : 'รายการคำสั่งซื้อ' },
+    {
+      href: parentHref,
+      label: quote ? 'รายการใบเสนอราคา' : billing ? 'รายการใบแจ้งหนี้' : 'รายการคำสั่งซื้อ',
+    },
     ...ADMIN_PAGES.filter((page) => page.parentHref === parentHref && canCreate),
   ];
 
   return (
     <SecondarySidebarFrame>
       <nav
-        aria-label={quote ? 'เมนูใบเสนอราคา' : 'เมนูคำสั่งซื้อ'}
+        aria-label={quote ? 'เมนูใบเสนอราคา' : billing ? 'เมนูวางบิล' : 'เมนูคำสั่งซื้อ'}
         className="flex gap-1 overflow-x-auto p-2 md:flex-col md:gap-2 md:px-0 md:py-5"
       >
         {pages.map((page) => {

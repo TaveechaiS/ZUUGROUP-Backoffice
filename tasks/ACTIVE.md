@@ -1,5 +1,13 @@
 # งานที่กำลังทำ
 
+## TASK-281–291 — ทำหน้าที่เหลือทั้งหมด (รอบ 2) — 2026-10-14
+
+- IMPLEMENTED / WAITING_FOR_UAT (14 ต.ค. 2569): 281 เทสต์ T092, 282 ค่าใช้จ่าย, 283 วางบิล/รับชำระ, 284 รายงานการเงิน, 285 โปรโมชันใน QT/SO, 286 ติดตามลูกค้า, 287 เอกสารลูกค้า, 288 คำขอเพิ่มลูกค้า, 289 ตรวจนับรายล็อต, 290 สิทธิ์ตาม Role, 291 CSV/พิมพ์. DB apply 6 migration (ไม่ลบข้อมูล). เทสต์ 17 ชุดผ่านทั้งหมด + route test + tsc/eslint/next build. แก้บั๊กรอบก่อน: หน้าโปรโมชัน/รายงานถูกแสดงเป็นแท็บนำทาง. ดู tasks/TASK-281..291. เดิม: OWNER_APPROVED แผน .jarvis/PLAN.md รอบ 2.
+
+## TASK-277–280 — ถอดผู้ขาย + โปรโมชัน + รายงานยอดขาย/คลัง — 2026-10-14
+
+- IMPLEMENTED / WAITING_FOR_UAT (14 ต.ค. 2569): 277 ถอดผู้ขาย (DB ถอด CHECK แล้ว), 278 โปรโมชัน DB จริง (apply แล้ว), 279 รายงานยอดขาย 5 หน้า, 280 รายงานคลัง 5 หน้า. test-purchasing 8, test-promotions 8, test-reports 8, test-quotes 11 ผ่าน; route test, tsc, eslint, next build ผ่าน; Postman local. ดู tasks/TASK-277..280. เดิม: OWNER_APPROVED แผนรวม .jarvis/PLAN.md. ขอบเขต: 277 purchasing/suppliers (server, API, หน้า, เมนู, migration ถอด CHECK supplier_id), 278 promotions (migration, src/server/promotions, /api/promotions, หน้า /promotions/**), 279 src/server/reports/sales + /api/reports/sales + หน้า /reports/sales/*, 280 src/server/reports/inventory + /api/reports/inventory + หน้า /reports/inventory/*. ทำตามลำดับ 277→280.
+
 ## TASK-276 — จัดซื้อ: ผู้ขาย + ใบสั่งซื้อ + ผูกรับเข้า — 2026-10-08
 
 - IMPLEMENTED / WAITING_FOR_UAT (8 ต.ค. 2569; OWNER_APPROVED "ทำที่แนะนำไปก่อน"): DB apply แล้ว, test-purchasing 10 ผ่าน, route 81, quotes 11, lint/tsc/build ผ่าน, Postman local. ขอบเขต DB suppliers/purchase_orders/purchase_order_lines/stock_receipts, src/server/purchasing, /api/suppliers, /api/purchases, หน้า /suppliers /purchases, หน้ารับเข้า /products/stock/create, เมนูจัดซื้อ. ลำดับงาน: ทำทุกหน้าให้เสร็จก่อน แล้วค่อยลด Role/สิทธิ์. ดู tasks/TASK-276-purchasing.md.

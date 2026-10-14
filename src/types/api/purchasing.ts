@@ -1,29 +1,6 @@
 type Pagination = { offset: number; limit: number; total: number; hasMore: boolean };
 type Actor = { id: string; roleId: string; name: string };
 
-export type SupplierRow = {
-  id: string;
-  code: string;
-  name: string;
-  status: string;
-  taxId: string;
-  address: string;
-  contact: string;
-  phone: string;
-  email: string;
-  paymentTerms: string;
-  notes: string;
-  createdByName: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  deleteReason: string | null;
-  purchaseCount: number;
-  openPurchaseCount: number;
-};
-export type SupplierOption = { id: string; code: string; name: string; paymentTerms: string };
-export type SupplierPage = { data: SupplierRow[]; pagination: Pagination; actor: Actor };
-
 export type PurchaseLine = {
   id: string;
   productId: string;
@@ -53,10 +30,6 @@ export type PurchaseRow = {
   id: string;
   code: string;
   status: string;
-  supplierId: string;
-  supplierCode: string;
-  supplierName: string;
-  paymentTerms: string;
   orderDate: string;
   expectedOn: string | null;
   amount: string;
@@ -76,8 +49,6 @@ export type OpenPurchaseLine = {
   id: string;
   purchaseOrderId: string;
   purchaseOrderCode: string;
-  supplierId: string;
-  supplierName: string;
   productId: string;
   productName: string;
   unit: string;

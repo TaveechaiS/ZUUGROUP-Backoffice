@@ -1,260 +1,175 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import SortableTable, { useTableSort } from '@/components/ui/sortable-table';
-import PaginationControls from '@/components/ui/pagination-controls';
 import StatusBadge from '@/components/ui/status-badge';
+import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
-import { SearchIcon } from '@/components/icons/status-icons';
-import { SAMPLE_REQUESTS, type CustomerRequest } from './request-data';
+import ListRequestState from '@/components/ui/list-request-state';
+import PaginationControls from '@/components/ui/pagination-controls';
+import { Get } from '@/service/http';
+import type { CustomerRequestPage } from '@/types/api/customer-requests';
+import { dateTime } from '@/components/sales/document-ui';
 
-const tabs = [
-  { key: 'pending', label: 'รอตรวจสอบ', statuses: ['รอตรวจสอบ'] },
-  { key: 'returned', label: 'ส่งกลับแก้ไข', statuses: ['ส่งกลับแก้ไข'] },
-  { key: 'approved', label: 'อนุมัติแล้ว', statuses: ['อนุมัติแล้ว'] },
-  { key: 'closed', label: 'ไม่อนุมัติ / ยกเลิก', statuses: ['ไม่อนุมัติ', 'ยกเลิก'] },
-] as const;
-const columns = ['code', 'name', 'requester', 'territory', 'submittedAt', 'status'] as const;
-const dateTime = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  timeZone: 'Asia/Bangkok',
-});
-const cellClass = 'px-5 py-4 align-top';
-const ALL = '';
-const sortValue = (request: CustomerRequest, key: (typeof columns)[number]) =>
-  key === 'name'
-    ? request.fields.name
-    : key === 'requester'
-      ? request.requester.name
-      : request[key];
+const tabs = ['รอตรวจสอบ', 'ส่งกลับแก้ไข', 'อนุมัติแล้ว', 'ไม่อนุมัติ', 'ยกเลิก', ''];
 
 export default function Page() {
   const router = useRouter();
-  const [tab, setTab] = useState<(typeof tabs)[number]['key']>('pending');
+  const [tab, setTab] = useState('รอตรวจสอบ');
   const [search, setSearch] = useState('');
-  const [territory, setTerritory] = useState(ALL);
-  const [requester, setRequester] = useState(ALL);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const sort = useTableSort(() => setPage(1));
-  const statuses: readonly string[] = tabs.find((item) => item.key === tab)!.statuses;
-  const query = search.trim().toLocaleLowerCase('th');
-  const filtered = SAMPLE_REQUESTS.filter(
-    (request) =>
-      statuses.includes(request.status) &&
-      (!territory || request.territory === territory) &&
-      (!requester || request.requester.name === requester) &&
-      [request.code, request.fields.name, request.requester.name, request.territory].some((value) =>
-        value.toLocaleLowerCase('th').includes(query),
-      ),
-  );
-  const sortKey = columns.find((column) => column === sort.key);
-  // Newest first unless the user picks a column.
-  filtered.sort((left, right) => {
-    const result = sortKey
-      ? String(sortValue(left, sortKey)).localeCompare(String(sortValue(right, sortKey)), 'th', {
-          numeric: true,
+  const [result, setResult] = useState<CustomerRequestPage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      setLoading(true);
+      setError('');
+      const query = new URLSearchParams({
+        search,
+        status: tab,
+        limit: String(pageSize),
+        offset: String((page - 1) * pageSize),
+      });
+      Get<CustomerRequestPage>('/api/customer-requests?' + query, controller.signal)
+        .then((value) => {
+          if (controller.signal.aborted) return;
+          setResult(value);
+          const last = Math.max(1, Math.ceil(value.pagination.total / pageSize));
+          if (page > last) setPage(last);
         })
-      : right.submittedAt.localeCompare(left.submittedAt);
-    return sortKey && sort.direction === 'desc' ? -result : result;
-  });
-  const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const currentPage = Math.min(page, pages);
-  const rows = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const unique = (values: string[]) =>
-    [...new Set(values)].sort((a, b) => a.localeCompare(b, 'th'));
-  function resetFilters() {
-    setSearch('');
-    setTerritory(ALL);
-    setRequester(ALL);
-    setPage(1);
-  }
+        .catch((caught) => {
+          if (!controller.signal.aborted)
+            setError(caught instanceof Error ? caught.message : 'โหลดข้อมูลไม่สำเร็จ');
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoading(false);
+        });
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [search, tab, page, pageSize, retry]);
+
+  const rows = result?.data ?? [];
+  const total = result?.pagination.total ?? 0;
+  const admin = result?.actor.roleId === 'ADMIN';
+  const control = 'mt-1.5 h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm';
 
   return (
-    <section aria-label="คำขอเพิ่มลูกค้า" className="min-w-0 w-full px-4 py-6 md:px-6 md:py-8">
-      <div className="mb-6">
-        <h1 className="text-xl poppins-semibold text-[#26364b]">คำขอเพิ่มลูกค้า</h1>
-        <p className="mt-2 text-sm poppins-regular text-[#718096]">
-          ตัวอย่างหน้าจอ — ข้อมูลสมมุติ จะเชื่อมคำขอจริงเมื่อทำส่วนของ Sales / Manager
-        </p>
+    <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6">
+      <h1 className="text-xl poppins-semibold text-[#26364b]">
+        {result && !admin ? 'คำขอของฉัน' : 'คำขอเพิ่มลูกค้า'}
+      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9e3ee]">
+        <div role="tablist" aria-label="สถานะคำขอ" className="flex flex-wrap gap-5">
+          {tabs.map((key) => (
+            <button
+              key={key || 'all'}
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => {
+                setTab(key);
+                setPage(1);
+              }}
+              className={`border-b-2 px-1 py-3 text-sm ${tab === key ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
+            >
+              {key || 'ทั้งหมด'}
+            </button>
+          ))}
+        </div>
+      </div>
+      <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
+      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3">
+        <label className="text-xs text-[#53647c]">
+          ค้นหา
+          <input
+            className={control}
+            value={search}
+            placeholder="ชื่อลูกค้าหรือชื่อผู้ขอ"
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </label>
       </div>
       <div
-        role="tablist"
-        aria-label="สถานะคำขอ"
-        className="mb-4 flex flex-wrap gap-x-4 border-b border-[#e4e9f0]"
+        className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"
+        aria-busy={loading}
       >
-        {tabs.map((item) => {
-          const count = SAMPLE_REQUESTS.filter((request) =>
-            (item.statuses as readonly string[]).includes(request.status),
-          ).length;
-          return (
-            <button
-              key={item.key}
-              type="button"
-              role="tab"
-              aria-selected={tab === item.key}
-              onClick={() => {
-                setTab(item.key);
-                setPage(1);
-              }}
-              className={`-mb-px min-h-10 border-b-2 px-1 pb-3 text-sm transition ${tab === item.key ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
-            >
-              {item.label}
-              {item.key === 'pending' && count > 0 && (
-                <span className="ml-2 rounded-full bg-orange-50 px-2 py-0.5 text-xs poppins-semibold text-orange-600">
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-      <div className="mb-6 grid grid-cols-1 items-end gap-5 rounded-xl border border-[#e4e7ec] bg-white p-6 shadow-xs sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
-        <label className="min-w-0">
-          <span className="mb-2 block text-xs text-[#344256]">ค้นหาคำขอ</span>
-          <div className="relative">
-            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPage(1);
-              }}
-              placeholder="เลขที่คำขอ ชื่อสถานประกอบการ ผู้ขอ หรือเขต"
-              className="h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white pl-10 pr-3 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#9ba7b6] focus:border-[#1a58a7]"
-            />
-          </div>
-        </label>
-        <FilterSelect
-          label="เขตขาย"
-          value={territory}
-          options={unique(SAMPLE_REQUESTS.map((request) => request.territory))}
-          onChange={(value) => {
-            setTerritory(value);
-            setPage(1);
-          }}
-        />
-        <FilterSelect
-          label="ผู้ขอ"
-          value={requester}
-          options={unique(SAMPLE_REQUESTS.map((request) => request.requester.name))}
-          onChange={(value) => {
-            setRequester(value);
-            setPage(1);
-          }}
-        />
-      </div>
-      <div className="relative overflow-hidden rounded-lg border border-[#d9e3ee] bg-white">
-        <div className="overflow-x-auto">
-          <SortableTable
-            sort={sort}
-            columns={[...columns]}
-            className="w-full min-w-[960px] border-collapse text-left text-sm poppins-regular text-[#344256]"
-          >
-            <thead className="border-b border-[#d9e3ee] bg-[#f7f9fc] text-[#65758b]">
-              <tr>
-                {[
-                  'เลขที่คำขอ',
-                  'ชื่อสถานประกอบการ / บริษัท',
-                  'ผู้ขอ',
-                  'เขตขาย',
-                  'วันที่ขอ',
-                  'สถานะ',
-                ].map((label) => (
-                  <th key={label} scope="col" className="px-5 py-3 poppins-medium">
+        <LoadingComponent isVisible={loading && !error} variant="content" />
+        <table className="w-full min-w-[880px] border-collapse text-left text-sm">
+          <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
+            <tr>
+              {['ชื่อลูกค้า', 'ประเภทลูกค้า', 'เขตขาย', 'ผู้ขอ', 'ส่งเมื่อ', 'สถานะ'].map(
+                (label) => (
+                  <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
                     {label}
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((request) => (
-                <tr
-                  key={request.code}
-                  role="link"
-                  tabIndex={0}
-                  aria-label={`เปิดคำขอ ${request.code}`}
-                  onClick={() => router.push(`/customers/requests/${request.code}`)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') router.push(`/customers/requests/${request.code}`);
-                  }}
-                  className="cursor-pointer border-b border-[#edf1f5] last:border-b-0 hover:bg-blue-50/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#1a58a7]"
-                >
-                  <td className={`${cellClass} whitespace-nowrap poppins-medium text-[#1a58a7]`}>
-                    {request.code}
-                  </td>
-                  <td className={cellClass}>
-                    <p className="poppins-medium">{request.fields.name}</p>
-                    <p className="mt-1 text-xs text-[#718096]">{request.codeGroup}</p>
-                  </td>
-                  <td className={cellClass}>
-                    <p>{request.requester.name}</p>
-                    <p className="mt-1 text-xs text-[#718096]">{request.requester.role}</p>
-                  </td>
-                  <td className={`${cellClass} whitespace-nowrap`}>{request.territory}</td>
-                  <td className={`${cellClass} whitespace-nowrap`}>
-                    {dateTime.format(new Date(request.submittedAt))}
-                  </td>
-                  <td className={cellClass}>
-                    <StatusBadge value={request.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </SortableTable>
-        </div>
-        {!rows.length && (
-          <NotFoundComponent
-            title="ไม่พบคำขอ"
-            onRefresh={resetFilters}
-            onBack={resetFilters}
-            backLabel="แสดงทั้งหมด"
+                ),
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {!error &&
+              rows.map((row) => {
+                const href = '/customers/requests/' + row.id;
+                return (
+                  <tr
+                    key={row.id}
+                    role="link"
+                    tabIndex={0}
+                    aria-label={`ดูคำขอ ${row.name}`}
+                    onClick={() => router.push(href)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        router.push(href);
+                      }
+                    }}
+                    className="cursor-pointer border-t border-[#edf0f4] hover:bg-[#fafbfc] focus-visible:bg-blue-50 focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
+                  >
+                    <td className="w-[28%] break-words px-4 py-3 text-[#1a58a7]">
+                      <p>{row.name}</p>
+                      {row.customerCode && (
+                        <p className="mt-1 text-xs text-[#718096]">{row.customerCode}</p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">{row.codeGroupName}</td>
+                    <td className="px-4 py-3">{row.territoryName}</td>
+                    <td className="px-4 py-3">{row.requesterName}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{dateTime(row.submittedAt)}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge value={row.status} />
+                    </td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
+        {!loading && !error && !rows.length && <NotFoundComponent title="ไม่พบคำขอ" />}
+        <div className="border-t border-[#edf0f4] p-3">
+          <PaginationControls
+            page={page}
+            pages={Math.max(1, Math.ceil(total / pageSize))}
+            total={total}
+            count={rows.length}
+            onChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+            disabled={loading}
           />
-        )}
-        <PaginationControls
-          page={currentPage}
-          pages={pages}
-          total={filtered.length}
-          count={rows.length}
-          pageSize={pageSize}
-          onChange={setPage}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setPage(1);
-          }}
-        />
+        </div>
       </div>
     </section>
-  );
-}
-
-function FilterSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="min-w-0 text-xs text-[#344256]">
-      {label}
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white px-3 text-sm poppins-regular text-[#6f7a8b] outline-none focus:border-[#1a58a7]"
-      >
-        <option value={ALL}>ทั้งหมด</option>
-        {options.map((option) => (
-          <option key={option}>{option}</option>
-        ))}
-      </select>
-    </label>
   );
 }

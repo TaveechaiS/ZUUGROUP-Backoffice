@@ -1,4 +1,5 @@
 'use client';
+import PrintButton from '@/components/ui/print-button';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -168,7 +169,7 @@ export default function Page() {
       aria-label="รายละเอียดใบเสนอราคา"
       className="relative min-h-80 min-w-0 w-full space-y-6 px-4 py-6 md:px-6 md:py-8"
     >
-      <Link href="/quotes" className="text-sm text-[#1a58a7] hover:underline">
+      <Link href="/quotes" className="text-sm text-[#1a58a7] hover:underline print:hidden">
         ← กลับรายการใบเสนอราคา
       </Link>
       <LoadingComponent
@@ -197,7 +198,10 @@ export default function Page() {
                 {dateTime(row.createdAt)}
               </p>
             </div>
-            <StatusBadge value={row.displayStatus} />
+            <div className="flex items-center gap-3">
+              <PrintButton />
+              <StatusBadge value={row.displayStatus} />
+            </div>
           </div>
           {row.orderId && (
             <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-[#344256]">
@@ -243,12 +247,15 @@ export default function Page() {
                 customerId: row.customerId ?? '',
                 notes: row.notes,
                 validUntil: row.validUntil,
-                lines: (row.lines ?? []).map((line) => ({
-                  productId: line.productId,
-                  quantity: String(line.quantity),
-                  discount: line.discount,
-                  unitPrice: line.unitPrice,
-                })),
+                promotionId: row.promotionId,
+                lines: (row.lines ?? [])
+                  .filter((line) => !line.isGift)
+                  .map((line) => ({
+                    productId: line.productId,
+                    quantity: String(line.quantity),
+                    discount: line.discount,
+                    unitPrice: line.unitPrice,
+                  })),
               }}
               busy={busy}
               error={error}
@@ -275,6 +282,14 @@ export default function Page() {
                   <Item label="Manager ประจำเขต" value={row.managerName} />
                   <Item label="ผู้สร้าง" value={row.createdByName} />
                   <Item label="ผู้อนุมัติ" value={row.approvedByName} />
+                  <Item
+                    label="โปรโมชัน"
+                    value={
+                      row.promotion
+                        ? `${row.promotion.code} · ${row.promotion.name}`
+                        : '— (ไม่ใช้โปรโมชัน)'
+                    }
+                  />
                   <Item label="หมายเหตุ" value={row.notes} />
                 </dl>
               </Section>
@@ -303,7 +318,14 @@ export default function Page() {
                           <tr key={line.id} className="border-b border-[#edf1f5] last:border-b-0">
                             <td className={cellClass}>{index + 1}</td>
                             <td className={cellClass}>
-                              <p className="poppins-medium">{line.productName}</p>
+                              <p className="poppins-medium">
+                                {line.productName}
+                                {line.isGift && (
+                                  <span className="ml-2 inline-block align-middle">
+                                    <StatusBadge value="ของแถม" />
+                                  </span>
+                                )}
+                              </p>
                               {line.productCode && (
                                 <p className="mt-1 text-xs text-[#718096]">{line.productCode}</p>
                               )}
@@ -311,26 +333,28 @@ export default function Page() {
                             <td className={`${cellClass} whitespace-nowrap text-right`}>
                               {line.quantity.toLocaleString('th-TH')} {line.unit}
                             </td>
-                            <td className={`${cellClass} text-right`}>{money(line.unitPrice)}</td>
+                            <td className={`${cellClass} text-right`}>
+                              {line.isGift ? '' : money(line.unitPrice)}
+                            </td>
                             <td className={`${cellClass} text-right`}>
                               {Number(line.discount) ? money(line.discount) : '—'}
                             </td>
                             <td className={`${cellClass} text-right poppins-medium`}>
-                              {money(lineTotal(line))}
+                              {line.isGift ? '' : money(lineTotal(line))}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                  <Totals lines={row.lines ?? []} />
+                  <Totals lines={row.lines ?? []} billDiscount={row.billDiscount} />
                   <p className="mt-2 text-right text-xs text-[#718096]">
                     ใบเสนอราคาไม่จองสต็อก — จองเมื่อสร้างคำสั่งซื้อ
                   </p>
                 </Section>
               )}
               {open && (
-                <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
+                <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6 print:hidden">
                   <h2 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการ</h2>
                   {(canCancel || canReturn || canDecide) && (
                     <label className="mt-4 block text-sm poppins-medium text-[#344256]">

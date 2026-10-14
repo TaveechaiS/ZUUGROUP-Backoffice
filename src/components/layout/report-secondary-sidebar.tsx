@@ -11,7 +11,13 @@ export default function ReportSecondarySidebar({ parentHref }: { parentHref: str
   return (
     <SecondarySidebarFrame>
       <nav
-        aria-label={parentHref === '/reports/sales' ? 'เมนูรายงานยอดขาย' : 'เมนูรายงานคลังสินค้า'}
+        aria-label={
+          parentHref === '/reports/sales'
+            ? 'เมนูรายงานยอดขาย'
+            : parentHref === '/reports/finance'
+              ? 'เมนูรายงานการเงิน'
+              : 'เมนูรายงานคลังสินค้า'
+        }
         className="flex gap-1 overflow-x-auto p-2 md:flex-col md:gap-2 md:px-0 md:py-5"
       >
         {pages.map((page) => {
