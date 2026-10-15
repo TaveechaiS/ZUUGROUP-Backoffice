@@ -2,6 +2,7 @@ import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
 import { allowRead } from '@/server/access/scope';
+import { optionalRange } from '@/server/reports/range';
 import { getPrismaClient } from '@/server/db/prisma';
 import { RecordError } from '@/server/validation/records';
 import { sqlTableOrder } from '@/server/validation/table-sort';
@@ -46,7 +47,7 @@ function stale(body: Record<string, unknown>, updatedAt: Date) {
     throw new RecordError(409, 'ข้อมูลถูกเปลี่ยนแล้ว กรุณาโหลดใหม่');
 }
 const uuidOrCode = (alias: Prisma.Sql, value: string) =>
-  /^[0-9a-f-]{36}$/i.test(value)
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
     ? Prisma.sql`(${alias}.id=${value}::uuid OR ${alias}.code=${value})`
     : Prisma.sql`${alias}.code=${value}`;
 const likeOf = (search: string) => '%' + search.replace(/[\\%_]/g, '\\$&') + '%';
@@ -215,7 +216,7 @@ export async function purchaseRead(actor: Actor, params: URLSearchParams, orderI
         status = params.get('status') ?? '';
       if (status && !(PURCHASE_STATUSES as readonly string[]).includes(status))
         throw new RecordError(400, 'สถานะไม่ถูกต้อง');
-      const where = Prisma.sql`po.deleted_at IS NULL AND (po.code ILIKE ${like} OR po.notes ILIKE ${like} OR EXISTS (SELECT 1 FROM purchase_order_lines sl WHERE sl.purchase_order_id=po.id AND sl.product_name ILIKE ${like})) ${status ? Prisma.sql`AND po.status=${status}` : Prisma.empty}`;
+      const where = Prisma.sql`po.deleted_at IS NULL AND (po.code ILIKE ${like} OR po.notes ILIKE ${like} OR EXISTS (SELECT 1 FROM purchase_order_lines sl WHERE sl.purchase_order_id=po.id AND sl.product_name ILIKE ${like})) ${status ? Prisma.sql`AND po.status=${status}` : Prisma.empty} ${optionalRange(params, Prisma.sql`po.order_date`)}`;
       const order = sqlTableOrder(
         params,
         {

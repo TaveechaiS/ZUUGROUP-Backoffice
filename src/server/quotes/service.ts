@@ -3,7 +3,13 @@ import 'server-only';
 // quotes never reserve stock; an approved, unexpired quote converts once into a sales order.
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
-import { assertCustomerInScope, customerScope } from '@/server/access/scope';
+import {
+  assertCustomerInScope,
+  customerScope,
+  salesFilterOptions,
+  salesFilters,
+} from '@/server/access/scope';
+import { optionalRange } from '@/server/reports/range';
 import { getPrismaClient } from '@/server/db/prisma';
 import { RecordError } from '@/server/validation/records';
 import { sqlTableOrder } from '@/server/validation/table-sort';
@@ -313,7 +319,9 @@ export async function quoteRead(actor: Actor, params: URLSearchParams, quoteId?:
   return getPrismaClient().$transaction(
     async (tx) => {
       if (quoteId) {
-        const match = /^[0-9a-f-]{36}$/i.test(quoteId)
+        const match = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          quoteId,
+        )
           ? Prisma.sql`q.id=${quoteId}::uuid OR q.code=${quoteId}`
           : Prisma.sql`q.code=${quoteId}`;
         const row = (
@@ -334,7 +342,7 @@ export async function quoteRead(actor: Actor, params: URLSearchParams, quoteId?:
         status = params.get('status') ?? '';
       if (status && !(QUOTE_DISPLAY_STATUSES as readonly string[]).includes(status))
         throw new RecordError(400, 'สถานะไม่ถูกต้อง');
-      const where = Prisma.sql`q.deleted_at IS NULL AND (q.code ILIKE ${like} OR c.name ILIKE ${like} OR c.code ILIKE ${like}) ${status ? Prisma.sql`AND ${displayStatus(today)}=${status}` : Prisma.empty} ${customerScope(actor, Prisma.sql`q.customer_id`)}`;
+      const where = Prisma.sql`q.deleted_at IS NULL AND (q.code ILIKE ${like} OR c.name ILIKE ${like} OR c.code ILIKE ${like}) ${status ? Prisma.sql`AND ${displayStatus(today)}=${status}` : Prisma.empty} ${optionalRange(params, Prisma.sql`q.created_at`, true)} ${salesFilters(actor, params, Prisma.sql`q.territory_id`, Prisma.sql`q.created_by_id`)} ${customerScope(actor, Prisma.sql`q.customer_id`)}`;
       const order = sqlTableOrder(
         params,
         {
@@ -356,7 +364,11 @@ export async function quoteRead(actor: Actor, params: URLSearchParams, quoteId?:
         tx,
         Prisma.sql`SELECT count(*)::int AS total FROM ${quoteFrom} WHERE ${where}`,
       );
-      return { ...pageResult(rows, count[0].total, offset, limit), actor };
+      return {
+        ...pageResult(rows, count[0].total, offset, limit),
+        ...(await salesFilterOptions(tx, actor)),
+        actor,
+      };
     },
     { isolationLevel: 'RepeatableRead' },
   );

@@ -5,11 +5,12 @@ import { useRef, useState, type FormEvent } from 'react';
 import { useRouteData } from '@/components/ui/route-data';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { fieldClass, roles, userPath } from '../user-ui';
+import { roles, userPath } from '../user-ui';
 import { Update, Delete } from '@/service/http';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 import StatusBadge from '@/components/ui/status-badge';
+import { inputClass, primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const data = useRouteData();
@@ -143,7 +144,7 @@ export default function Page() {
 
   return (
     <section
-      className="flex flex-1 flex-col gap-5 p-6 pb-7"
+      className="flex min-w-0 w-full flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8"
       aria-label={`จัดการผู้ใช้งาน ${user.name}`}
     >
       <ConfirmationDialog
@@ -185,7 +186,7 @@ export default function Page() {
           ← กลับไปรายชื่อผู้ใช้งาน
         </Link>
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <h2 className="text-xl poppins-semibold text-[#26364b]">{user.name}</h2>
+          <h2 className="text-lg poppins-semibold text-[#344256]">{user.name}</h2>
           <StatusBadge
             value={
               user.deletedAt ? 'ลบแล้ว' : user.status === 'ACTIVE' ? 'ใช้งานอยู่' : 'ระงับการใช้งาน'
@@ -209,8 +210,8 @@ export default function Page() {
       )}
       {user.deletedAt ? (
         <div className="grid max-w-3xl gap-5">
-          <div className="rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm">
-            <h3 className="text-base poppins-semibold text-[#26364b]">ข้อมูลการลบ</h3>
+          <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
+            <h3 className="text-base poppins-semibold text-[#1a58a7]">ข้อมูลการลบ</h3>
             <dl className="mt-4 grid gap-3 text-sm text-[#526176]">
               <div>
                 <dt className="poppins-medium">ลบเมื่อ</dt>
@@ -232,10 +233,10 @@ export default function Page() {
           </div>
           <form
             onSubmit={(event) => void changeDeletion(event, 'restore')}
-            className="grid gap-4 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm"
+            className="grid gap-4 rounded-lg border border-[#d9e3ee] p-4 md:p-6"
           >
             <div>
-              <h3 className="text-base poppins-semibold text-[#26364b]">กู้คืนผู้ใช้งาน</h3>
+              <h3 className="text-base poppins-semibold text-[#1a58a7]">กู้คืนผู้ใช้งาน</h3>
               <p className="mt-1 text-sm text-[#718096]">กู้คืนแล้วบัญชีจะกลับไปใช้สถานะเดิม</p>
             </div>
             <Field label="เหตุผลการกู้คืน">
@@ -244,12 +245,12 @@ export default function Page() {
                 required
                 maxLength={500}
                 rows={3}
-                className="mt-1.5 w-full rounded-lg border border-[#dce4ed] p-3 text-sm text-[#26364b]"
+                className={`${inputClass} mt-1.5`}
               />
             </Field>
             <button
               disabled={busy || Boolean(message)}
-              className="justify-self-end rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"
+              className={`${primaryButtonClass} justify-self-end`}
             >
               กู้คืนผู้ใช้งาน
             </button>
@@ -260,10 +261,10 @@ export default function Page() {
           <div className="grid max-w-5xl gap-5 lg:grid-cols-2">
             <form
               onSubmit={editProfile}
-              className="grid gap-4 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm"
+              className="grid gap-4 rounded-lg border border-[#d9e3ee] p-4 md:p-6"
             >
               <div>
-                <h3 className="text-base poppins-semibold text-[#26364b]">ข้อมูลบัญชี</h3>
+                <h3 className="text-base poppins-semibold text-[#1a58a7]">ข้อมูลบัญชี</h3>
                 <p className="mt-1 text-xs text-[#718096]">
                   แก้รหัสพนักงานแล้ว URL ของหน้านี้จะเปลี่ยนตาม
                 </p>
@@ -275,7 +276,7 @@ export default function Page() {
                   required
                   maxLength={40}
                   defaultValue={user.employeeCode}
-                  className={fieldClass}
+                  className={`${inputClass} mt-1.5`}
                 />
               </Field>
               <Field label="ชื่อ - นามสกุล">
@@ -284,7 +285,7 @@ export default function Page() {
                   required
                   maxLength={160}
                   defaultValue={user.name}
-                  className={fieldClass}
+                  className={`${inputClass} mt-1.5`}
                 />
               </Field>
               <Field label="อีเมล">
@@ -293,17 +294,17 @@ export default function Page() {
                   type="email"
                   required
                   defaultValue={user.email}
-                  className={fieldClass}
+                  className={`${inputClass} mt-1.5`}
                 />
               </Field>
               <Field label="ทีม">
-                <input name="team" defaultValue={user.team} className={fieldClass} />
+                <input name="team" defaultValue={user.team} className={`${inputClass} mt-1.5`} />
               </Field>
               {(user.userRole?.roleId === 'SALES' || user.userRole?.roleId === 'MANAGER') &&
                 <fieldset disabled={busy || Boolean(message) || Boolean(pendingProfile)}><UserTerritoryPicker value={territoryId} onChange={setTerritoryId} initial={user.territory} /></fieldset>}
               <button
                 disabled={busy || Boolean(message)}
-                className="justify-self-end rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"
+                className={`${primaryButtonClass} justify-self-end`}
               >
                 บันทึกข้อมูล
               </button>
@@ -311,9 +312,9 @@ export default function Page() {
             <div className="grid content-start gap-5">
               <form
                 onSubmit={changeRole}
-                className="grid gap-4 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm"
+                className="grid gap-4 rounded-lg border border-[#d9e3ee] p-4 md:p-6"
               >
-                <h3 className="text-base poppins-semibold text-[#26364b]">บทบาทและสิทธิ์</h3>
+                <h3 className="text-base poppins-semibold text-[#1a58a7]">บทบาทและสิทธิ์</h3>
                 <Field label="บทบาท">
                   <select
                     key={user.userRole?.roleId}
@@ -321,7 +322,7 @@ export default function Page() {
                     defaultValue={user.userRole?.roleId ?? ''}
                     required
                     disabled={isSelf}
-                    className={`${fieldClass} disabled:opacity-50`}
+                    className={`${inputClass} mt-1.5 disabled:opacity-50`}
                   >
                     {roles.map(([id, name]) => (
                       <option key={id} value={id}>
@@ -332,13 +333,13 @@ export default function Page() {
                 </Field>
                 <button
                   disabled={busy || Boolean(message) || isSelf}
-                  className="justify-self-end rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"
+                  className={`${primaryButtonClass} justify-self-end`}
                 >
                   บันทึกบทบาท
                 </button>
               </form>
-              <div className="rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm">
-                <h3 className="text-base poppins-semibold text-[#26364b]">สถานะบัญชี</h3>
+              <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
+                <h3 className="text-base poppins-semibold text-[#1a58a7]">สถานะบัญชี</h3>
                 <p className="mt-2 text-sm text-[#718096]">
                   {user.status === 'ACTIVE'
                     ? 'ผู้ใช้นี้เข้าสู่ระบบได้'
@@ -348,16 +349,16 @@ export default function Page() {
                   type="button"
                   disabled={busy || Boolean(message) || isSelf}
                   onClick={() => void changeStatus()}
-                  className="mt-4 rounded border border-[#dce4ed] px-4 py-2 text-sm text-[#344256] disabled:opacity-50"
+                  className={`${secondaryButtonClass} mt-4`}
                 >
                   {user.status === 'ACTIVE' ? 'ระงับการใช้งาน' : 'เปิดใช้งาน'}
                 </button>
               </div>
               <form
                 onSubmit={resetPassword}
-                className="grid gap-4 rounded-xl border border-[#e3e9f0] bg-white p-6 shadow-sm"
+                className="grid gap-4 rounded-lg border border-[#d9e3ee] p-4 md:p-6"
               >
-                <h3 className="text-base poppins-semibold text-[#26364b]">ตั้งรหัสผ่านใหม่</h3>
+                <h3 className="text-base poppins-semibold text-[#1a58a7]">ตั้งรหัสผ่านใหม่</h3>
                 <Field label="รหัสผ่านใหม่ (ขั้นต่ำ 8 ตัวอักษร)">
                   <input
                     name="password"
@@ -365,7 +366,7 @@ export default function Page() {
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className={fieldClass}
+                    className={`${inputClass} mt-1.5`}
                   />
                 </Field>
                 <p className="text-xs text-[#718096]">
@@ -373,7 +374,7 @@ export default function Page() {
                 </p>
                 <button
                   disabled={busy || Boolean(message)}
-                  className="justify-self-end rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"
+                  className={`${primaryButtonClass} justify-self-end`}
                 >
                   ตั้งรหัสใหม่
                 </button>
@@ -382,7 +383,7 @@ export default function Page() {
           </div>
           <form
             onSubmit={(event) => void changeDeletion(event, 'delete')}
-            className="grid max-w-5xl gap-4 rounded-xl border border-[#f2d5d1] bg-white p-6 shadow-sm"
+            className="grid max-w-5xl gap-4 rounded-lg border border-[#f2d5d1] p-4 md:p-6"
           >
             <div>
               <h3 className="text-base poppins-semibold text-[#a33c32]">ลบผู้ใช้งาน</h3>
@@ -397,12 +398,12 @@ export default function Page() {
                 maxLength={500}
                 rows={3}
                 disabled={isSelf}
-                className="mt-1.5 w-full rounded-lg border border-[#dce4ed] p-3 text-sm text-[#26364b] disabled:opacity-50"
+                className={`${inputClass} mt-1.5`}
               />
             </Field>
             <button
               disabled={busy || Boolean(message) || isSelf}
-              className="justify-self-end rounded border border-[#d48b84] px-4 py-2 text-sm poppins-medium text-[#a33c32] disabled:opacity-50"
+              className="justify-self-end rounded-lg border border-[#d48b84] px-5 py-2.5 text-sm poppins-medium text-[#a33c32] disabled:opacity-50"
             >
               ลบผู้ใช้งาน
             </button>

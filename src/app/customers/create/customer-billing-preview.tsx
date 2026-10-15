@@ -3,6 +3,7 @@
 import { useId, useState } from 'react';
 import CustomerChoicePreview from './customer-choice-preview';
 import CustomerAddressPicker, { type AddressValue } from './customer-address-picker';
+import { inputClass } from '@/components/ui/form-classes';
 
 const addressKeys = {
   province: 'billingProvince',
@@ -12,8 +13,6 @@ const addressKeys = {
 } as const;
 
 type BillingField = { key: string; label: string; placeholder: string; multiline?: boolean };
-const inputClass =
-  'mt-2 block w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#8994a5] focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100 aria-invalid:border-red-600';
 const binaryChoices: Record<string, [string, string]> = {
   vatStatus: ['จดทะเบียน', 'ไม่จดทะเบียน'],
   branchType: ['สำนักงานใหญ่', 'สาขา'],
@@ -108,7 +107,7 @@ export default function CustomerBillingPreview({
                 aria-required={required}
                 placeholder={field.placeholder}
                 rows={3}
-                className={`${inputClass} min-h-24 resize-y`}
+                className={`${inputClass} mt-2 min-h-24 resize-y`}
               />
             ) : (
               <input
@@ -118,7 +117,7 @@ export default function CustomerBillingPreview({
                 {...(isTaxId ? {} : { defaultValue: initial[field.key] })}
                 aria-required={required}
                 placeholder={field.placeholder}
-                className={`${inputClass} h-11`}
+                className={`${inputClass} mt-2 h-11`}
                 {...(isTaxId
                   ? {
                       inputMode: 'numeric' as const,

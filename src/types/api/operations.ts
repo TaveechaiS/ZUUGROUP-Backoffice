@@ -151,3 +151,7 @@ export type PageData<T> = {
   data: T[];
   pagination: { offset: number; limit: number; total: number; hasMore: boolean };
 };
+export type SalesFilterOptions = {
+  territories: { id: string; name: string }[];
+  sellers: { id: string; name: string }[];
+};

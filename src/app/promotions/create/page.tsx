@@ -52,7 +52,7 @@ export default function Page() {
       aria-label="เพิ่มโปรโมชัน"
       className="relative min-h-80 min-w-0 w-full px-4 py-6 md:px-6 md:py-8"
     >
-      <h1 className="mb-6 text-xl poppins-semibold text-[#26364b]">เพิ่มโปรโมชัน</h1>
+      <h2 className="mb-6 text-lg poppins-semibold text-[#344256]">เพิ่มโปรโมชัน</h2>
       {!options ? (
         loadError ? (
           <div role="alert" className="flex gap-3 text-sm poppins-regular text-red-600">

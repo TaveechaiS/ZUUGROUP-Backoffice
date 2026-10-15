@@ -8,19 +8,22 @@ import StatusBadge from '@/components/ui/status-badge';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import { SearchIcon } from '@/components/icons/status-icons';
+import { filterClass } from '@/components/ui/form-classes';
 import { Get } from '@/service/http';
 import { PURCHASE_STATUSES } from '@/config/purchasing';
 import type { PurchasePage } from '@/types/api/purchasing';
-import { dateOnly, money } from '@/components/sales/document-ui';
+import { DateInput, dateOnly, money } from '@/components/sales/document-ui';
 
 const columns = ['code', 'orderDate', 'expectedOn', null, 'amount', 'status'];
-const cellClass = 'px-5 py-4 align-top';
+const cellClass = 'px-4 py-3';
 const ALL = '';
 
 export default function Page() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState(ALL);
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [refresh, setRefresh] = useState(0);
@@ -39,6 +42,8 @@ export default function Page() {
         new URLSearchParams({
           search,
           status,
+          from,
+          to,
           offset: String(offset),
           limit: String(pageSize),
         });
@@ -64,46 +69,46 @@ export default function Page() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [search, status, offset, pageSize, refresh, sort.key, sort.direction]);
+  }, [search, status, from, to, offset, pageSize, refresh, sort.key, sort.direction]);
 
   function resetFilters() {
     setSearch('');
     setStatus(ALL);
+    setFrom('');
+    setTo('');
     setOffset(0);
   }
   const rows = result?.data ?? [];
   const open = (id: string) => router.push(`/purchases/${id}`);
 
   return (
-    <section aria-label="ใบสั่งซื้อ" className="min-w-0 w-full px-4 py-6 md:px-6 md:py-8">
-      <div className="mb-6">
-        <h1 className="text-xl poppins-semibold text-[#26364b]">ใบสั่งซื้อ</h1>
+    <section
+      aria-label="ใบสั่งซื้อ"
+      className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9e3ee]">
+        <div role="tablist" aria-label="สถานะใบสั่งซื้อ" className="flex flex-wrap gap-5">
+          {[ALL, ...PURCHASE_STATUSES].map((value) => (
+            <button
+              key={value || 'all'}
+              type="button"
+              role="tab"
+              aria-selected={status === value}
+              onClick={() => {
+                setStatus(value);
+                setOffset(0);
+              }}
+              className={`border-b-2 px-1 py-3 text-sm ${status === value ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
+            >
+              {value || 'ทั้งหมด'}
+            </button>
+          ))}
+        </div>
       </div>
-      <div
-        role="tablist"
-        aria-label="สถานะใบสั่งซื้อ"
-        className="mb-4 flex flex-wrap gap-x-4 border-b border-[#e4e9f0]"
-      >
-        {[ALL, ...PURCHASE_STATUSES].map((value) => (
-          <button
-            key={value || 'all'}
-            type="button"
-            role="tab"
-            aria-selected={status === value}
-            onClick={() => {
-              setStatus(value);
-              setOffset(0);
-            }}
-            className={`-mb-px min-h-10 border-b-2 px-1 pb-3 text-sm transition ${status === value ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
-          >
-            {value || 'ทั้งหมด'}
-          </button>
-        ))}
-      </div>
-      <div className="mb-6 grid grid-cols-1 items-end gap-5 rounded-xl border border-[#e4e7ec] bg-white p-6 shadow-xs">
-        <label className="min-w-0">
-          <span className="mb-2 block text-xs text-[#344256]">ค้นหาใบสั่งซื้อ</span>
-          <div className="relative">
+      <div className="grid grid-cols-1 gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-3">
+        <label className="min-w-0 text-xs text-[#53647c]">
+          ค้นหาใบสั่งซื้อ
+          <div className="relative mt-1.5">
             <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
             <input
               type="search"
@@ -113,13 +118,39 @@ export default function Page() {
                 setOffset(0);
               }}
               placeholder="เลขที่ใบสั่งซื้อ ชื่อสินค้า หรือหมายเหตุ"
-              className="h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white pl-10 pr-3 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#9ba7b6] focus:border-[#1a58a7]"
+              className={`${filterClass} pl-10`}
             />
           </div>
         </label>
+        <div className="min-w-0 text-xs text-[#53647c]">
+          ตั้งแต่วันที่
+          <DateInput
+            label="ตั้งแต่วันที่"
+            value={from}
+            max={to || undefined}
+            required={false}
+            onChange={(value) => {
+              setFrom(value);
+              setOffset(0);
+            }}
+          />
+        </div>
+        <div className="min-w-0 text-xs text-[#53647c]">
+          ถึงวันที่
+          <DateInput
+            label="ถึงวันที่"
+            value={to}
+            min={from || undefined}
+            required={false}
+            onChange={(value) => {
+              setTo(value);
+              setOffset(0);
+            }}
+          />
+        </div>
       </div>
       {error && (
-        <div role="alert" className="mb-4 flex gap-3 text-sm poppins-regular text-red-600">
+        <div role="alert" className="flex gap-3 text-sm poppins-regular text-red-600">
           {error}
           <button type="button" onClick={() => setRefresh((v) => v + 1)} className="text-[#1a58a7]">
             ลองใหม่
@@ -127,65 +158,61 @@ export default function Page() {
         </div>
       )}
       <div
-        className="relative min-h-80 overflow-hidden rounded-lg border border-[#d9e3ee] bg-white"
+        className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"
         aria-busy={loading}
       >
-        <div className="overflow-x-auto">
-          <SortableTable
-            sort={sort}
-            columns={columns}
-            className="w-full min-w-[1000px] border-collapse text-left text-sm poppins-regular text-[#344256]"
-          >
-            <thead className="border-b border-[#d9e3ee] bg-[#f7f9fc] text-[#65758b]">
-              <tr>
-                {[
-                  'เลขที่',
-                  'วันที่สั่งซื้อ',
-                  'คาดว่าจะได้รับ',
-                  'รับแล้ว / สั่ง',
-                  'ยอดรวม (รวม VAT)',
-                  'สถานะ',
-                ].map((label) => (
-                  <th key={label} scope="col" className="px-5 py-3 poppins-medium">
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {!loading &&
-                !error &&
-                rows.map((po) => (
-                  <tr
-                    key={po.id}
-                    role="link"
-                    tabIndex={0}
-                    aria-label={`เปิดใบสั่งซื้อ ${po.code}`}
-                    onClick={() => open(po.id)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') open(po.id);
-                    }}
-                    className="cursor-pointer border-b border-[#edf1f5] last:border-b-0 hover:bg-blue-50/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#1a58a7]"
-                  >
-                    <td className={`${cellClass} whitespace-nowrap poppins-medium text-[#1a58a7]`}>
-                      {po.code}
-                    </td>
-                    <td className={`${cellClass} whitespace-nowrap`}>{dateOnly(po.orderDate)}</td>
-                    <td className={`${cellClass} whitespace-nowrap`}>{dateOnly(po.expectedOn)}</td>
-                    <td className={`${cellClass} whitespace-nowrap text-right`}>
-                      {po.received.toLocaleString('th-TH')} / {po.ordered.toLocaleString('th-TH')}
-                    </td>
-                    <td className={`${cellClass} whitespace-nowrap text-right`}>
-                      {money(po.amount)}
-                    </td>
-                    <td className={cellClass}>
-                      <StatusBadge value={po.status} />
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </SortableTable>
-        </div>
+        <SortableTable
+          sort={sort}
+          columns={columns}
+          className="w-full min-w-[1000px] border-collapse text-left text-sm poppins-regular text-[#344256]"
+        >
+          <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
+            <tr>
+              {[
+                'เลขที่',
+                'วันที่สั่งซื้อ',
+                'คาดว่าจะได้รับ',
+                'รับแล้ว / สั่ง',
+                'ยอดรวม (รวม VAT)',
+                'สถานะ',
+              ].map((label) => (
+                <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
+                  {label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {!loading &&
+              !error &&
+              rows.map((po) => (
+                <tr
+                  key={po.id}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`เปิดใบสั่งซื้อ ${po.code}`}
+                  onClick={() => open(po.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') open(po.id);
+                  }}
+                  className="cursor-pointer border-t border-[#edf0f4] hover:bg-[#fafbfc] focus-visible:bg-blue-50 focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
+                >
+                  <td className={`${cellClass} whitespace-nowrap text-[#1a58a7]`}>{po.code}</td>
+                  <td className={`${cellClass} whitespace-nowrap`}>{dateOnly(po.orderDate)}</td>
+                  <td className={`${cellClass} whitespace-nowrap`}>{dateOnly(po.expectedOn)}</td>
+                  <td className={`${cellClass} whitespace-nowrap text-right`}>
+                    {po.received.toLocaleString('th-TH')} / {po.ordered.toLocaleString('th-TH')}
+                  </td>
+                  <td className={`${cellClass} whitespace-nowrap text-right`}>
+                    {money(po.amount)}
+                  </td>
+                  <td className={cellClass}>
+                    <StatusBadge value={po.status} />
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </SortableTable>
         <LoadingComponent
           isVisible={loading && !error}
           variant="content"
@@ -199,19 +226,21 @@ export default function Page() {
             backLabel="แสดงทั้งหมด"
           />
         )}
-        <PaginationControls
-          page={Math.floor(offset / pageSize) + 1}
-          pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
-          total={result?.pagination.total ?? 0}
-          count={rows.length}
-          pageSize={pageSize}
-          onChange={(page) => setOffset((page - 1) * pageSize)}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setOffset(0);
-          }}
-          disabled={loading}
-        />
+        <div className="border-t border-[#edf0f4] p-3">
+          <PaginationControls
+            page={Math.floor(offset / pageSize) + 1}
+            pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
+            total={result?.pagination.total ?? 0}
+            count={rows.length}
+            pageSize={pageSize}
+            onChange={(page) => setOffset((page - 1) * pageSize)}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setOffset(0);
+            }}
+            disabled={loading}
+          />
+        </div>
       </div>
     </section>
   );

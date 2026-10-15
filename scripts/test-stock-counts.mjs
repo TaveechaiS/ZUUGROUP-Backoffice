@@ -237,6 +237,17 @@ try {
         assert.equal(report.data.length, 1);
         assert.match(report.data[0].resultText, /ขาด 2 ชิ้น/);
       });
+      await test('TASK-296 รอบตรวจนับ: กรองตามคลัง และรหัสคลังผิด 400', async () => {
+        const read = (p) => sc.stockCountRead(admin, new URLSearchParams({ search: prefix, ...p }));
+        const all = await read({});
+        assert.ok(all.data.some((r) => r.id === sessionId));
+        assert.ok(all.warehouses.some((w) => w.code === 'DISPOSAL'));
+        assert.ok((await read({ warehouseCode: 'DISPOSAL' })).data.some((r) => r.id === sessionId));
+        assert.ok(!(await read({ warehouseCode: 'MAIN' })).data.some((r) => r.id === sessionId));
+        assert.equal((await read({ warehouseCode: '' })).pagination.total, all.pagination.total);
+        await rejects(() => read({ warehouseCode: 'X' }), 400);
+      });
+
       throw rollback;
     },
     { timeout: 180000, maxWait: 10000 },

@@ -13,6 +13,7 @@ import { PROMOTION_REWARD_TYPES, PROMOTION_STATUSES } from '@/config/promotions'
 import type { PromotionPage } from '@/types/api/promotions';
 import { dateOnly } from '@/components/sales/document-ui';
 import { conditionText, rewardText } from '@/components/promotions/promotion-form';
+import { filterClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function Page() {
 
   const rows = result?.data ?? [];
   const total = result?.pagination.total ?? 0;
-  const control = 'mt-1.5 h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm';
+  const control = `mt-1.5 ${filterClass}`;
 
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6">

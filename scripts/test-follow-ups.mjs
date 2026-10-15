@@ -215,6 +215,27 @@ try {
         );
         assert.equal((await followUpsHandler(request('GET'), 'FU-0000-0000')).status, 404);
       });
+      await test('TASK-296 ติดตามลูกค้า: ช่องทาง ช่วงวันที่ติดต่อ และค่าผิด 400', async () => {
+        const read = (p) => fu.followUpRead(admin, new URLSearchParams({ search: prefix, ...p }));
+        const total = (await read({})).pagination.total;
+        assert.ok(total >= 2);
+        const first = (await read({})).data[0].id;
+        const old = addDays(today, -4);
+        await tx.$executeRaw`UPDATE customer_follow_ups SET channel='LINE',contacted_on=${old}::date WHERE id=${first}::uuid`;
+        assert.deepEqual(
+          (await read({ channel: 'LINE' })).data.map((r) => r.id),
+          [first],
+        );
+        assert.equal((await read({ channel: 'โทร' })).pagination.total, total - 1);
+        assert.equal((await read({ channel: '' })).pagination.total, total);
+        await rejects(() => read({ channel: 'แฟกซ์' }), 400);
+        assert.equal((await read({ from: old, to: old })).data[0].id, first);
+        assert.equal((await read({ to: addDays(old, -1) })).pagination.total, 0);
+        assert.equal((await read({ from: addDays(old, 1) })).pagination.total, total - 1);
+        await rejects(() => read({ from: today, to: old }), 400);
+        await rejects(() => read({ from: 'x' }), 400);
+      });
+
       throw rollback;
     },
     { timeout: 180000, maxWait: 10000 },

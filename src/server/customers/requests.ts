@@ -5,7 +5,7 @@ import { getPrismaClient } from '@/server/db/prisma';
 import { RecordError } from '@/server/validation/records';
 import { str, id } from '@/server/operations/domain';
 import { page, pageResult, type Actor } from '@/server/operations/service';
-import { likeOf } from '@/server/reports/range';
+import { likeOf, optionalRange } from '@/server/reports/range';
 import { commitCustomerRequest } from './full';
 import type { CustomerRequestDetail, CustomerRequestRow } from '@/types/api/customer-requests';
 
@@ -54,8 +54,10 @@ export async function reviewCustomerRequest(requestId: string, actor: Actor, raw
     throw new RecordError(400, 'คำสั่งไม่ถูกต้อง');
   const reason = action === 'approve' ? '' : str(body.reason, 'เหตุผล');
   const requester = await db().$transaction(async (tx) => {
-    const rows = await tx.$queryRaw<{ status: string; actorId: string; updatedAt: Date }[]>(
-      Prisma.sql`SELECT status,actor_id AS "actorId",updated_at AS "updatedAt" FROM customer_create_requests WHERE id=${rid}::uuid AND submitted_at IS NOT NULL FOR UPDATE`,
+    const rows = await tx.$queryRaw<
+      { status: string; actorId: string; updatedAt: Date; reviewed: boolean }[]
+    >(
+      Prisma.sql`SELECT status,actor_id AS "actorId",updated_at AS "updatedAt",reviewed_by_id IS NOT NULL AS reviewed FROM customer_create_requests WHERE id=${rid}::uuid AND submitted_at IS NOT NULL FOR UPDATE`,
     );
     if (!rows[0]) throw new RecordError(404, 'ไม่พบคำขอ');
     if (
@@ -63,7 +65,9 @@ export async function reviewCustomerRequest(requestId: string, actor: Actor, raw
       String(body.expectedUpdatedAt) !== rows[0].updatedAt.toISOString()
     )
       throw new RecordError(409, 'คำขอถูกเปลี่ยนแล้ว กรุณาโหลดใหม่');
-    if (rows[0].status !== 'submitted') throw new RecordError(409, 'คำขอนี้ตรวจแล้ว');
+    const stuckApproval = action === 'approve' && rows[0].status === 'pending' && rows[0].reviewed;
+    if (rows[0].status !== 'submitted' && !stuckApproval)
+      throw new RecordError(409, 'คำขอนี้ตรวจแล้ว');
     await tx.$executeRaw(
       Prisma.sql`UPDATE customer_create_requests SET status=${action === 'approve' ? 'pending' : action === 'return' ? 'returned' : 'rejected'},reviewed_by_id=${actor.id}::uuid,reviewed_at=now(),review_reason=${reason},updated_at=now() WHERE id=${rid}::uuid`,
     );
@@ -97,7 +101,7 @@ export async function customerRequestList(actor: Actor, params: URLSearchParams)
     status = params.get('status') ?? '';
   const statusKey = Object.entries(REQUEST_STATUS_TEXT).find(([, text]) => text === status)?.[0];
   if (status && !statusKey) throw new RecordError(400, 'สถานะไม่ถูกต้อง');
-  const where = Prisma.sql`r.submitted_at IS NOT NULL ${actor.roleId === 'ADMIN' ? Prisma.empty : Prisma.sql`AND r.actor_id=${actor.id}::uuid`} AND (r.payload->'fields'->>'name' ILIKE ${like} OR a.name ILIKE ${like}) ${statusKey ? Prisma.sql`AND r.status=${statusKey}` : Prisma.empty}`;
+  const where = Prisma.sql`r.submitted_at IS NOT NULL ${actor.roleId === 'ADMIN' ? Prisma.empty : Prisma.sql`AND r.actor_id=${actor.id}::uuid`} AND (r.payload->'fields'->>'name' ILIKE ${like} OR a.name ILIKE ${like}) ${statusKey ? Prisma.sql`AND r.status=${statusKey}` : Prisma.empty} ${optionalRange(params, Prisma.sql`r.submitted_at`, true)}`;
   return db().$transaction(
     async (tx) => {
       const rows = await tx.$queryRaw<CustomerRequestRow[]>(

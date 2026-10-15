@@ -29,7 +29,7 @@ function amount(value: unknown) {
   return v;
 }
 const uuidOrCode = (value: string) =>
-  /^[0-9a-f-]{36}$/i.test(value)
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
     ? Prisma.sql`(e.id=${value}::uuid OR e.code=${value})`
     : Prisma.sql`e.code=${value}`;
 
@@ -207,7 +207,8 @@ export async function uploadExpenseFile(actor: Actor, expenseId: string, file: u
   );
 }
 
-export async function readExpenseFile(fileId: string) {
+export async function readExpenseFile(actor: Actor, fileId: string) {
+  allowRead(actor, ['ADMIN', 'ACCOUNTING_CFO', 'MANAGER']);
   const rows = await getPrismaClient().$queryRaw<
     { name: string; type: string; size: number; path: string }[]
   >(

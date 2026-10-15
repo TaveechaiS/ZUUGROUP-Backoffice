@@ -1,7 +1,7 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
-import { customerScope } from '@/server/access/scope';
+import { allowRead, customerScope, salesFilterOptions, salesFilters } from '@/server/access/scope';
 import { getPrismaClient } from '@/server/db/prisma';
 import { RecordError } from '@/server/validation/records';
 import { sqlTableOrder } from '@/server/validation/table-sort';
@@ -16,7 +16,7 @@ import {
   type Actor,
   type Tx,
 } from '@/server/operations/service';
-import { likeOf } from '@/server/reports/range';
+import { likeOf, optionalRange } from '@/server/reports/range';
 import { INVOICE_STATUSES, PAYMENT_METHODS } from '@/config/billing';
 import type { InvoicePaymentRow, InvoiceRow, UninvoicedOrder } from '@/types/api/billing';
 
@@ -33,7 +33,7 @@ const paidSql = (invoice: Prisma.Sql) =>
 const displayStatus = (today: string) =>
   Prisma.sql`CASE WHEN i.status IN ('ค้างชำระ','ชำระบางส่วน') AND i.due_date<${today}::date THEN 'เกินกำหนด' ELSE i.status END`;
 const uuidOrCode = (value: string) =>
-  /^[0-9a-f-]{36}$/i.test(value)
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
     ? Prisma.sql`(i.id=${value}::uuid OR i.code=${value})`
     : Prisma.sql`i.code=${value}`;
 
@@ -75,12 +75,18 @@ export async function billingWrite(actor: Actor, raw: unknown, invoiceId?: strin
     }
     const iid = id(invoiceId);
     const before = (
-      await query<{ status: string; updatedAt: Date; amount: string; paid: string }>(
+      await query<{ status: string; updatedAt: Date; amount: string; issueDate: string }>(
         tx,
-        Prisma.sql`SELECT i.status,i.updated_at AS "updatedAt",i.amount::text AS amount,${paidSql(Prisma.sql`i.id`)}::text AS paid FROM invoices i WHERE i.id=${iid}::uuid AND i.deleted_at IS NULL FOR UPDATE`,
+        Prisma.sql`SELECT i.status,i.updated_at AS "updatedAt",i.amount::text AS amount,i.issue_date::text AS "issueDate" FROM invoices i WHERE i.id=${iid}::uuid AND i.deleted_at IS NULL FOR UPDATE`,
       )
     )[0];
     if (!before) throw new RecordError(404, 'ไม่พบใบแจ้งหนี้');
+    const paid = (
+      await query<{ paid: string }>(
+        tx,
+        Prisma.sql`SELECT ${paidSql(Prisma.sql`${iid}::uuid`)}::text AS paid`,
+      )
+    )[0].paid;
     if (
       b.expectedUpdatedAt !== undefined &&
       String(b.expectedUpdatedAt) !== before.updatedAt.toISOString()
@@ -89,11 +95,13 @@ export async function billingWrite(actor: Actor, raw: unknown, invoiceId?: strin
     if (before.status === 'ยกเลิก') throw new RecordError(409, 'ใบแจ้งหนี้ถูกยกเลิกแล้ว');
     if (action === 'pay') {
       const amount = new Prisma.Decimal(money(b.amount, 'จำนวนเงิน'));
-      const outstanding = new Prisma.Decimal(before.amount).sub(before.paid);
+      const outstanding = new Prisma.Decimal(before.amount).sub(paid);
       if (amount.gt(outstanding))
         throw new RecordError(409, `รับชำระเกินยอดค้าง (ค้าง ${outstanding.toFixed(2)})`);
       const paidOn = day(b.paidOn);
       if (paidOn > bangkokDay()) throw new RecordError(400, 'วันที่รับชำระต้องไม่เกินวันนี้');
+      if (paidOn < before.issueDate)
+        throw new RecordError(400, 'วันที่รับชำระต้องไม่ก่อนวันที่ออกใบแจ้งหนี้');
       const method = str(b.method, 'วิธีชำระ');
       if (!(PAYMENT_METHODS as readonly string[]).includes(method))
         throw new RecordError(400, 'วิธีชำระไม่ถูกต้อง');
@@ -116,7 +124,7 @@ export async function billingWrite(actor: Actor, raw: unknown, invoiceId?: strin
     }
     if (action === 'cancel') {
       const reason = str(b.reason, 'เหตุผล');
-      if (Number(before.paid) > 0)
+      if (Number(paid) > 0)
         throw new RecordError(409, 'มีรายการรับชำระแล้ว ยกเลิกรายการรับชำระก่อน');
       await tx.$executeRaw(
         Prisma.sql`UPDATE invoices SET status='ยกเลิก',cancel_reason=${reason},updated_at=clock_timestamp() WHERE id=${iid}::uuid`,
@@ -150,6 +158,7 @@ export async function billingRead(actor: Actor, params: URLSearchParams, invoice
         return { data: row, actor };
       }
       if (params.get('view') === 'uninvoiced') {
+        allowRead(actor, BILLING_WRITERS);
         const data = await query<UninvoicedOrder>(
           tx,
           Prisma.sql`SELECT o.id,o.code,c.name AS "customerName",COALESCE(o.amount,0)::text AS amount,COALESCE(c.credit_days,t.days,0)::int AS "creditDays" FROM sales_orders o JOIN customers c ON c.id=o.customer_id LEFT JOIN customer_options t ON t.id=c.credit_term_id WHERE o.deleted_at IS NULL AND o.workflow_managed AND o.status='เสร็จสิ้น' AND NOT EXISTS (SELECT 1 FROM invoices i WHERE i.sales_order_id=o.id AND i.status<>'ยกเลิก' AND i.deleted_at IS NULL) ORDER BY o.code DESC LIMIT 200`,
@@ -161,7 +170,7 @@ export async function billingRead(actor: Actor, params: URLSearchParams, invoice
         status = params.get('status') ?? '';
       if (status && !(INVOICE_STATUSES as readonly string[]).includes(status))
         throw new RecordError(400, 'สถานะไม่ถูกต้อง');
-      const where = Prisma.sql`i.deleted_at IS NULL AND (i.code ILIKE ${like} OR o.code ILIKE ${like} OR c.name ILIKE ${like} OR c.code ILIKE ${like}) ${status ? Prisma.sql`AND ${displayStatus(today)}=${status}` : Prisma.empty} ${customerScope(actor, Prisma.sql`i.customer_id`)}`;
+      const where = Prisma.sql`i.deleted_at IS NULL AND (i.code ILIKE ${like} OR o.code ILIKE ${like} OR c.name ILIKE ${like} OR c.code ILIKE ${like}) ${status ? Prisma.sql`AND ${displayStatus(today)}=${status}` : Prisma.empty} ${optionalRange(params, Prisma.sql`i.issue_date`)} ${salesFilters(actor, params, Prisma.sql`c.territory_id`, Prisma.sql`o.created_by_id`)} ${customerScope(actor, Prisma.sql`i.customer_id`)}`;
       const order = sqlTableOrder(
         params,
         {
@@ -187,6 +196,7 @@ export async function billingRead(actor: Actor, params: URLSearchParams, invoice
       return {
         ...pageResult(rows, totals[0].total, offset, limit),
         totalOutstanding: totals[0].outstanding,
+        ...(await salesFilterOptions(tx, actor)),
         actor,
       };
     },

@@ -9,6 +9,8 @@ import ListRequestState from '@/components/ui/list-request-state';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import type { AuditRow, AuditFiltersResponse } from '@/types/api/audit';
+import { filterClass, primaryButtonClass } from '@/components/ui/form-classes';
+import { DateInput } from '@/components/sales/document-ui';
 
 const actionNames: Record<string, string> = {
   ADMIN_RECOVERED: 'กู้คืนบัญชี Admin',
@@ -44,10 +46,14 @@ export default function Page() {
   };
   const [q, setQ] = useState(initialFilters.q ?? '');
   const [action, setAction] = useState(initialFilters.action ?? '');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [filters, setFilters] = useState(
     new URLSearchParams({
       q: initialFilters.q ?? '',
       action: initialFilters.action ?? '',
+      from: '',
+      to: '',
     }).toString(),
   );
   const {
@@ -74,12 +80,12 @@ export default function Page() {
   function search(event: FormEvent) {
     event.preventDefault();
     setPage(1);
-    setFilters(new URLSearchParams({ q, action }).toString());
+    setFilters(new URLSearchParams({ q, action, from, to }).toString());
     reload();
   }
   return (
     <section
-      className="flex flex-1 flex-col gap-5 p-6 pb-7 text-[#26364b]"
+      className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
       aria-label="ประวัติการทำรายการ"
     >
       <ListRequestState
@@ -88,14 +94,11 @@ export default function Page() {
           reload();
         }}
       />
-      <header>
-        <h1 className="m-0 text-2xl poppins-semibold">ประวัติการทำรายการ</h1>
-      </header>
       <form
         onSubmit={search}
-        className="flex flex-wrap items-end gap-3 rounded-xl border border-[#e4e9f0] bg-white p-5"
+        className="grid items-end gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
       >
-        <label className="min-w-52 flex-1 text-xs text-[#344256]">
+        <label className="text-xs text-[#53647c]">
           ค้นหา
           <input
             name="q"
@@ -103,16 +106,16 @@ export default function Page() {
             onChange={(event) => setQ(event.target.value)}
             maxLength={100}
             placeholder="เหตุการณ์ รหัสคำขอ หรือผู้ทำรายการ"
-            className="mt-1.5 h-10 w-full rounded-lg border border-[#dce4ed] bg-white px-3 text-sm outline-none focus:border-[#1a58a7]"
+            className={`mt-1.5 ${filterClass}`}
           />
         </label>
-        <label className="min-w-48 text-xs text-[#344256]">
+        <label className="text-xs text-[#53647c]">
           ประเภทการทำรายการ
           <select
             name="action"
             value={action}
             onChange={(event) => setAction(event.target.value)}
-            className="mt-1.5 h-10 w-full rounded-lg border border-[#dce4ed] bg-white px-3 text-sm outline-none focus:border-[#1a58a7]"
+            className={`mt-1.5 ${filterClass}`}
           >
             <option value="">ทุกประเภท</option>
             {actions.map((action) => (
@@ -122,12 +125,34 @@ export default function Page() {
             ))}
           </select>
         </label>
-        <button className="h-10 rounded-lg bg-[#1a58a7] px-4 text-sm poppins-semibold text-white">
-          ค้นหา
-        </button>
+        <div className="text-xs text-[#53647c]">
+          ตั้งแต่วันที่
+          <DateInput
+            label="ตั้งแต่วันที่"
+            value={from}
+            max={to || undefined}
+            required={false}
+            onChange={(value) => {
+              setFrom(value);
+            }}
+          />
+        </div>
+        <div className="text-xs text-[#53647c]">
+          ถึงวันที่
+          <DateInput
+            label="ถึงวันที่"
+            value={to}
+            min={from || undefined}
+            required={false}
+            onChange={(value) => {
+              setTo(value);
+            }}
+          />
+        </div>
+        <button className={primaryButtonClass}>ค้นหา</button>
       </form>
       <div
-        className="relative min-h-44 overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white"
+        className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"
         aria-busy={loading}
       >
         <LoadingComponent
@@ -146,7 +171,7 @@ export default function Page() {
           columns={['occurredAt', 'action', 'actor', 'target', 'requestId']}
           className="w-full min-w-[850px] border-collapse text-left text-sm"
         >
-          <thead className="bg-[#f7f8fa] text-xs poppins-semibold text-[#2f3a4d]">
+          <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
             <tr>
               {[
                 'วันเวลา',
@@ -155,7 +180,7 @@ export default function Page() {
                 'ผู้ใช้งานที่เกี่ยวข้อง',
                 'รหัสคำขอ',
               ].map((label) => (
-                <th key={label} className="px-4 py-3">
+                <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
                   {label}
                 </th>
               ))}
@@ -163,20 +188,20 @@ export default function Page() {
           </thead>
           <tbody>
             {rows.map((event) => (
-              <tr key={event.id} className="border-t border-[#edf0f4] align-top text-[#526176]">
-                <td className="whitespace-nowrap px-4 py-4">{formatDate(event.occurredAt)}</td>
-                <td className="px-4 py-4">
-                  <span className="poppins-medium text-[#26364b]">{actionName(event.action)}</span>
+              <tr key={event.id} className="border-t border-[#edf0f4] hover:bg-[#fafbfc]">
+                <td className="whitespace-nowrap px-4 py-3">{formatDate(event.occurredAt)}</td>
+                <td className="px-4 py-3">
+                  <span>{actionName(event.action)}</span>
                   <span className="mt-1 block text-xs text-[#8492a6]">{event.action}</span>
                 </td>
-                <td className="px-4 py-4">
+                <td className="px-4 py-3">
                   {event.actor?.name ?? 'ระบบ'}
                   <span className="block text-xs text-[#8492a6]">
                     {event.actor?.employeeCode ? `${event.actor?.employeeCode} · ` : ''}
                     {event.actorRole ?? '-'}
                   </span>
                 </td>
-                <td className="px-4 py-4">
+                <td className="px-4 py-3">
                   {event.target?.name ?? '-'}
                   {event.target?.employeeCode && (
                     <span className="block text-xs text-[#8492a6]">
@@ -184,29 +209,35 @@ export default function Page() {
                     </span>
                   )}
                 </td>
-                <td className="break-all px-4 py-4 poppins-regular text-xs">{event.requestId}</td>
+                <td className="break-all px-4 py-3 text-xs">{event.requestId}</td>
               </tr>
             ))}
           </tbody>
         </SortableTable>
         {!loading && !error && rows.length === 0 && (
           <NotFoundComponent
-            title={q || action ? 'ไม่พบเหตุการณ์ที่ตรงกับเงื่อนไข' : 'ยังไม่มีประวัติการทำรายการ'}
+            title={
+              q || action || from || to
+                ? 'ไม่พบเหตุการณ์ที่ตรงกับเงื่อนไข'
+                : 'ยังไม่มีประวัติการทำรายการ'
+            }
           />
         )}
-        <PaginationControls
-          page={page}
-          pages={pages}
-          total={total}
-          count={rows.length}
-          onChange={setPage}
-          pageSize={pageSize}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setPage(1);
-          }}
-          disabled={loading}
-        />
+        <div className="border-t border-[#edf0f4] p-3">
+          <PaginationControls
+            page={page}
+            pages={pages}
+            total={total}
+            count={rows.length}
+            onChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+            disabled={loading}
+          />
+        </div>
       </div>
     </section>
   );

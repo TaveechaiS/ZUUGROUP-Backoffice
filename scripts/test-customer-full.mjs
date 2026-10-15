@@ -282,6 +282,10 @@ try {
         assert.equal(row.details.files[0].documentTypeName, docType.name);
         const bytes = await service.readCustomerFile(fileId);
         assert.equal(Buffer.from(bytes.bytes).toString('hex'), png.toString('hex'));
+        await rejects(
+          () => service.readCustomerFile(fileId, false, { id: admin.id, roleId: 'SALES' }),
+          /ไม่พบไฟล์/,
+        );
         assert.equal(
           await tx.auditEvent.count({ where: { action: 'CUSTOMER_CREATED_FULL', requestId } }),
           1,

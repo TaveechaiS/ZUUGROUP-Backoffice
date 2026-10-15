@@ -16,7 +16,7 @@ import {
   type Actor,
   type Tx,
 } from '@/server/operations/service';
-import { likeOf } from '@/server/reports/range';
+import { likeOf, optionalRange } from '@/server/reports/range';
 import { FOLLOW_UP_CHANNELS, FOLLOW_UP_FILTERS } from '@/config/follow-ups';
 import type { FollowUpRow } from '@/types/api/follow-ups';
 
@@ -116,7 +116,9 @@ export async function followUpRead(actor: Actor, params: URLSearchParams, follow
   return getPrismaClient().$transaction(
     async (tx) => {
       if (followUpId) {
-        const match = /^[0-9a-f-]{36}$/i.test(followUpId)
+        const match = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          followUpId,
+        )
           ? Prisma.sql`(f.id=${followUpId}::uuid OR f.code=${followUpId})`
           : Prisma.sql`f.code=${followUpId}`;
         const row = (
@@ -131,7 +133,10 @@ export async function followUpRead(actor: Actor, params: URLSearchParams, follow
       const { offset, limit, search } = page(params),
         like = likeOf(search),
         status = params.get('status') ?? '',
-        customerId = params.get('customerId') ?? '';
+        customerId = params.get('customerId') ?? '',
+        channel = params.get('channel') ?? '';
+      if (channel && !(FOLLOW_UP_CHANNELS as readonly string[]).includes(channel))
+        throw new RecordError(400, 'ช่องทางไม่ถูกต้อง');
       if (status && !(FOLLOW_UP_FILTERS as readonly string[]).includes(status))
         throw new RecordError(400, 'สถานะไม่ถูกต้อง');
       const statusWhere =
@@ -140,7 +145,7 @@ export async function followUpRead(actor: Actor, params: URLSearchParams, follow
           : status
             ? Prisma.sql`AND ${display(today)}=${status}`
             : Prisma.empty;
-      const where = Prisma.sql`f.deleted_at IS NULL AND (f.code ILIKE ${like} OR f.name ILIKE ${like} OR c.name ILIKE ${like} OR c.code ILIKE ${like}) ${statusWhere} ${customerId ? Prisma.sql`AND f.customer_id=${id(customerId, 'ลูกค้า')}::uuid` : Prisma.empty} ${customerScope(actor, Prisma.sql`f.customer_id`)}`;
+      const where = Prisma.sql`f.deleted_at IS NULL AND (f.code ILIKE ${like} OR f.name ILIKE ${like} OR c.name ILIKE ${like} OR c.code ILIKE ${like}) ${statusWhere} ${customerId ? Prisma.sql`AND f.customer_id=${id(customerId, 'ลูกค้า')}::uuid` : Prisma.empty} ${channel ? Prisma.sql`AND f.channel=${channel}` : Prisma.empty} ${optionalRange(params, Prisma.sql`f.contacted_on`)} ${customerScope(actor, Prisma.sql`f.customer_id`)}`;
       const order = sqlTableOrder(
         params,
         {

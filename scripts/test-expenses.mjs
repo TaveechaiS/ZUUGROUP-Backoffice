@@ -217,7 +217,8 @@ try {
         const uploaded = await exp.uploadExpenseFile(admin, id, pdf);
         assert.equal(uploaded.data.name, 'receipt.pdf');
         assert.equal((await read(id)).files.length, 1);
-        const file = await exp.readExpenseFile(uploaded.data.id);
+        const file = await exp.readExpenseFile(admin, uploaded.data.id);
+        await rejects(() => exp.readExpenseFile(sales, uploaded.data.id), 403);
         assert.equal(file.file.type, 'application/pdf');
         await rejects(
           () =>

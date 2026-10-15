@@ -58,7 +58,10 @@ export async function customerHandler(request: NextRequest, action: Action, id?:
         { headers },
       );
     if (action === 'file') {
-      const result = await readCustomerFile(id!, admin);
+      const result = await readCustomerFile(id!, admin, {
+        id: user.id,
+        roleId: user.userRole.roleId,
+      });
       return new NextResponse(result.bytes, {
         headers: {
           'Content-Type': result.file.type,

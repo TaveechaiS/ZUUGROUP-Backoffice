@@ -24,6 +24,7 @@ const name = (r: Record<string, unknown>) => (
 const views = {
   summary: {
     title: 'สรุปยอดขาย',
+    searchPlaceholder: 'ชื่อหรือรหัสลูกค้า / สินค้า',
     emptyTitle: 'ไม่มียอดขายในช่วงวันที่นี้',
     columns: [
       { key: 'soldOn', label: 'วันที่ขาย', render: (r) => dateOnly(String(r.soldOn)) },

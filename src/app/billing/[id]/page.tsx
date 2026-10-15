@@ -152,9 +152,9 @@ export default function Page() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-sm poppins-medium text-[#1a58a7]">{row.code}</p>
-              <h1 className="mt-1 text-xl poppins-semibold break-words text-[#26364b]">
+              <h2 className="mt-1 text-lg poppins-semibold break-words text-[#344256]">
                 {row.customerName}
-              </h1>
+              </h2>
               <p className="mt-2 text-sm poppins-regular text-[#718096]">
                 ออกโดย {row.createdByName || '—'} · {dateTime(row.createdAt)}
               </p>
@@ -200,9 +200,9 @@ export default function Page() {
           </Section>
           <Section title="ประวัติรับชำระ" open>
             {row.payments?.length ? (
-              <div className="overflow-x-auto rounded-lg border border-[#d9e3ee]">
+              <div className="overflow-x-auto rounded-lg border border-[#e3e9f0]">
                 <table className="w-full min-w-[820px] border-collapse text-left text-sm poppins-regular text-[#344256]">
-                  <thead className="border-b border-[#d9e3ee] bg-[#f7f9fc] text-[#65758b]">
+                  <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
                     <tr>
                       {[
                         'วันที่รับ',
@@ -213,7 +213,7 @@ export default function Page() {
                         'สถานะ',
                         '',
                       ].map((label, index) => (
-                        <th key={index} scope="col" className="px-4 py-3 poppins-medium">
+                        <th key={index} scope="col" className="px-4 py-3 poppins-semibold">
                           {label || <span className="sr-only">ดำเนินการ</span>}
                         </th>
                       ))}
@@ -221,7 +221,7 @@ export default function Page() {
                   </thead>
                   <tbody>
                     {row.payments.map((item) => (
-                      <tr key={item.id} className="border-b border-[#edf1f5] last:border-b-0">
+                      <tr key={item.id} className="border-t border-[#edf0f4]">
                         <td className={`${cellClass} whitespace-nowrap`}>
                           {dateOnly(item.paidOn)}
                         </td>
@@ -350,7 +350,7 @@ export default function Page() {
           )}
           {writer && open && (
             <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6 print:hidden">
-              <h2 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการ</h2>
+              <h3 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการ</h3>
               <label className="mt-4 block text-sm poppins-medium text-[#344256]">
                 เหตุผล (บังคับเมื่อยกเลิกใบแจ้งหนี้หรือรายการรับชำระ)
                 <textarea
@@ -366,7 +366,7 @@ export default function Page() {
                   {error}
                 </p>
               )}
-              <div className="mt-4 flex flex-wrap justify-end gap-3">
+              <div className="mt-5 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
                 <button
                   type="button"
                   disabled={busy || !reason.trim() || activePayments.length > 0}

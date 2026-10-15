@@ -12,6 +12,7 @@ import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import { CUSTOMER_TEXT_FIELDS } from '@/config/customers';
 import { Get, Update } from '@/service/http';
 import type { CustomerRequestDetail } from '@/types/api/customer-requests';
+import { inputClass, primaryButtonClass } from '@/components/ui/form-classes';
 
 type TextKey = keyof typeof CUSTOMER_TEXT_FIELDS;
 type Action = 'approve' | 'return' | 'reject';
@@ -174,9 +175,9 @@ export default function Page() {
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="mt-1 text-xl poppins-semibold break-words text-[#26364b]">
+          <h2 className="mt-1 text-lg poppins-semibold break-words text-[#344256]">
             {fields.name}
-          </h1>
+          </h2>
           <p className="mt-2 text-sm poppins-regular text-[#718096]">
             ขอโดย {request.requesterName} ({request.requesterRole}) · {request.territoryName} ·{' '}
             {dateTime.format(new Date(request.submittedAt))}
@@ -213,7 +214,7 @@ export default function Page() {
       )}
       {waiting && admin && (
         <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
-          <h2 className="text-base poppins-semibold text-[#1a58a7]">ลูกค้าที่อาจซ้ำ</h2>
+          <h3 className="text-base poppins-semibold text-[#1a58a7]">ลูกค้าที่อาจซ้ำ</h3>
           {request.duplicates.length ? (
             <ul className="mt-3 list-none space-y-2 p-0 text-sm">
               {request.duplicates.map((item) => (
@@ -310,7 +311,7 @@ export default function Page() {
       </Box>
       {waiting && admin && (
         <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
-          <h2 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการคำขอ</h2>
+          <h3 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการคำขอ</h3>
           <label className="mt-4 block text-sm poppins-medium text-[#344256]">
             เหตุผล (บังคับเมื่อส่งกลับแก้ไขหรือไม่อนุมัติ)
             <textarea
@@ -318,7 +319,7 @@ export default function Page() {
               onChange={(event) => setReason(event.target.value)}
               rows={2}
               maxLength={1000}
-              className="mt-2 block w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none focus:border-[#1a58a7]"
+              className={`mt-2 ${inputClass}`}
             />
           </label>
           {error && (
@@ -326,7 +327,7 @@ export default function Page() {
               {error}
             </p>
           )}
-          <div className="mt-4 flex flex-wrap justify-end gap-3">
+          <div className="mt-5 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
             <button
               type="button"
               disabled={busy || !reason.trim()}
@@ -347,7 +348,7 @@ export default function Page() {
               type="button"
               disabled={busy}
               onClick={() => setPending('approve')}
-              className="rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
+              className={primaryButtonClass}
             >
               อนุมัติและเพิ่มลูกค้า
             </button>
@@ -388,7 +389,7 @@ function Box({
   return (
     <details open={open} className="group rounded-lg border border-[#d9e3ee] p-4 md:p-6">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1a58a7] [&::-webkit-details-marker]:hidden">
-        <h2 className="text-base poppins-semibold text-[#1a58a7]">{title}</h2>
+        <h3 className="text-base poppins-semibold text-[#1a58a7]">{title}</h3>
         <ChevronDown className="shrink-0 text-[#1A58A7] transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" />
       </summary>
       <div className="mt-4">{children}</div>

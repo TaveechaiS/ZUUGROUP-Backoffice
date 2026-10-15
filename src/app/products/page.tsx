@@ -10,6 +10,8 @@ import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import ListRequestState from '@/components/ui/list-request-state';
 import PaginationControls from '@/components/ui/pagination-controls';
+import { filterClass } from '@/components/ui/form-classes';
+import { useRouteData } from '@/components/ui/route-data';
 
 type Result = PageData<StockProductRow> & {
   filters: { categories: { id: string; name: string }[] };
@@ -20,6 +22,7 @@ function ProductStockList({
   warehouseCode?: 'MAIN' | 'MARKETING' | 'DISPOSAL';
 }) {
   const router = useRouter();
+  const { isAdmin } = useRouteData();
   const [tab, setTab] = useState('');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
@@ -45,8 +48,8 @@ function ProductStockList({
         categoryId: category,
         expiry,
         warehouseCode: warehouseCode ?? '',
-        stock: tab,
-        deleted: 'false',
+        stock: tab === 'deleted' ? '' : tab,
+        deleted: tab === 'deleted' ? 'true' : 'false',
         limit: String(pageSize),
         offset: String((page - 1) * pageSize),
       });
@@ -90,8 +93,13 @@ function ProductStockList({
   ]);
   const rows = result?.data ?? [];
   const total = result?.pagination.total ?? 0;
-  const tabs = [['', 'ทั้งหมด']];
-  const control = 'mt-1.5 h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm';
+  const tabs = [
+    ['', 'ทั้งหมด'],
+    ['low', 'สินค้าใกล้หมด'],
+    ['empty', 'สินค้าหมด'],
+    ...(isAdmin ? [['deleted', 'ลบแล้ว']] : []),
+  ];
+  const control = `mt-1.5 ${filterClass}`;
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9e3ee]">
@@ -250,7 +258,7 @@ function ProductStockList({
         <div className="border-t border-[#edf0f4] p-3">
           <PaginationControls
             page={page}
-            pages={Math.max(1, Math.ceil(total / 10))}
+            pages={Math.max(1, Math.ceil(total / pageSize))}
             total={total}
             count={rows.length}
             onChange={setPage}

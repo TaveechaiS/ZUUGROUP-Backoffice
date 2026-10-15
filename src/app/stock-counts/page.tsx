@@ -11,11 +11,13 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import { Get } from '@/service/http';
 import type { StockCountPage } from '@/types/api/stock-counts';
 import { dateTime } from '@/components/sales/document-ui';
+import { filterClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const router = useRouter();
   const [tab, setTab] = useState('');
   const [search, setSearch] = useState('');
+  const [warehouseCode, setWarehouseCode] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const sort = useTableSort(() => setPage(1));
@@ -32,6 +34,7 @@ export default function Page() {
       const query = new URLSearchParams({
         search,
         status: tab,
+        warehouseCode,
         limit: String(pageSize),
         offset: String((page - 1) * pageSize),
       });
@@ -57,11 +60,11 @@ export default function Page() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [search, tab, page, pageSize, retry, sort.key, sort.direction]);
+  }, [search, tab, warehouseCode, page, pageSize, retry, sort.key, sort.direction]);
 
   const rows = result?.data ?? [];
   const total = result?.pagination.total ?? 0;
-  const control = 'mt-1.5 h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm';
+  const control = `mt-1.5 ${filterClass}`;
 
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6">
@@ -87,7 +90,7 @@ export default function Page() {
         ผู้ตรวจนับนับนอกระบบ Admin คีย์ผลเพื่อเทียบยอด ระบบไม่ปรับยอดสต็อกจากผลตรวจนับ
       </p>
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
-      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3">
+      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2">
         <label className="text-xs text-[#53647c]">
           ค้นหา
           <input
@@ -99,6 +102,24 @@ export default function Page() {
               setPage(1);
             }}
           />
+        </label>
+        <label className="text-xs text-[#53647c]">
+          คลัง
+          <select
+            className={control}
+            value={warehouseCode}
+            onChange={(e) => {
+              setWarehouseCode(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">ทั้งหมด</option>
+            {(result?.warehouses ?? []).map((item) => (
+              <option key={item.id} value={item.code}>
+                {item.name}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
       <div

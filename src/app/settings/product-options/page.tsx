@@ -14,10 +14,7 @@ import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import SearchCombobox from '@/components/ui/search-combobox';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
-const inputClass =
-  'h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm poppins-regular text-[#344256] outline-none focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
-const buttonClass =
-  'rounded-md bg-[#1a58a7] px-4 py-2.5 text-sm poppins-medium text-white disabled:opacity-50';
+import { filterClass, inputClass, primaryButtonClass } from '@/components/ui/form-classes';
 export default function Page({
   searchParams,
 }: {
@@ -55,8 +52,10 @@ export default function Page({
     </div>
   );
   return (
-    <section className="min-w-0 space-y-6 p-4 md:p-6">
-      <h2 className="text-lg poppins-semibold text-[#1a58a7]">ข้อมูลพื้นฐานสินค้า</h2>
+    <section
+      aria-label="ข้อมูลพื้นฐานสินค้า"
+      className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
+    >
       {kind ? (
         <ProductOptionPanel key={kind} kind={kind} selector={selector} />
       ) : (
@@ -69,6 +68,7 @@ export default function Page({
 function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selector: ReactNode }) {
   const formErrorId = useId();
   const [search, setSearch] = useState('');
+  const [activeOnly, setActiveOnly] = useState('');
   const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const sort = useTableSort(() => setOffset(0));
@@ -91,7 +91,7 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
       const params = new URLSearchParams({
         kind,
         search,
-        includeInactive: 'true',
+        includeInactive: activeOnly ? 'false' : 'true',
         limit: String(pageSize),
         offset: String(offset),
       });
@@ -119,7 +119,7 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
       clearTimeout(timer);
       controller.abort();
     };
-  }, [kind, search, offset, pageSize, refresh, sort.key, sort.direction]);
+  }, [kind, search, activeOnly, offset, pageSize, refresh, sort.key, sort.direction]);
   function resetForm() {
     setEditing(null);
     setName('');
@@ -178,7 +178,7 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
     }
   }
   return (
-    <div className="min-w-0 space-y-6">
+    <div className="flex min-w-0 flex-col gap-5">
       <div className="grid min-w-0 gap-6 rounded-lg border border-[#d9e3ee] p-4 md:p-6 lg:grid-cols-2 lg:items-stretch">
         {selector}
         <div className="flex min-w-0 flex-col gap-2">
@@ -228,7 +228,7 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
               )}
             </div>
             <div className="flex min-h-11 justify-end gap-3">
-              <button type="submit" disabled={busy} className={`${buttonClass} order-last`}>
+              <button type="submit" disabled={busy} className={`${primaryButtonClass} order-last`}>
                 {busy ? 'กำลังบันทึก...' : 'บันทึก'}
               </button>
               {editing && (
@@ -245,20 +245,36 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
           </form>
         </div>
       </div>
-      <label className="block min-w-0 space-y-2 text-sm poppins-medium text-[#344256] lg:col-span-2">
-        ค้นหา
-        <input
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-            setOffset(0);
-          }}
-          placeholder="ค้นหาชื่อหรือรหัส"
-          className={inputClass}
-        />
-      </label>
+      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2">
+        <label className="text-xs text-[#53647c]">
+          ค้นหา
+          <input
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setOffset(0);
+            }}
+            placeholder="ค้นหาชื่อหรือรหัส"
+            className={`mt-1.5 ${filterClass}`}
+          />
+        </label>
+        <label className="text-xs text-[#53647c]">
+          สถานะ
+          <select
+            value={activeOnly}
+            onChange={(event) => {
+              setActiveOnly(event.target.value);
+              setOffset(0);
+            }}
+            className={`mt-1.5 ${filterClass}`}
+          >
+            <option value="">ทั้งหมด</option>
+            <option value="active">ใช้งานเท่านั้น</option>
+          </select>
+        </label>
+      </div>
       {error && (
-        <div role="alert" className="flex gap-3 text-sm poppins-regular text-red-600 lg:col-span-2">
+        <div role="alert" className="flex gap-3 text-sm poppins-regular text-red-600">
           {error}
           <button type="button" onClick={() => setRefresh((v) => v + 1)} className="text-[#1a58a7]">
             ลองใหม่
@@ -266,15 +282,15 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
         </div>
       )}
       <div
-        className="relative min-h-80 min-w-0 overflow-x-auto rounded-lg border border-[#d9e3ee] lg:col-span-2"
+        className="relative min-h-52 min-w-0 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"
         aria-busy={loading}
       >
         <SortableTable
           sort={sort}
           columns={['code', 'name', 'active', null]}
-          className="w-full min-w-[580px] text-left text-sm poppins-regular text-[#344256]"
+          className="w-full min-w-[580px] border-collapse text-left text-sm"
         >
-          <thead className="bg-[#f8f9fb] text-[#65758b]">
+          <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
             <tr>
               {['รหัส', 'ชื่อ', 'สถานะ', 'จัดการ'].map((label) => (
                 <th scope="col" key={label} className="px-4 py-3 poppins-semibold">
@@ -287,7 +303,7 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
             {!loading &&
               !error &&
               result?.data.map((item) => (
-                <tr key={item.id} className="border-t border-[#d9e3ee]">
+                <tr key={item.id} className="border-t border-[#edf0f4] hover:bg-[#fafbfc]">
                   <td className="px-4 py-3">{item.code ?? '—'}</td>
                   <td className="break-words px-4 py-3">{item.name}</td>
                   <td className="px-4 py-3">
@@ -333,19 +349,21 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
             onRefresh={() => setRefresh((value) => value + 1)}
           />
         )}
-        <PaginationControls
-          page={Math.floor(offset / pageSize) + 1}
-          pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
-          total={result?.pagination.total ?? 0}
-          count={result?.data.length ?? 0}
-          onChange={(page) => setOffset((page - 1) * pageSize)}
-          pageSize={pageSize}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setOffset(0);
-          }}
-          disabled={loading || busy}
-        />
+        <div className="border-t border-[#edf0f4] p-3">
+          <PaginationControls
+            page={Math.floor(offset / pageSize) + 1}
+            pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
+            total={result?.pagination.total ?? 0}
+            count={result?.data.length ?? 0}
+            onChange={(page) => setOffset((page - 1) * pageSize)}
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setOffset(0);
+            }}
+            disabled={loading || busy}
+          />
+        </div>
       </div>
       <SuccessAlertComponent
         isOpen={Boolean(success)}

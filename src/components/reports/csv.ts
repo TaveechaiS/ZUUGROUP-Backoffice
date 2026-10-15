@@ -12,7 +12,11 @@ function textOf(node: ReactNode): string {
   return '';
 }
 
-const cell = (value: string) => `"${value.replace(/"/g, '""').replace(/\s+/g, ' ').trim()}"`;
+const cell = (raw: string) => {
+  const value = raw.replace(/\s+/g, ' ').trim();
+  const safe = /^[=+\-@]/.test(value) && !/^[-+]?[\d,]+(\.\d+)?$/.test(value) ? `'${value}` : value;
+  return `"${safe.replace(/"/g, '""')}"`;
+};
 
 export function toCsv(columns: Column[], rows: Row[]) {
   return [

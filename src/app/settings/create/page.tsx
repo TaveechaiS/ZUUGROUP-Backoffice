@@ -9,6 +9,8 @@ import type { RecordModule, RecordField } from '@/types/api/records';
 import { Get, Post } from '@/service/http';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import SearchCombobox from '@/components/ui/search-combobox';
+import { inputClass, primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
+import { Section } from '@/components/sales/document-ui';
 export default function Page() {
   const entity: RecordModule = {
     key: 'settings',
@@ -148,7 +150,7 @@ export default function Page() {
     }
   }
   return (
-    <section className="flex flex-1 flex-col gap-5 p-6">
+    <section className="min-w-0 w-full px-4 py-6 md:px-6 md:py-8">
       <SuccessAlertComponent
         title={`เพิ่ม${entity.title}แล้ว`}
         isOpen={Boolean(createdId)}
@@ -163,212 +165,210 @@ export default function Page() {
       <Link href={entity.page} className="text-sm text-[#1a58a7]">
         ← {entity.title}
       </Link>
-      <h1 className="m-0 text-xl poppins-semibold">{entity.action}</h1>
-      <form
-        noValidate
-        onSubmit={save}
-        className="max-w-3xl rounded-xl border border-[#d9e3ee] bg-white p-5 shadow-xs"
-      >
+      <h2 className="mb-6 mt-3 text-lg poppins-semibold text-[#344256]">{entity.action}</h2>
+      <form noValidate onSubmit={save}>
+        <fieldset disabled={busy || Boolean(createdId)} className="min-w-0 border-0 p-0">
+          <Section title="ข้อมูลการตั้งค่า" open>
+            <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+              <label>
+                <span className="block text-sm poppins-medium text-[#344256]">
+                  รหัส / เลขอ้างอิง <span className="text-red-600"> *</span>
+                </span>
+                <input
+                  name="code"
+                  type="text"
+                  required
+                  aria-invalid={Boolean(fieldErrors['code'])}
+                  aria-describedby={fieldErrors['code'] ? `${formId}-code-error` : undefined}
+                  maxLength={500}
+                  value={values['code']}
+                  onChange={(event) => changeValue('code', event.target.value)}
+                  className={`${inputClass} mt-2`}
+                />
+                {fieldErrors['code'] && (
+                  <p
+                    id={`${formId}-code-error`}
+                    role="alert"
+                    className="mb-0 mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors['code']}
+                  </p>
+                )}
+              </label>
+              <label>
+                <span className="block text-sm poppins-medium text-[#344256]">
+                  ชื่อ / หัวข้อ <span className="text-red-600"> *</span>
+                </span>
+                <input
+                  name="name"
+                  type="text"
+                  required
+                  aria-invalid={Boolean(fieldErrors['name'])}
+                  aria-describedby={fieldErrors['name'] ? `${formId}-name-error` : undefined}
+                  maxLength={500}
+                  value={values['name']}
+                  onChange={(event) => changeValue('name', event.target.value)}
+                  className={`${inputClass} mt-2`}
+                />
+                {fieldErrors['name'] && (
+                  <p
+                    id={`${formId}-name-error`}
+                    role="alert"
+                    className="mb-0 mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors['name']}
+                  </p>
+                )}
+              </label>
+              <label>
+                <span className="block text-sm poppins-medium text-[#344256]">
+                  สถานะ <span className="text-red-600"> *</span>
+                </span>
+                <RelationPicker
+                  field={{ key: 'status', label: 'สถานะ', type: 'text', required: true }}
+                  statusModule={entity.key}
+                  value={values['status']}
+                  invalid={Boolean(fieldErrors['status'])}
+                  errorId={fieldErrors['status'] ? `${formId}-status-error` : undefined}
+                  onChange={(value) => changeValue('status', value)}
+                />
+                {fieldErrors['status'] && (
+                  <p
+                    id={`${formId}-status-error`}
+                    role="alert"
+                    className="mb-0 mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors['status']}
+                  </p>
+                )}
+              </label>
+              <label>
+                <span className="block text-sm poppins-medium text-[#344256]">หมวดตั้งค่า</span>
+                <input
+                  name="category"
+                  type="text"
+                  aria-invalid={Boolean(fieldErrors['category'])}
+                  aria-describedby={
+                    fieldErrors['category'] ? `${formId}-category-error` : undefined
+                  }
+                  maxLength={500}
+                  value={values['category']}
+                  onChange={(event) => changeValue('category', event.target.value)}
+                  className={`${inputClass} mt-2`}
+                />
+                {fieldErrors['category'] && (
+                  <p
+                    id={`${formId}-category-error`}
+                    role="alert"
+                    className="mb-0 mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors['category']}
+                  </p>
+                )}
+              </label>
+              <label className="sm:col-span-2">
+                <span className="block text-sm poppins-medium text-[#344256]">คำอธิบาย</span>
+                <textarea
+                  name="description"
+                  aria-invalid={Boolean(fieldErrors['description'])}
+                  aria-describedby={
+                    fieldErrors['description'] ? `${formId}-description-error` : undefined
+                  }
+                  value={values['description']}
+                  maxLength={4000}
+                  onChange={(event) => changeValue('description', event.target.value)}
+                  className={`${inputClass} mt-2 min-h-24 resize-y`}
+                />
+                {fieldErrors['description'] && (
+                  <p
+                    id={`${formId}-description-error`}
+                    role="alert"
+                    className="mb-0 mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors['description']}
+                  </p>
+                )}
+              </label>
+              <label>
+                <span className="block text-sm poppins-medium text-[#344256]">
+                  ผู้ดูแล / ผู้บันทึก
+                </span>
+                <input
+                  name="owner"
+                  type="text"
+                  aria-invalid={Boolean(fieldErrors['owner'])}
+                  aria-describedby={fieldErrors['owner'] ? `${formId}-owner-error` : undefined}
+                  maxLength={500}
+                  value={values['owner']}
+                  onChange={(event) => changeValue('owner', event.target.value)}
+                  className={`${inputClass} mt-2`}
+                />
+                {fieldErrors['owner'] && (
+                  <p
+                    id={`${formId}-owner-error`}
+                    role="alert"
+                    className="mb-0 mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors['owner']}
+                  </p>
+                )}
+              </label>
+              <label>
+                <span className="block text-sm poppins-medium text-[#344256]">ค่า</span>
+                <input
+                  name="value"
+                  type="text"
+                  aria-invalid={Boolean(fieldErrors['value'])}
+                  aria-describedby={fieldErrors['value'] ? `${formId}-value-error` : undefined}
+                  maxLength={500}
+                  value={values['value']}
+                  onChange={(event) => changeValue('value', event.target.value)}
+                  className={`${inputClass} mt-2`}
+                />
+                {fieldErrors['value'] && (
+                  <p
+                    id={`${formId}-value-error`}
+                    role="alert"
+                    className="mb-0 mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors['value']}
+                  </p>
+                )}
+              </label>
+              <label className="sm:col-span-2">
+                <span className="block text-sm poppins-medium text-[#344256]">หมายเหตุ</span>
+                <textarea
+                  name="notes"
+                  aria-invalid={Boolean(fieldErrors['notes'])}
+                  aria-describedby={fieldErrors['notes'] ? `${formId}-notes-error` : undefined}
+                  value={values['notes']}
+                  maxLength={4000}
+                  onChange={(event) => changeValue('notes', event.target.value)}
+                  className={`${inputClass} mt-2 min-h-24 resize-y`}
+                />
+                {fieldErrors['notes'] && (
+                  <p
+                    id={`${formId}-notes-error`}
+                    role="alert"
+                    className="mb-0 mt-1.5 text-xs text-red-600"
+                  >
+                    {fieldErrors['notes']}
+                  </p>
+                )}
+              </label>
+            </div>
+          </Section>
+        </fieldset>
         {error && (
-          <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">
+          <p role="alert" className="mt-6 rounded bg-red-50 p-3 text-sm text-red-700">
             {error}
           </p>
         )}
-        <fieldset
-          disabled={busy || Boolean(createdId)}
-          className="grid min-w-0 gap-4 border-0 p-0 sm:grid-cols-2"
-        >
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">
-              รหัส / เลขอ้างอิง <span className="text-red-600"> *</span>
-            </span>
-            <input
-              name="code"
-              type="text"
-              required
-              aria-invalid={Boolean(fieldErrors['code'])}
-              aria-describedby={fieldErrors['code'] ? `${formId}-code-error` : undefined}
-              maxLength={500}
-              value={values['code']}
-              onChange={(event) => changeValue('code', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['code'] && (
-              <p
-                id={`${formId}-code-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['code']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">
-              ชื่อ / หัวข้อ <span className="text-red-600"> *</span>
-            </span>
-            <input
-              name="name"
-              type="text"
-              required
-              aria-invalid={Boolean(fieldErrors['name'])}
-              aria-describedby={fieldErrors['name'] ? `${formId}-name-error` : undefined}
-              maxLength={500}
-              value={values['name']}
-              onChange={(event) => changeValue('name', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['name'] && (
-              <p
-                id={`${formId}-name-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['name']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">
-              สถานะ <span className="text-red-600"> *</span>
-            </span>
-            <RelationPicker
-              field={{ key: 'status', label: 'สถานะ', type: 'text', required: true }}
-              statusModule={entity.key}
-              value={values['status']}
-              invalid={Boolean(fieldErrors['status'])}
-              errorId={fieldErrors['status'] ? `${formId}-status-error` : undefined}
-              onChange={(value) => changeValue('status', value)}
-            />
-            {fieldErrors['status'] && (
-              <p
-                id={`${formId}-status-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['status']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">หมวดตั้งค่า</span>
-            <input
-              name="category"
-              type="text"
-              aria-invalid={Boolean(fieldErrors['category'])}
-              aria-describedby={fieldErrors['category'] ? `${formId}-category-error` : undefined}
-              maxLength={500}
-              value={values['category']}
-              onChange={(event) => changeValue('category', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['category'] && (
-              <p
-                id={`${formId}-category-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['category']}
-              </p>
-            )}
-          </label>
-          <label className="sm:col-span-2">
-            <span className="mb-2 block text-sm text-[#344256]">คำอธิบาย</span>
-            <textarea
-              name="description"
-              aria-invalid={Boolean(fieldErrors['description'])}
-              aria-describedby={
-                fieldErrors['description'] ? `${formId}-description-error` : undefined
-              }
-              value={values['description']}
-              maxLength={4000}
-              onChange={(event) => changeValue('description', event.target.value)}
-              className="min-h-24 w-full rounded-md border border-[#d9e3ee] bg-white p-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['description'] && (
-              <p
-                id={`${formId}-description-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['description']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">ผู้ดูแล / ผู้บันทึก</span>
-            <input
-              name="owner"
-              type="text"
-              aria-invalid={Boolean(fieldErrors['owner'])}
-              aria-describedby={fieldErrors['owner'] ? `${formId}-owner-error` : undefined}
-              maxLength={500}
-              value={values['owner']}
-              onChange={(event) => changeValue('owner', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['owner'] && (
-              <p
-                id={`${formId}-owner-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['owner']}
-              </p>
-            )}
-          </label>
-          <label>
-            <span className="mb-2 block text-sm text-[#344256]">ค่า</span>
-            <input
-              name="value"
-              type="text"
-              aria-invalid={Boolean(fieldErrors['value'])}
-              aria-describedby={fieldErrors['value'] ? `${formId}-value-error` : undefined}
-              maxLength={500}
-              value={values['value']}
-              onChange={(event) => changeValue('value', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['value'] && (
-              <p
-                id={`${formId}-value-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['value']}
-              </p>
-            )}
-          </label>
-          <label className="sm:col-span-2">
-            <span className="mb-2 block text-sm text-[#344256]">หมายเหตุ</span>
-            <textarea
-              name="notes"
-              aria-invalid={Boolean(fieldErrors['notes'])}
-              aria-describedby={fieldErrors['notes'] ? `${formId}-notes-error` : undefined}
-              value={values['notes']}
-              maxLength={4000}
-              onChange={(event) => changeValue('notes', event.target.value)}
-              className="min-h-24 w-full rounded-md border border-[#d9e3ee] bg-white p-3 text-sm aria-invalid:border-red-600"
-            />
-            {fieldErrors['notes'] && (
-              <p
-                id={`${formId}-notes-error`}
-                role="alert"
-                className="mb-0 mt-1.5 text-xs text-red-600"
-              >
-                {fieldErrors['notes']}
-              </p>
-            )}
-          </label>
-        </fieldset>
-        <div className="mt-6 flex justify-end gap-3 border-t border-[#e3e9f0] pt-4">
-          <Link href={entity.page} className="rounded border border-[#d9e3ee] px-4 py-2 text-sm">
+        <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
+          <Link href={entity.page} className={secondaryButtonClass}>
             ยกเลิก
           </Link>
-          <button
-            disabled={busy || Boolean(createdId)}
-            className="rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"
-          >
+          <button disabled={busy || Boolean(createdId)} className={primaryButtonClass}>
             {busy ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
           </button>
         </div>

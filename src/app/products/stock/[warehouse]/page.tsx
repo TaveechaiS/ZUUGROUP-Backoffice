@@ -10,6 +10,7 @@ import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import ListRequestState from '@/components/ui/list-request-state';
 import PaginationControls from '@/components/ui/pagination-controls';
+import { filterClass } from '@/components/ui/form-classes';
 
 type Result = PageData<StockProductRow> & {
   filters: { categories: { id: string; name: string }[] };
@@ -98,27 +99,29 @@ function ProductStockList({
           ['empty', 'สินค้าหมด'],
         ]
       : [['', 'ทั้งหมด']];
-  const control = 'mt-1.5 h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm';
+  const control = `mt-1.5 ${filterClass}`;
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9e3ee]">
-        <div role="tablist" aria-label="รายการสินค้า" className="flex flex-wrap gap-5">
-          {tabs.map(([key, label]) => (
-            <button
-              key={key}
-              role="tab"
-              aria-selected={tab === key}
-              onClick={() => {
-                setTab(key);
-                setPage(1);
-              }}
-              className={`border-b-2 px-1 py-3 text-sm ${tab === key ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
-            >
-              {label}
-            </button>
-          ))}
+      {tabs.length > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9e3ee]">
+          <div role="tablist" aria-label="รายการสินค้า" className="flex flex-wrap gap-5">
+            {tabs.map(([key, label]) => (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={tab === key}
+                onClick={() => {
+                  setTab(key);
+                  setPage(1);
+                }}
+                className={`border-b-2 px-1 py-3 text-sm ${tab === key ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
       <div
         className={`grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 ${warehouseCode ? 'lg:grid-cols-3' : 'md:grid-cols-2'}`}
@@ -281,7 +284,7 @@ function ProductStockList({
         <div className="border-t border-[#edf0f4] p-3">
           <PaginationControls
             page={page}
-            pages={Math.max(1, Math.ceil(total / 10))}
+            pages={Math.max(1, Math.ceil(total / pageSize))}
             total={total}
             count={rows.length}
             onChange={setPage}

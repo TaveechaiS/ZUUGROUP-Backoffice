@@ -304,7 +304,7 @@ export default function PromotionForm({
                 setProductIds((current) => [...current, '']);
                 touch();
               }}
-              className="mt-4 rounded-lg border border-[#d9e3ee] px-4 py-2 text-sm poppins-medium text-[#1a58a7] hover:bg-blue-50"
+              className={`mt-4 ${secondaryButton}`}
             >
               + เพิ่มสินค้า
             </button>
@@ -346,20 +346,20 @@ export default function PromotionForm({
           </div>
           {isGift && (
             <>
-              <div className="mt-6 overflow-x-auto rounded-lg border border-[#d9e3ee]">
+              <div className="mt-6 overflow-x-auto rounded-lg border border-[#e3e9f0]">
                 <table className="w-full min-w-[720px] border-collapse text-left text-sm poppins-regular text-[#344256]">
-                  <thead className="border-b border-[#d9e3ee] bg-[#f7f9fc] text-[#65758b]">
+                  <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
                     <tr>
-                      <th scope="col" className="w-12 px-4 py-3 poppins-medium">
+                      <th scope="col" className="w-12 px-4 py-3 poppins-semibold">
                         #
                       </th>
-                      <th scope="col" className="px-4 py-3 poppins-medium">
+                      <th scope="col" className="px-4 py-3 poppins-semibold">
                         ของแถม <span className="text-red-600">*</span>
                       </th>
-                      <th scope="col" className="w-32 px-4 py-3 poppins-medium">
+                      <th scope="col" className="w-32 px-4 py-3 poppins-semibold">
                         จำนวน <span className="text-red-600">*</span>
                       </th>
-                      <th scope="col" className="w-48 px-4 py-3 poppins-medium">
+                      <th scope="col" className="w-48 px-4 py-3 poppins-semibold">
                         ตัดจากคลัง <span className="text-red-600">*</span>
                       </th>
                       <th scope="col" className="w-16 px-4 py-3">
@@ -377,7 +377,7 @@ export default function PromotionForm({
                         touch();
                       };
                       return (
-                        <tr key={index} className="border-b border-[#edf1f5] last:border-b-0">
+                        <tr key={index} className="border-t border-[#edf0f4]">
                           <td className="px-4 py-3 pt-6 align-top">{index + 1}</td>
                           <td className="px-4 py-3 align-top">
                             <select
@@ -449,7 +449,7 @@ export default function PromotionForm({
                   setGifts((current) => [...current, blankGift()]);
                   touch();
                 }}
-                className="mt-4 rounded-lg border border-[#d9e3ee] px-4 py-2 text-sm poppins-medium text-[#1a58a7] hover:bg-blue-50"
+                className={`mt-4 ${secondaryButton}`}
               >
                 + เพิ่มของแถม
               </button>
@@ -472,16 +472,16 @@ export default function PromotionForm({
           {invalid || error}
         </p>
       )}
-      <div className="mt-6 flex flex-wrap items-center justify-end gap-4">
+      <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
         <button
           type="button"
           disabled={busy}
           onClick={onCancel}
-          className={`w-36 ${secondaryButton}`}
+          className={secondaryButton}
         >
           ยกเลิก
         </button>
-        <button type="submit" disabled={busy} className={`min-w-36 ${primaryButton}`}>
+        <button type="submit" disabled={busy} className={primaryButton}>
           {busy ? 'กำลังบันทึก...' : submitLabel}
         </button>
       </div>

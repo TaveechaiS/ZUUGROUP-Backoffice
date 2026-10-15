@@ -296,6 +296,21 @@ try {
         assert.equal((await reportsHandler(request(), 'inventory', 'expiry')).status, 200);
         assert.equal((await reportsHandler(request(), 'inventory', 'nope')).status, 404);
       });
+      await test('TASK-296 รายงานยอดขายสรุป: search กรองตามลูกค้า/สินค้า ยังจัดกลุ่มรายวัน', async () => {
+        const details = await sales('details');
+        const row = details.data[0];
+        const summary = (search) =>
+          reports.salesReport(admin, 'summary', new URLSearchParams({ search }));
+        const byCustomer = await summary(row.customerName);
+        assert.ok(byCustomer.data.some((r) => r.soldOn === today && r.orders >= 1));
+        assert.equal(byCustomer.summary.total, details.summary.total);
+        const byProduct = await summary(row.productName);
+        assert.ok(byProduct.data.some((r) => r.soldOn === today));
+        const none = await summary('ไม่มีทางพบ-' + prefix);
+        assert.equal(none.data.length, 0);
+        assert.equal(none.summary.total, '0.00');
+      });
+
       throw rollback;
     },
     { timeout: 180000, maxWait: 10000 },

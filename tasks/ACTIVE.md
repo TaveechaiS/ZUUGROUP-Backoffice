@@ -1,5 +1,21 @@
 # งานที่กำลังทำ
 
+## TASK-296 — ตัวกรองทุกหน้ารายการ — 2026-10-15
+
+- IMPLEMENTED / WAITING_FOR_UAT (15 ต.ค. 2569; OWNER_APPROVED ทำทั้ง 2 ระยะ ค้นหาแรก วันที่ท้าย): ช่วงวันที่ 9 หน้า, เขตขาย/ผู้ขาย orders/quotes/billing, คลัง stock-counts, ช่องทาง follow-ups, ค้นหาสรุปยอดขาย, กล่องตัวกรอง /products/stock, ตั้งค่า แสดงเฉพาะใช้งาน. เทสต์ 17 ชุด + tsc/eslint/next build ผ่าน. ดู tasks/TASK-296-filters.md.
+
+## TASK-295 — จัดแท็บหน้ารายการ — 2026-10-15
+
+- IMPLEMENTED / WAITING_FOR_UAT (15 ต.ค. 2569; OWNER_APPROVED "อนุมัติหมด"): เอาแถบแท็บเดียวออก 7 หน้า + รายงาน, customers/territories แท็บเฉพาะผู้เขียน, /products แท็บ ใกล้หมด/หมด/ลบแล้ว, /users สถานะเป็นแท็บ. route test, tsc, eslint, next build ผ่าน. ดู tasks/TASK-295-list-tabs.md.
+
+## TASK-294 — ทุกหน้าใช้ design หน้าสินค้า — 2026-10-15
+
+- IMPLEMENTED / WAITING_FOR_UAT (15 ต.ค. 2569; OWNER_APPROVED ตัวเลือก A ลบ h1 หน้ารายการ): รายการ 10 หน้า + report-table, รายละเอียด 14 หน้า, สร้าง 12 หน้า + ฟอร์ม components ใช้ design หน้าสินค้า; form-classes ปุ่ม rounded-lg px-5 py-2.5, filterClass h-10; แก้ pagination /10. route/csv test, tsc, eslint, next build ผ่าน. ดู tasks/TASK-294-product-design-all-pages.md.
+
+## TASK-292–293 — แก้ผลรีวิว EDITH + ปรับขนาด icon/ช่องกรอก/ปุ่มให้ตรงกัน — 2026-10-15
+
+- IMPLEMENTED / WAITING_FOR_UAT (15 ต.ค. 2569; OWNER_APPROVED "ทำทั้งหมด", ตัวเลือก A h-11): 292 แก้ผลรีวิว EDITH (สิทธิ์ไฟล์ค่าใช้จ่าย/ลูกค้า, รับชำระพร้อมกัน, ซ่อนต้นทุน receive, uninvoiced, CSV กันสูตร, อนุมัติคำขอค้าง, likeOf, UUID, ลบ reports legacy), 293 ขนาดช่องกรอก/ปุ่ม/icon (form-classes.ts). เทสต์ 16 ชุด + tsc/eslint/next build ผ่าน. ดู tasks/TASK-292..293.
+
 ## TASK-281–291 — ทำหน้าที่เหลือทั้งหมด (รอบ 2) — 2026-10-14
 
 - IMPLEMENTED / WAITING_FOR_UAT (14 ต.ค. 2569): 281 เทสต์ T092, 282 ค่าใช้จ่าย, 283 วางบิล/รับชำระ, 284 รายงานการเงิน, 285 โปรโมชันใน QT/SO, 286 ติดตามลูกค้า, 287 เอกสารลูกค้า, 288 คำขอเพิ่มลูกค้า, 289 ตรวจนับรายล็อต, 290 สิทธิ์ตาม Role, 291 CSV/พิมพ์. DB apply 6 migration (ไม่ลบข้อมูล). เทสต์ 17 ชุดผ่านทั้งหมด + route test + tsc/eslint/next build. แก้บั๊กรอบก่อน: หน้าโปรโมชัน/รายงานถูกแสดงเป็นแท็บนำทาง. ดู tasks/TASK-281..291. เดิม: OWNER_APPROVED แผน .jarvis/PLAN.md รอบ 2.

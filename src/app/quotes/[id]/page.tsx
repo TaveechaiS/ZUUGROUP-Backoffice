@@ -190,9 +190,9 @@ export default function Page() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-sm poppins-medium text-[#1a58a7]">{row.code}</p>
-              <h1 className="mt-1 text-xl poppins-semibold break-words text-[#26364b]">
+              <h2 className="mt-1 text-lg poppins-semibold break-words text-[#344256]">
                 {edit ? `แก้ไขใบเสนอราคา ${row.code}` : row.customerName}
-              </h1>
+              </h2>
               <p className="mt-2 text-sm poppins-regular text-[#718096]">
                 {row.territoryName || 'ยังไม่กำหนดเขต'} · สร้างโดย {row.createdByName || '—'} ·{' '}
                 {dateTime(row.createdAt)}
@@ -295,9 +295,9 @@ export default function Page() {
               </Section>
               {row.workflowManaged && (
                 <Section title="รายการสินค้า" open>
-                  <div className="overflow-x-auto rounded-lg border border-[#d9e3ee]">
+                  <div className="overflow-x-auto rounded-lg border border-[#e3e9f0]">
                     <table className="w-full min-w-[760px] border-collapse text-left text-sm poppins-regular text-[#344256]">
-                      <thead className="border-b border-[#d9e3ee] bg-[#f7f9fc] text-[#65758b]">
+                      <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
                         <tr>
                           {[
                             '#',
@@ -307,7 +307,7 @@ export default function Page() {
                             'ส่วนลด (บาท)',
                             'รวม',
                           ].map((label) => (
-                            <th key={label} scope="col" className="px-4 py-3 poppins-medium">
+                            <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
                               {label}
                             </th>
                           ))}
@@ -315,7 +315,7 @@ export default function Page() {
                       </thead>
                       <tbody>
                         {(row.lines ?? []).map((line, index) => (
-                          <tr key={line.id} className="border-b border-[#edf1f5] last:border-b-0">
+                          <tr key={line.id} className="border-t border-[#edf0f4]">
                             <td className={cellClass}>{index + 1}</td>
                             <td className={cellClass}>
                               <p className="poppins-medium">
@@ -355,7 +355,7 @@ export default function Page() {
               )}
               {open && (
                 <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6 print:hidden">
-                  <h2 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการ</h2>
+                  <h3 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการ</h3>
                   {(canCancel || canReturn || canDecide) && (
                     <label className="mt-4 block text-sm poppins-medium text-[#344256]">
                       เหตุผล (บังคับเมื่อส่งกลับแก้ไข ไม่อนุมัติ หรือยกเลิก)
@@ -373,7 +373,7 @@ export default function Page() {
                       {error}
                     </p>
                   )}
-                  <div className="mt-4 flex flex-wrap justify-end gap-3">
+                  <div className="mt-5 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
                     {canCancel && (
                       <button
                         type="button"

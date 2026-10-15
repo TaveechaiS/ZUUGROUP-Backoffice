@@ -82,7 +82,7 @@ export default function Page() {
       aria-label="วางบิล"
       className="relative min-h-80 min-w-0 w-full px-4 py-6 md:px-6 md:py-8"
     >
-      <h1 className="mb-6 text-xl poppins-semibold text-[#26364b]">วางบิล</h1>
+      <h2 className="mb-6 text-lg poppins-semibold text-[#344256]">วางบิล</h2>
       {!orders ? (
         loadError ? (
           <div role="alert" className="flex gap-3 text-sm poppins-regular text-red-600">
@@ -180,16 +180,16 @@ export default function Page() {
               {error}
             </p>
           )}
-          <div className="mt-6 flex flex-wrap items-center justify-end gap-4">
+          <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
             <button
               type="button"
               disabled={busy}
               onClick={() => router.push('/billing')}
-              className={`w-36 ${secondaryButton}`}
+              className={secondaryButton}
             >
               ยกเลิก
             </button>
-            <button type="submit" disabled={busy} className={`min-w-36 ${primaryButton}`}>
+            <button type="submit" disabled={busy} className={primaryButton}>
               {busy ? 'กำลังบันทึก...' : 'ออกใบแจ้งหนี้'}
             </button>
           </div>

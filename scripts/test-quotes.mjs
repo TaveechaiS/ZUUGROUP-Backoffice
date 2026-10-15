@@ -376,6 +376,47 @@ try {
         assert.equal((await read(id)).status, 'ยกเลิก');
       });
 
+      await test('TASK-296 ตัวกรอง ใบเสนอราคา/Order: ช่วงวันที่ เขตขาย ผู้ขาย ตัวเลือก และ Sales ขยายขอบเขตไม่ได้', async () => {
+        const uuid = '00000000-0000-4000-8000-000000000001';
+        for (const [name, readList] of [
+          [
+            'quote',
+            (actor, p) => quotes.quoteRead(actor, new URLSearchParams({ search: prefix, ...p })),
+          ],
+          [
+            'order',
+            (actor, p) => ops.orderRead(actor, new URLSearchParams({ search: prefix, ...p })),
+          ],
+        ]) {
+          const total = (await readList(admin, {})).pagination.total;
+          assert.ok(total >= 2, name);
+          const count = async (actor, p) => (await readList(actor, p)).pagination.total;
+          assert.equal(await count(admin, { from: today, to: today }), total);
+          assert.equal(await count(admin, { from: addDays(today, 1) }), 0);
+          assert.equal(await count(admin, { to: addDays(today, -1) }), 0);
+          assert.equal(await count(admin, { from: '', to: '' }), total);
+          await rejects(() => readList(admin, { from: today, to: addDays(today, -1) }), 400);
+          await rejects(() => readList(admin, { from: '2026-02-30' }), 400);
+          assert.equal(await count(admin, { territoryId: territory.id }), total);
+          assert.equal(await count(admin, { territoryId: uuid }), 0);
+          await rejects(() => readList(admin, { territoryId: 'x' }), 400);
+          await rejects(() => readList(admin, { sellerId: 'x' }), 400);
+          const bySales = await count(admin, { sellerId: sales.id });
+          const byAdmin = await count(admin, { sellerId: admin.id });
+          assert.ok(byAdmin >= 1, name);
+          assert.equal(bySales + byAdmin, total, name);
+          const listed = await readList(manager, {});
+          assert.ok(listed.filters.territories.some((x) => x.id === territory.id));
+          assert.ok(listed.filters.sellers.some((x) => x.id === sales.id));
+          const own = await readList(sales, {});
+          assert.equal(own.filters, undefined);
+          assert.equal(
+            await count(sales, { sellerId: admin.id, territoryId: uuid }),
+            own.pagination.total,
+          );
+        }
+      });
+
       await test('quotation_lines เปิด RLS และ client ไม่มีสิทธิ์', async () => {
         const [row] =
           await tx.$queryRaw`SELECT relrowsecurity AS rls, has_table_privilege('anon',oid,'SELECT') OR has_table_privilege('authenticated',oid,'SELECT') AS client FROM pg_class WHERE oid='public.quotation_lines'::regclass`;

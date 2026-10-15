@@ -3,9 +3,8 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import SortableTable, { useTableSort } from '@/components/ui/sortable-table';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { fieldClass, roles, userPath } from './user-ui';
+import { roles, userPath } from './user-ui';
 import type { UserRow } from '@/types/api/users';
 import StatusBadge from '@/components/ui/status-badge';
 import type { UsersListResponse } from '@/types/api/users';
@@ -13,76 +12,57 @@ import { Get } from '@/service/http';
 import ListRequestState from '@/components/ui/list-request-state';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
+import { filterClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const sort = useTableSort();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [role, setRole] = useState('ALL');
-  const [status, setStatus] = useState('ALL');
-  const [view, setView] = useState<'CURRENT' | 'DELETED'>('CURRENT');
+  const [view, setView] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED' | 'DELETED'>('ALL');
   const filters = new URLSearchParams({
     ...(sort.key ? { sortBy: sort.key, sortDirection: sort.direction } : {}),
     search: query,
     role: role === 'ALL' ? '' : role,
-    status: status === 'ALL' ? '' : status,
+    status: view === 'ACTIVE' || view === 'SUSPENDED' ? view : '',
     deleted: String(view === 'DELETED'),
   }).toString();
   const { pageSize, setPageSize, rows, total, page, pages, setPage, loading, error, reload } =
     useUsers('/api/users', filters, 'users');
-  const [exporting, setExporting] = useState(false);
-  const [exportError, setExportError] = useState('');
-  async function exportCsv() {
-    if (exporting) return;
-    setExporting(true);
-    setExportError('');
-    try {
-      const csv = await Get<string>('/api/users/export?' + filters);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'zuugroup-users.csv';
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (caught) {
-      setExportError(caught instanceof Error ? caught.message : 'ส่งออกไม่สำเร็จ');
-    } finally {
-      setExporting(false);
-    }
-  }
-
   return (
-    <section className="flex flex-1 flex-col gap-5 p-6 pb-7" aria-label="จัดการผู้ใช้งาน">
-      <ListRequestState error={error || exportError} retry={reload} />
-      <div
-        className="flex flex-wrap items-center gap-x-4 border-b border-[#e4e9f0]"
-        role="tablist"
-        aria-label="สถานะรายการผู้ใช้งาน"
-      >
-        {(
-          [
-            ['CURRENT', 'รายการปกติ'],
-            ['DELETED', 'ลบแล้ว'],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={view === id}
-            onClick={() => {
-              setView(id);
-              setPage(1);
-            }}
-            className={`-mb-px min-h-10 border-b-2 px-1 pb-4 text-sm transition ${view === id ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
-          >
-            {label}
-          </button>
-        ))}
+    <section
+      className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
+      aria-label="จัดการผู้ใช้งาน"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9e3ee]">
+        <div role="tablist" aria-label="สถานะรายการผู้ใช้งาน" className="flex flex-wrap gap-5">
+          {(
+            [
+              ['ALL', 'ทั้งหมด'],
+              ['ACTIVE', 'ใช้งานอยู่'],
+              ['SUSPENDED', 'ระงับการใช้งาน'],
+              ['DELETED', 'ลบแล้ว'],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={view === id}
+              onClick={() => {
+                setView(id);
+                setPage(1);
+              }}
+              className={`border-b-2 px-1 py-3 text-sm ${view === id ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[#e4e9f0] bg-white p-5">
-        <label className="min-w-48 flex-1 text-xs text-[#344256]">
+      <ListRequestState error={error} retry={reload} />
+      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2">
+        <label className="text-xs text-[#53647c]">
           ค้นหา
           <input
             value={query}
@@ -91,10 +71,10 @@ export default function Page() {
               setPage(1);
             }}
             placeholder="ชื่อ อีเมล หรือรหัสพนักงาน"
-            className={fieldClass}
+            className={`mt-1.5 ${filterClass}`}
           />
         </label>
-        <label className="min-w-40 text-xs text-[#344256]">
+        <label className="text-xs text-[#53647c]">
           บทบาท
           <select
             value={role}
@@ -102,7 +82,7 @@ export default function Page() {
               setRole(event.target.value);
               setPage(1);
             }}
-            className={fieldClass}
+            className={`mt-1.5 ${filterClass}`}
           >
             <option value="ALL">ทุกบทบาท</option>
             {roles.map(([id, name]) => (
@@ -112,30 +92,9 @@ export default function Page() {
             ))}
           </select>
         </label>
-        <label className="min-w-40 text-xs text-[#344256]">
-          สถานะ
-          <select
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value);
-              setPage(1);
-            }}
-            className={fieldClass}
-          >
-            <option value="ALL">ทั้งหมด</option>
-            <option value="ACTIVE">ใช้งานอยู่</option>
-            <option value="SUSPENDED">ระงับการใช้งาน</option>
-          </select>
-        </label>
-        <Link
-          href="/users/create"
-          className="flex h-10 items-center rounded-lg bg-[#1a58a7] px-4 text-sm poppins-semibold text-white!"
-        >
-          + เพิ่มผู้ใช้งาน
-        </Link>
       </div>
       <div
-        className="relative min-h-44 overflow-x-auto rounded-xl border border-[#e3e9f0] bg-white"
+        className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"
         aria-busy={loading}
       >
         <LoadingComponent
@@ -158,9 +117,9 @@ export default function Page() {
             view === 'DELETED' ? 'deletedAt' : 'lastLoginAt',
             'status',
           ]}
-          className="w-full min-w-[900px] border-collapse text-left"
+          className="w-full min-w-[900px] border-collapse text-left text-sm"
         >
-          <thead className="bg-[#f7f8fa] text-xs poppins-semibold text-[#2f3a4d]">
+          <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
             <tr>
               {[
                 'ผู้ใช้งาน',
@@ -169,7 +128,7 @@ export default function Page() {
                 view === 'DELETED' ? 'ข้อมูลการลบ' : 'เข้าสู่ระบบล่าสุด',
                 'สถานะ',
               ].map((label) => (
-                <th key={label} scope="col" className="px-4 py-3">
+                <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
                   {label}
                 </th>
               ))}
@@ -191,16 +150,16 @@ export default function Page() {
                       router.push(href);
                     }
                   }}
-                  className="cursor-pointer border-t border-[#edf0f4] text-sm text-[#526176] hover:bg-[#fafbfc] focus-visible:bg-[#eff5fc] focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
+                  className="cursor-pointer border-t border-[#edf0f4] hover:bg-[#fafbfc] focus-visible:bg-blue-50 focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
                 >
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-3">
                     <span className="block poppins-semibold text-[#1a58a7]">{user.name}</span>
                     <span className="block break-all text-xs">{user.email}</span>
                     <span className="text-xs">{user.employeeCode}</span>
                   </td>
-                  <td className="px-4 py-4">{user.userRole?.role.name ?? 'ยังไม่มีบทบาท'}</td>
-                  <td className="px-4 py-4">{user.team || '-'}</td>
-                  <td className="px-4 py-4 text-xs">
+                  <td className="px-4 py-3">{user.userRole?.role.name ?? 'ยังไม่มีบทบาท'}</td>
+                  <td className="px-4 py-3">{user.team || '-'}</td>
+                  <td className="px-4 py-3 text-xs">
                     {user.deletedAt ? (
                       <>
                         <span className="block">{formatDate(user.deletedAt)}</span>
@@ -216,7 +175,7 @@ export default function Page() {
                       formatDate(user.lastLoginAt)
                     )}
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-3">
                     <StatusBadge
                       value={
                         user.deletedAt
@@ -237,28 +196,22 @@ export default function Page() {
             title={view === 'DELETED' ? 'ไม่มีผู้ใช้งานที่ลบแล้ว' : 'ไม่พบผู้ใช้งาน'}
           />
         )}
-        <PaginationControls
-          page={page}
-          pages={pages}
-          total={total}
-          count={rows.length}
-          onChange={setPage}
-          pageSize={pageSize}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setPage(1);
-          }}
-          disabled={loading}
-        />
+        <div className="border-t border-[#edf0f4] p-3">
+          <PaginationControls
+            page={page}
+            pages={pages}
+            total={total}
+            count={rows.length}
+            onChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+            disabled={loading}
+          />
+        </div>
       </div>
-      <button
-        type="button"
-        disabled={exporting}
-        onClick={() => void exportCsv()}
-        className="self-start rounded-lg bg-[#1a58a7] px-4 py-2.5 text-sm text-white"
-      >
-        ส่งออก CSV
-      </button>
     </section>
   );
 }

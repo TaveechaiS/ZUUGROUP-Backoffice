@@ -156,9 +156,9 @@ export default function Page() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-sm poppins-medium text-[#1a58a7]">{row.code}</p>
-              <h1 className="mt-1 text-xl poppins-semibold break-words text-[#26364b]">
+              <h2 className="mt-1 text-lg poppins-semibold break-words text-[#344256]">
                 {edit ? `แก้ไขค่าใช้จ่าย ${row.code}` : row.name}
-              </h1>
+              </h2>
               <p className="mt-2 text-sm poppins-regular text-[#718096]">
                 บันทึกโดย {row.createdByName || '—'} · {dateTime(row.createdAt)}
               </p>
@@ -253,7 +253,7 @@ export default function Page() {
               </Section>
               {writer && active && (
                 <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
-                  <h2 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการ</h2>
+                  <h3 className="text-base poppins-semibold text-[#1a58a7]">ดำเนินการ</h3>
                   <label className="mt-4 block text-sm poppins-medium text-[#344256]">
                     เหตุผล (บังคับเมื่อยกเลิก)
                     <textarea
@@ -269,7 +269,7 @@ export default function Page() {
                       {error}
                     </p>
                   )}
-                  <div className="mt-4 flex flex-wrap justify-end gap-3">
+                  <div className="mt-5 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
                     <button
                       type="button"
                       disabled={busy || !reason.trim()}

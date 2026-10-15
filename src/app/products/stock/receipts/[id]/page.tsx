@@ -11,6 +11,7 @@ import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import ListRequestState from '@/components/ui/list-request-state';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
+import { inputClass, primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
 
 type Draft = {
   quantity: string;
@@ -169,18 +170,16 @@ export default function Page() {
       setBusy(false);
     }
   }
-  const inputClass =
-    'mt-2 min-h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular outline-none focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100 disabled:bg-[#f8f9fb]';
   if (missing && !loading) return <NotFoundComponent />;
   return (
-    <section className="min-w-0 space-y-6 px-4 py-6 text-[#344256] md:px-6 md:py-8">
+    <section className="min-w-0 w-full space-y-6 px-4 py-6 text-[#344256] md:px-6 md:py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg poppins-semibold text-[#1a58a7]">
+        <h2 className="text-lg poppins-semibold text-[#344256]">
           รายละเอียดการเติมสินค้า{lot ? ' · ' + lot.receiptCode : ''}
         </h2>
         <Link
           href="/products/stock"
-          className="rounded-md border border-[#d9e3ee] px-4 py-2 text-sm poppins-medium text-[#1a58a7] hover:bg-blue-50"
+          className={secondaryButtonClass}
         >
           กลับรายงานสต็อก
         </Link>
@@ -240,7 +239,7 @@ export default function Page() {
                           onChange={(event) =>
                             setDraft({ ...draft, [editableFields[label]]: event.target.value })
                           }
-                          className={inputClass}
+                          className={`${inputClass} mt-2`}
                         />
                       </dd>
                     ) : (
@@ -264,7 +263,7 @@ export default function Page() {
                       value={draft.warehouseId}
                       disabled={busy || Boolean(pending)}
                       onChange={(event) => setDraft({ ...draft, warehouseId: event.target.value })}
-                      className={inputClass}
+                      className={`${inputClass} mt-2`}
                     >
                       <option value="">เลือกคลัง</option>
                       {lot.balances.map((balance) => (
@@ -282,7 +281,7 @@ export default function Page() {
                       maxLength={200}
                       disabled={busy || Boolean(pending)}
                       onChange={(event) => setDraft({ ...draft, reason: event.target.value })}
-                      className={inputClass}
+                      className={`${inputClass} mt-2`}
                     />
                   </label>
                 </div>
@@ -290,9 +289,9 @@ export default function Page() {
             </div>
             <div className="rounded-lg border border-[#d9e3ee] p-4 md:p-6">
               <h3 className="mb-4 text-base poppins-semibold text-[#1a58a7]">คงเหลือแยกคลัง</h3>
-              <div className="overflow-x-auto rounded-lg border border-[#d9e3ee]">
+              <div className="overflow-x-auto rounded-lg border border-[#e3e9f0]">
                 <SortableTable className="w-full whitespace-nowrap text-left text-sm">
-                  <thead className="bg-[#f7f9fc] text-[#65758b]">
+                  <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
                     <tr>
                       {['คลัง', 'จำนวนคงเหลือ'].map((label) => (
                         <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
@@ -303,7 +302,7 @@ export default function Page() {
                   </thead>
                   <tbody>
                     {lot.balances.map((balance) => (
-                      <tr key={balance.id} className="border-t border-[#d9e3ee]">
+                      <tr key={balance.id} className="border-t border-[#edf0f4]">
                         <td className="px-4 py-3">{balance.warehouseName}</td>
                         <td className="px-4 py-3">
                           {balance.quantity.toLocaleString('th-TH')} {balance.unit}
@@ -332,7 +331,7 @@ export default function Page() {
                       type="button"
                       disabled={busy || Boolean(pending)}
                       onClick={cancelEdit}
-                      className="rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-sm poppins-medium hover:bg-gray-50 disabled:opacity-50"
+                      className={secondaryButtonClass}
                     >
                       ยกเลิก
                     </button>
@@ -340,7 +339,7 @@ export default function Page() {
                       type="button"
                       disabled={busy}
                       onClick={saveEdit}
-                      className="rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white hover:bg-[#174a8b] disabled:opacity-50"
+                      className={primaryButtonClass}
                     >
                       {busy ? 'กำลังบันทึก…' : pending ? 'ลองบันทึกอีกครั้ง' : 'บันทึก'}
                     </button>
@@ -349,7 +348,7 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={beginEdit}
-                    className="rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white hover:bg-[#174a8b]"
+                    className={primaryButtonClass}
                   >
                     แก้ไข
                   </button>

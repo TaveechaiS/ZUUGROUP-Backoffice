@@ -532,6 +532,50 @@ try {
       409,
     );
   });
+  await test('TASK-296 ประวัติรับเข้า: ช่วงวันที่ ค้นหา หมวดหมู่ และ Audit ช่วงวันที่', async () => {
+    const { bangkokDay, addDays } = load('src/server/operations/domain.ts');
+    const today = bangkokDay();
+    const list = (extra) =>
+      ops.inventoryRead(
+        admin,
+        new URLSearchParams({ view: 'receipt-items', productId: pid, ...extra }),
+      );
+    const total = (await list({})).pagination.total;
+    assert.ok(total >= 2);
+    assert.equal((await list({ from: today, to: today })).pagination.total, total);
+    assert.equal((await list({ from: addDays(today, 1) })).pagination.total, 0);
+    assert.equal((await list({ to: addDays(today, -1) })).pagination.total, 0);
+    await rejects(() => list({ from: today, to: addDays(today, -1) }), 400);
+    await rejects(() => list({ from: 'x' }), 400);
+    const product = await db.product.findUnique({ where: { id: pid } });
+    assert.equal((await list({ categoryId: product.categoryId })).pagination.total, total);
+    assert.equal((await list({ categoryId: crypto.randomUUID() })).pagination.total, 0);
+    const { receiptId } = await db.productLot.findUnique({ where: { id: lot1 } });
+    const { code } = await db.stockReceipt.findUnique({ where: { id: receiptId } });
+    const byReceipt = await list({ search: code });
+    assert.ok(byReceipt.data.some((r) => r.lotId === lot1));
+    assert.equal((await list({ search: prefix })).pagination.total, total);
+    const audit = load('src/server/audit-logs/service.ts');
+    const action = 'T296_' + prefix.replace(/\W/g, '');
+    const at = (day, time) => new Date(`${day}T${time}+07:00`);
+    for (const [day, time] of [
+      [today, '00:00:30'],
+      [addDays(today, -1), '23:59:30'],
+    ])
+      await db.auditEvent.create({
+        data: { actorUserId: uid, action, requestId: key(), occurredAt: at(day, time) },
+      });
+    const events = async (extra) =>
+      (await audit.paginatedAuditEvents(new URLSearchParams({ action, ...extra }))).pagination
+        .total;
+    assert.equal(await events({}), 2);
+    assert.equal(await events({ from: today, to: today }), 1);
+    assert.equal(await events({ to: addDays(today, -1) }), 1);
+    assert.equal(await events({ from: addDays(today, -1) }), 2);
+    assert.equal(await events({ from: addDays(today, 1) }), 0);
+    await rejects(() => events({ from: today, to: addDays(today, -1) }), 400);
+    await rejects(() => events({ from: '2026-13-01' }), 400);
+  });
   await test('RLS เปิดทุกตารางใหม่', async () => {
     const rows = await db.$queryRaw(
       Prisma.sql`SELECT relname,relrowsecurity FROM pg_class WHERE relname IN ('product_lots','stock_balances','stock_movements','stock_receipts','receipt_revisions','sales_order_lines','stock_reservations','operation_commands','inventory_policy')`,

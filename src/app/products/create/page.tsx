@@ -14,6 +14,7 @@ import {
 import { PRODUCT_OPTION_KINDS, type ProductOptionKind } from '@/config/product-options';
 import type { ProductOption } from '@/types/api/product-options';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
+import { inputClass, primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
 
 type OptionBatch = { options: Record<ProductOptionKind, ProductOption[]> };
 const OptionLoader = createContext<(() => Promise<OptionBatch>) | null>(null);
@@ -58,8 +59,6 @@ const multilineFields = new Set([
   'เอกสารแนบ',
 ]);
 
-const inputClass =
-  'mt-2 block w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none transition-colors placeholder:text-[#8994a5] hover:border-blue-300 focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
 
 const productSections = [
   {
@@ -308,13 +307,11 @@ export default function Page() {
                     {section.title}
                   </h3>
                   <svg
-                    width="23"
-                    height="13"
                     viewBox="0 0 23 13"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                     aria-hidden="true"
-                    className="shrink-0 -rotate-90 transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none"
+                    className="h-4 w-4 shrink-0 -rotate-90 transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none"
                   >
                     <path
                       d="M1.5 1.5L11.5 11.5L21.5 1.5"
@@ -372,7 +369,7 @@ export default function Page() {
                             aria-required={required}
                             placeholder={`กรอก${label}`}
                             rows={3}
-                            className={`${inputClass} min-h-24 resize-y`}
+                            className={`${inputClass} mt-2 min-h-24 resize-y`}
                           />
                         ) : (
                           <input
@@ -381,7 +378,7 @@ export default function Page() {
                             type="text"
                             aria-required={required}
                             placeholder={`กรอก${label}`}
-                            className={`${inputClass} h-11`}
+                            className={`${inputClass} mt-2 h-11`}
                           />
                         )}
                       </div>
@@ -391,24 +388,13 @@ export default function Page() {
               </details>
             ))}
           </div>
-          <div className="mt-6 flex flex-wrap justify-end gap-4">
-            <div className="w-36 text-right">
-              <button
-                type="button"
-                onClick={() => setAction('cancel')}
-                className="w-full rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-sm poppins-medium text-[#344256] transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
-              >
-                ยกเลิก
-              </button>
-            </div>
-            <div className="w-36 text-right">
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white transition hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
-              >
-                {busy ? 'กำลังบันทึก...' : 'บันทึก'}
-              </button>
-            </div>
+          <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
+            <button type="button" onClick={() => setAction('cancel')} className={secondaryButtonClass}>
+              ยกเลิก
+            </button>
+            <button type="submit" className={primaryButtonClass}>
+              {busy ? 'กำลังบันทึก...' : 'บันทึก'}
+            </button>
           </div>
         </fieldset>
         {progress && (
@@ -462,7 +448,7 @@ function ProductNameFields({ id }: { id: string }) {
               type="text"
               aria-label={field.label}
               placeholder={field.label}
-              className={`${inputClass} h-11`}
+              className={`${inputClass} mt-2 h-11`}
             />
           </div>
         ))}
@@ -564,7 +550,7 @@ function ProductCodeFields({ id }: { id: string }) {
             onBlur={() => {
               if (Number(sequence) > 0) setSequence(sequence.padStart(5, '0'));
             }}
-            className={`${inputClass} h-11`}
+            className={`${inputClass} mt-2 h-11`}
           />
         </div>
       </div>
@@ -575,7 +561,7 @@ function ProductCodeFields({ id }: { id: string }) {
         value={fullCode}
         aria-label="รหัสสินค้าเต็ม"
         placeholder="รหัสสินค้าเต็ม"
-        className={`${inputClass} mt-4 h-11 bg-blue-50`}
+        className={`${inputClass} mt-2 mt-4 h-11 bg-blue-50`}
       />
       {pair && pair !== loadedPair && !sequenceError && (
         <p role="status" className="mt-2 text-xs poppins-regular text-[#65758b]">
@@ -798,8 +784,7 @@ function ProductOptionCombobox({
         className="pointer-events-none absolute right-3 top-0 flex h-11 items-center opacity-30"
       >
         <svg
-          width="14"
-          height="8"
+          className="h-4 w-4"
           viewBox="0 0 14 8"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"

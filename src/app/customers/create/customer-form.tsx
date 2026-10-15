@@ -24,6 +24,7 @@ import {
 import type { ShippingAddress } from '@/types/api/customers';
 import type { CustomerOptionBatch } from '@/types/api/customer-options';
 import type { CustomerDetailResponse, CustomerListResponse } from '@/types/api/customers';
+import { inputClass, primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
 
 type FormField = {
   key: string;
@@ -37,8 +38,6 @@ type FormField = {
 };
 type Section = { title: string; description?: string; fields: FormField[] };
 
-const inputClass =
-  'mt-2 block w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#8994a5]';
 const label = (key: keyof typeof CUSTOMER_TEXT_FIELDS | keyof typeof CUSTOMER_OPTION_FIELDS) =>
   key in CUSTOMER_TEXT_FIELDS
     ? CUSTOMER_TEXT_FIELDS[key as keyof typeof CUSTOMER_TEXT_FIELDS].label
@@ -443,7 +442,7 @@ export default function CustomerForm({ initial }: { initial?: Customer }) {
       className="min-w-0 w-full px-4 py-6 md:px-6 md:py-8"
     >
       {initial && (
-        <h1 className="mb-6 text-xl poppins-semibold text-[#26364b]">แก้ไขลูกค้า {initial.code}</h1>
+        <h2 className="mb-6 text-lg poppins-semibold text-[#344256]">แก้ไขลูกค้า {initial.code}</h2>
       )}
       <datalist id="billing-cycle-options">
         {options.billingCycle.map((item) => (
@@ -524,7 +523,7 @@ export default function CustomerForm({ initial }: { initial?: Customer }) {
           {error}
         </p>
       )}
-      <div className="mt-6 flex flex-wrap items-center justify-end gap-4">
+      <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-[#d9e3ee] pt-5">
         {progress && (
           <p role="status" className="text-sm poppins-regular text-[#65758b]">
             {progress}...
@@ -534,14 +533,14 @@ export default function CustomerForm({ initial }: { initial?: Customer }) {
           type="button"
           disabled={busy || Boolean(saved) || Boolean(submitted)}
           onClick={() => void cancel()}
-          className="w-36 rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-center text-sm poppins-medium text-[#344256] hover:bg-gray-50 disabled:opacity-50"
+          className={secondaryButtonClass}
         >
           ยกเลิก
         </button>
         <button
           type="submit"
           disabled={busy || Boolean(saved) || Boolean(submitted)}
-          className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
+          className={primaryButtonClass}
         >
           {busy ? 'กำลังบันทึก...' : asRequest ? 'ส่งคำขอ' : 'บันทึก'}
         </button>
@@ -578,7 +577,7 @@ function SectionTitle({ title }: { title: string }) {
   return (
     <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1a58a7] [&::-webkit-details-marker]:hidden">
       <h3 className="text-base poppins-semibold text-[#1a58a7]">{title}</h3>
-      <ChevronDown className="shrink-0 text-[#1A58A7] transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" />
+      <ChevronDown className="shrink-0 -rotate-90 text-[#1A58A7] transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none" />
     </summary>
   );
 }
@@ -644,7 +643,7 @@ function Field({
           aria-required={required}
           placeholder={field.placeholder}
           rows={3}
-          className={`${inputClass} min-h-24 resize-y`}
+          className={`${inputClass} mt-2 min-h-24 resize-y`}
         />
       ) : (
         <input
@@ -655,7 +654,7 @@ function Field({
           placeholder={field.placeholder}
           inputMode={field.key === 'creditLimit' ? 'decimal' : undefined}
           list={field.suggestions === 'billingCycle' ? 'billing-cycle-options' : undefined}
-          className={`${inputClass} h-11`}
+          className={`${inputClass} mt-2 h-11`}
         />
       )}
     </label>
@@ -725,14 +724,14 @@ function ShippingAddresses({
                       onChange={(event) => update(address.id, { [key]: event.target.value })}
                       placeholder="บ้านเลขที่ อาคาร ถนน และรายละเอียดสถานที่"
                       rows={3}
-                      className={`${inputClass} min-h-24 resize-y`}
+                      className={`${inputClass} mt-2 min-h-24 resize-y`}
                     />
                   ) : (
                     <input
                       value={address[key as keyof typeof SHIPPING_FIELDS]}
                       onChange={(event) => update(address.id, { [key]: event.target.value })}
                       placeholder={field.label}
-                      className={`${inputClass} h-11`}
+                      className={`${inputClass} mt-2 h-11`}
                     />
                   )}
                 </label>

@@ -9,7 +9,8 @@ import ListRequestState from '@/components/ui/list-request-state';
 import PaginationControls from '@/components/ui/pagination-controls';
 import { Get } from '@/service/http';
 import type { CustomerRequestPage } from '@/types/api/customer-requests';
-import { dateTime } from '@/components/sales/document-ui';
+import { DateInput, dateTime } from '@/components/sales/document-ui';
+import { filterClass } from '@/components/ui/form-classes';
 
 const tabs = ['รอตรวจสอบ', 'ส่งกลับแก้ไข', 'อนุมัติแล้ว', 'ไม่อนุมัติ', 'ยกเลิก', ''];
 
@@ -17,6 +18,8 @@ export default function Page() {
   const router = useRouter();
   const [tab, setTab] = useState('รอตรวจสอบ');
   const [search, setSearch] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [result, setResult] = useState<CustomerRequestPage | null>(null);
@@ -32,6 +35,8 @@ export default function Page() {
       const query = new URLSearchParams({
         search,
         status: tab,
+        from,
+        to,
         limit: String(pageSize),
         offset: String((page - 1) * pageSize),
       });
@@ -54,18 +59,18 @@ export default function Page() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [search, tab, page, pageSize, retry]);
+  }, [search, tab, from, to, page, pageSize, retry]);
 
   const rows = result?.data ?? [];
   const total = result?.pagination.total ?? 0;
   const admin = result?.actor.roleId === 'ADMIN';
-  const control = 'mt-1.5 h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm';
+  const control = `mt-1.5 ${filterClass}`;
 
   return (
-    <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6">
-      <h1 className="text-xl poppins-semibold text-[#26364b]">
-        {result && !admin ? 'คำขอของฉัน' : 'คำขอเพิ่มลูกค้า'}
-      </h1>
+    <section
+      aria-label={result && !admin ? 'คำขอของฉัน' : 'คำขอเพิ่มลูกค้า'}
+      className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9e3ee]">
         <div role="tablist" aria-label="สถานะคำขอ" className="flex flex-wrap gap-5">
           {tabs.map((key) => (
@@ -79,13 +84,13 @@ export default function Page() {
               }}
               className={`border-b-2 px-1 py-3 text-sm ${tab === key ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
             >
-              {key || 'ทั้งหมด'}
+              {key || (result && !admin ? 'คำขอของฉัน' : 'ทั้งหมด')}
             </button>
           ))}
         </div>
       </div>
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
-      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3">
+      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-3">
         <label className="text-xs text-[#53647c]">
           ค้นหา
           <input
@@ -98,6 +103,32 @@ export default function Page() {
             }}
           />
         </label>
+        <div className="text-xs text-[#53647c]">
+          ตั้งแต่วันที่
+          <DateInput
+            label="ตั้งแต่วันที่"
+            value={from}
+            max={to || undefined}
+            required={false}
+            onChange={(value) => {
+              setFrom(value);
+              setPage(1);
+            }}
+          />
+        </div>
+        <div className="text-xs text-[#53647c]">
+          ถึงวันที่
+          <DateInput
+            label="ถึงวันที่"
+            value={to}
+            min={from || undefined}
+            required={false}
+            onChange={(value) => {
+              setTo(value);
+              setPage(1);
+            }}
+          />
+        </div>
       </div>
       <div
         className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"

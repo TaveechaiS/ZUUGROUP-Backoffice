@@ -9,4 +9,13 @@ const columns = [
 ];
 const csv = toCsv(columns, [{ name: 'ยา A, 10mg', status: 'ใช้งาน', total: '1,250.00' }]);
 assert.equal(csv, '"สินค้า","สถานะ","ยอด ""รวม"""\r\n"ยา A, 10mg","ใช้งาน","1,250.00"');
-console.log('PASS: CSV quotes commas, escapes quotes, reads link text and badge value');
+assert.equal(
+  toCsv(
+    [columns[2]],
+    [{ total: '=HYPERLINK("x")' }, { total: '-1,250.00' }, { total: '@SUM(A1)' }],
+  ),
+  `"ยอด ""รวม"""\r\n"'=HYPERLINK(""x"")"\r\n"-1,250.00"\r\n"'@SUM(A1)"`,
+);
+console.log(
+  'PASS: CSV blocks formulas, quotes commas, escapes quotes, reads link text and badge value',
+);

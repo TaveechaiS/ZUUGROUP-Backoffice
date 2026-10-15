@@ -1,6 +1,7 @@
 import 'server-only';
 import { createHash, randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
+import { customerScope } from '@/server/access/scope';
 import { getPrismaClient } from '@/server/db/prisma';
 import { uuidPattern } from '@/server/validation/products';
 import { CustomerError } from '@/server/validation/customer-error';
@@ -416,10 +417,14 @@ export async function customerRequestStatus(requestId: string, actorId: string) 
 
 // A file stays readable while the customer's current details still list it (edits may retain
 // files uploaded by an earlier request). Deleted customers' files are Admin-only.
-export async function readCustomerFile(fileId: string, isAdmin = false) {
+export async function readCustomerFile(
+  fileId: string,
+  isAdmin = false,
+  actor?: { id: string; roleId: string },
+) {
   fileId = checkedId(fileId);
   const rows = await db().$queryRaw<{ name: string; type: string; size: number; path: string }[]>(
-    Prisma.sql`SELECT f.name,f.type,f.size,f.path FROM customer_files f JOIN customer_create_requests r ON r.id=f.request_id JOIN customers c ON EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(c.details->'files','[]'::jsonb)) entry WHERE entry->>'id'=f.id::text) WHERE f.id=${fileId}::uuid AND r.status='complete' ${isAdmin ? Prisma.empty : Prisma.sql`AND c.deleted_at IS NULL`} LIMIT 1`,
+    Prisma.sql`SELECT f.name,f.type,f.size,f.path FROM customer_files f JOIN customer_create_requests r ON r.id=f.request_id JOIN customers c ON EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(c.details->'files','[]'::jsonb)) entry WHERE entry->>'id'=f.id::text) WHERE f.id=${fileId}::uuid AND r.status='complete' ${isAdmin ? Prisma.empty : Prisma.sql`AND c.deleted_at IS NULL`} ${actor ? customerScope(actor, Prisma.sql`c.id`) : Prisma.empty} LIMIT 1`,
   );
   if (!rows[0]) throw new CustomerError('ไม่พบไฟล์', 404);
   const { data, error } = await customerStorage().download(rows[0].path);

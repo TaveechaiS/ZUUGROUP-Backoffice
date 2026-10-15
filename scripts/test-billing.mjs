@@ -220,6 +220,10 @@ try {
           new URLSearchParams({ view: 'uninvoiced' }),
         );
         assert.ok(uninvoiced.data.some((o) => o.id === orderA));
+        await rejects(
+          () => bill.billingRead(sales, new URLSearchParams({ view: 'uninvoiced' })),
+          403,
+        );
         const created = await create(admin, orderA);
         invoiceId = created.data.id;
         assert.match(created.data.code, /^INV-25\d\d-\d{4}$/);
@@ -252,6 +256,10 @@ try {
         await rejects(act(invoiceId, 'pay', { paidOn: today, amount: '10', method: 'บัตร' }), 400);
         await rejects(
           act(invoiceId, 'pay', { paidOn: addDays(today, 1), amount: '10', method: 'โอน' }),
+          400,
+        );
+        await rejects(
+          act(invoiceId, 'pay', { paidOn: addDays(today, -1), amount: '10', method: 'โอน' }),
           400,
         );
         await act(invoiceId, 'pay', { paidOn: today, amount: '200', method: 'เงินสด' })();
@@ -320,6 +328,42 @@ try {
         assert.equal(row.rls, true);
         assert.equal(row.client, false);
       });
+      await test('TASK-296 ใบวางบิล: ช่วงวันที่ออกบิล เขตขาย ผู้ขาย ตัวเลือก และ Sales ขยายขอบเขตไม่ได้', async () => {
+        const uuid = '00000000-0000-4000-8000-000000000001';
+        const list = (actor, p) =>
+          bill.billingRead(actor, new URLSearchParams({ search: prefix, ...p }));
+        const total = (await list(admin, {})).pagination.total;
+        assert.ok(total >= 1);
+        const row = await read(invoiceId);
+        await tx.$executeRaw`UPDATE invoices SET issue_date=${addDays(today, -20)}::date WHERE id=${invoiceId}::uuid`;
+        const ids = async (p) => (await list(admin, p)).data.map((r) => r.id);
+        assert.ok(
+          (await ids({ from: addDays(today, -20), to: addDays(today, -20) })).includes(invoiceId),
+        );
+        assert.ok(!(await ids({ from: addDays(today, -19) })).includes(invoiceId));
+        assert.ok(!(await ids({ to: addDays(today, -21) })).includes(invoiceId));
+        await rejects(() => list(admin, { from: today, to: addDays(today, -1) }), 400);
+        const [zone] =
+          await tx.$queryRaw`INSERT INTO sales_territories(code,name) VALUES(${prefix + '-Z'},${prefix + '-Z'}) RETURNING id`;
+        await tx.$executeRaw`UPDATE customers SET territory_id=${zone.id}::uuid WHERE id=${row.customerId}::uuid`;
+        const [meta] =
+          await tx.$queryRaw`SELECT o.created_by_id AS seller,c.territory_id AS territory FROM sales_orders o JOIN customers c ON c.id=o.customer_id WHERE o.id=${row.salesOrderId}::uuid`;
+        assert.ok((await ids({ sellerId: meta.seller })).includes(invoiceId));
+        assert.ok((await ids({ territoryId: meta.territory })).includes(invoiceId));
+        assert.equal((await list(admin, { sellerId: uuid })).pagination.total, 0);
+        assert.equal((await list(admin, { territoryId: uuid })).pagination.total, 0);
+        await rejects(() => list(admin, { sellerId: 'x' }), 400);
+        const listed = await list(admin, {});
+        assert.ok(listed.filters.territories.some((x) => x.id === meta.territory));
+        assert.ok(listed.filters.sellers.some((x) => x.id === meta.seller));
+        const own = await list(sales, {});
+        assert.equal(own.filters, undefined);
+        assert.equal(
+          (await list(sales, { sellerId: uuid, territoryId: uuid })).pagination.total,
+          own.pagination.total,
+        );
+      });
+
       throw rollback;
     },
     { timeout: 180000, maxWait: 10000 },

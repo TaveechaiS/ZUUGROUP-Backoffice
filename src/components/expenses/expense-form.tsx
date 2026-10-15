@@ -187,16 +187,16 @@ export default function ExpenseForm({
           {invalid || error}
         </p>
       )}
-      <div className="mt-6 flex flex-wrap items-center justify-end gap-4">
+      <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
         <button
           type="button"
           disabled={busy}
           onClick={onCancel}
-          className={`w-36 ${secondaryButton}`}
+          className={secondaryButton}
         >
           ยกเลิก
         </button>
-        <button type="submit" disabled={busy} className={`min-w-36 ${primaryButton}`}>
+        <button type="submit" disabled={busy} className={primaryButton}>
           {busy ? 'กำลังบันทึก...' : submitLabel}
         </button>
       </div>

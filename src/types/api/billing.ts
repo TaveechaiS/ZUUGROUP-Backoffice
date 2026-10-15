@@ -1,3 +1,4 @@
+import type { SalesFilterOptions } from './operations';
 type Pagination = { offset: number; limit: number; total: number; hasMore: boolean };
 type Actor = { id: string; roleId: string; name: string };
 
@@ -40,6 +41,7 @@ export type InvoicePage = {
   data: InvoiceRow[];
   pagination: Pagination;
   totalOutstanding: string;
+  filters?: SalesFilterOptions;
   actor: Actor;
 };
 export type UninvoicedOrder = {

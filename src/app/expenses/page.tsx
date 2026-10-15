@@ -11,6 +11,7 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import { Get } from '@/service/http';
 import type { ExpensePage } from '@/types/api/expenses';
 import { DateInput, bangkokToday, dateOnly, money } from '@/components/sales/document-ui';
+import { filterClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const router = useRouter();
@@ -67,7 +68,7 @@ export default function Page() {
 
   const rows = result?.data ?? [];
   const total = result?.pagination.total ?? 0;
-  const control = 'mt-1.5 h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm';
+  const control = `mt-1.5 ${filterClass}`;
 
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6">
@@ -95,30 +96,6 @@ export default function Page() {
       </div>
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
       <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2 lg:grid-cols-4">
-        <div className="text-xs text-[#53647c]">
-          ตั้งแต่วันที่
-          <DateInput
-            label="ตั้งแต่วันที่"
-            value={from}
-            max={to}
-            onChange={(value) => {
-              setFrom(value);
-              setPage(1);
-            }}
-          />
-        </div>
-        <div className="text-xs text-[#53647c]">
-          ถึงวันที่
-          <DateInput
-            label="ถึงวันที่"
-            value={to}
-            min={from}
-            onChange={(value) => {
-              setTo(value);
-              setPage(1);
-            }}
-          />
-        </div>
         <label className="text-xs text-[#53647c]">
           ค้นหา
           <input
@@ -149,6 +126,30 @@ export default function Page() {
             ))}
           </select>
         </label>
+        <div className="text-xs text-[#53647c]">
+          ตั้งแต่วันที่
+          <DateInput
+            label="ตั้งแต่วันที่"
+            value={from}
+            max={to}
+            onChange={(value) => {
+              setFrom(value);
+              setPage(1);
+            }}
+          />
+        </div>
+        <div className="text-xs text-[#53647c]">
+          ถึงวันที่
+          <DateInput
+            label="ถึงวันที่"
+            value={to}
+            min={from}
+            onChange={(value) => {
+              setTo(value);
+              setPage(1);
+            }}
+          />
+        </div>
       </div>
       <div
         className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"

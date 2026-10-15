@@ -1,17 +1,19 @@
 // Shared layout pieces for sales documents (orders TASK-274, quotations TASK-275), matching the
 // customer/product pages.
 import type { ReactNode } from 'react';
+import {
+  inputClass as sharedInputClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+} from '@/components/ui/form-classes';
 import ChevronDown from '@/components/ui/chevron-down';
 
 export const ORDER_STATUSES = ['รอตรวจ', 'อนุมัติ', 'ส่งกลับแก้ไข', 'เสร็จสิ้น', 'ยกเลิก'] as const;
 export const VAT_RATE = 7;
 
-export const inputClass =
-  'mt-2 block w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#8994a5] focus:border-[#1a58a7] disabled:bg-[#f7f9fc] disabled:text-[#8994a5]';
-export const primaryButton =
-  'rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white hover:bg-[#174a8b] disabled:cursor-not-allowed disabled:opacity-50';
-export const secondaryButton =
-  'rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-sm poppins-medium text-[#344256] hover:bg-gray-50 disabled:opacity-50';
+export const inputClass = `mt-2 ${sharedInputClass}`;
+export const primaryButton = primaryButtonClass;
+export const secondaryButton = secondaryButtonClass;
 
 export const money = (value: unknown) =>
   Number(value ?? 0).toLocaleString('th-TH', {
@@ -38,8 +40,8 @@ export function Section({
   return (
     <details open={open} className="group rounded-lg border border-[#d9e3ee] p-4 md:p-6">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1a58a7] [&::-webkit-details-marker]:hidden">
-        <h2 className="text-base poppins-semibold text-[#1a58a7]">{title}</h2>
-        <ChevronDown className="shrink-0 text-[#1A58A7] transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" />
+        <h3 className="text-base poppins-semibold text-[#1a58a7]">{title}</h3>
+        <ChevronDown className="shrink-0 -rotate-90 text-[#1A58A7] transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none" />
       </summary>
       <div className="mt-4">{children}</div>
     </details>

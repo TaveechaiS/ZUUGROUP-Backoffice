@@ -8,7 +8,7 @@ import ListRequestState from '@/components/ui/list-request-state';
 import PaginationControls from '@/components/ui/pagination-controls';
 import { DateInput, bangkokToday, money } from '@/components/sales/document-ui';
 import { Get } from '@/service/http';
-import { downloadCsv } from '@/components/reports/csv';
+import { filterClass } from '@/components/ui/form-classes';
 
 type Row = Record<string, unknown> & { id?: string };
 type Result = {
@@ -117,90 +117,26 @@ export default function ReportTable({
   const rows = result?.data ?? [];
   const total = result?.pagination.total ?? 0;
   const shown = columns.filter((column) => !column.costOnly || result?.seesCost);
-  const [exporting, setExporting] = useState(false);
-  async function exportCsv() {
-    setExporting(true);
-    setError('');
-    try {
-      const rows: Row[] = [];
-      for (let offset = 0; offset < 10000; offset += 100) {
-        const query = new URLSearchParams({
-          search,
-          ...selected,
-          ...(ranged ? { from, to } : {}),
-          limit: '100',
-          offset: String(offset),
-        });
-        const value = await Get<Result>(
-          withTableSort(endpoint + '?' + query, { key: sort.key, direction: sort.direction }),
-        );
-        rows.push(...value.data);
-        if (rows.length >= value.pagination.total || !value.data.length) break;
-      }
-      downloadCsv(title, shown, rows);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'ส่งออกไม่สำเร็จ');
-    } finally {
-      setExporting(false);
-    }
-  }
-  const control = 'mt-1.5 h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm';
+  const control = `mt-1.5 ${filterClass}`;
   const filterCount = (searchPlaceholder ? 1 : 0) + filters.length + (ranged ? 2 : 0);
 
   return (
-    <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-xl poppins-semibold text-[#26364b]">{title}</h1>
-        <div className="flex flex-wrap items-center gap-4">
-          {totalLabel && result?.totalAmount !== undefined && (
-            <p className="text-sm text-[#53647c]">
-              {totalLabel}{' '}
-              <span className="poppins-semibold text-[#1a58a7]">{money(result.totalAmount)}</span>{' '}
-              บาท
-            </p>
-          )}
-          <button
-            type="button"
-            disabled={exporting || loading || !result?.pagination.total}
-            onClick={() => void exportCsv()}
-            className="rounded-lg border border-[#d9e3ee] bg-white px-4 py-2 text-sm poppins-medium text-[#1a58a7] hover:bg-blue-50 disabled:opacity-50"
-          >
-            {exporting ? 'กำลังส่งออก...' : 'ส่งออก CSV'}
-          </button>
+    <section
+      aria-label={title}
+      className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
+    >
+      {totalLabel && result?.totalAmount !== undefined && (
+        <div className="flex justify-end">
+          <p className="text-sm text-[#53647c]">
+            {totalLabel}{' '}
+            <span className="poppins-semibold text-[#1a58a7]">{money(result.totalAmount)}</span> บาท
+          </p>
         </div>
-      </div>
+      )}
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
       <div
         className={`grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2 ${filterCount > 2 ? 'lg:grid-cols-4' : ''}`}
       >
-        {ranged && (
-          <>
-            <div className="text-xs text-[#53647c]">
-              ตั้งแต่วันที่
-              <DateInput
-                label="ตั้งแต่วันที่"
-                value={from}
-                max={to}
-                onChange={(value) => {
-                  setFrom(value);
-                  setPage(1);
-                }}
-              />
-            </div>
-            <div className="text-xs text-[#53647c]">
-              ถึงวันที่
-              <DateInput
-                label="ถึงวันที่"
-                value={to}
-                min={from}
-                onChange={(value) => {
-                  setTo(value);
-                  setPage(1);
-                }}
-              />
-            </div>
-          </>
-        )}
         {searchPlaceholder && (
           <label className="text-xs text-[#53647c]">
             ค้นหา
@@ -238,6 +174,34 @@ export default function ReportTable({
             </select>
           </label>
         ))}
+        {ranged && (
+          <>
+            <div className="text-xs text-[#53647c]">
+              ตั้งแต่วันที่
+              <DateInput
+                label="ตั้งแต่วันที่"
+                value={from}
+                max={to}
+                onChange={(value) => {
+                  setFrom(value);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div className="text-xs text-[#53647c]">
+              ถึงวันที่
+              <DateInput
+                label="ถึงวันที่"
+                value={to}
+                min={from}
+                onChange={(value) => {
+                  setTo(value);
+                  setPage(1);
+                }}
+              />
+            </div>
+          </>
+        )}
       </div>
       {summary && result?.summary && (
         <dl className="m-0 grid grid-cols-2 gap-3 lg:grid-cols-4">

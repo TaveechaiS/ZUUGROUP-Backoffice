@@ -18,10 +18,9 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sortable-table';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
+import { inputClass, primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
 
 type Person = { id: string; name: string };
-const inputClass =
-  'mt-2 block w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
 
 export default function Page({
   params,
@@ -105,7 +104,7 @@ function TerritoryDetail({ id, deletedView }: { id: string; deletedView: boolean
   const members = ((item?.salesMembers ?? []) as Person[]).map((person) => person.name);
 
   return (
-    <section className="min-w-0 space-y-6 p-4 md:p-6">
+    <section className="min-w-0 w-full space-y-6 px-4 py-6 md:px-6 md:py-8">
       <Link
         href={deletedView ? '/customers/territories?tab=deleted' : '/customers/territories'}
         className="text-sm text-[#1a58a7] hover:underline"
@@ -126,7 +125,7 @@ function TerritoryDetail({ id, deletedView }: { id: string; deletedView: boolean
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-lg poppins-semibold text-[#1a58a7]">{item.name}</h2>
+            <h2 className="text-lg poppins-semibold text-[#344256]">{item.name}</h2>
             {deleted && <StatusBadge value="ลบแล้ว" />}
           </div>
           {editing ? (
@@ -211,7 +210,7 @@ function TerritoryDetail({ id, deletedView }: { id: string; deletedView: boolean
                   onChange={(event) => setReason(event.target.value)}
                   maxLength={1000}
                   rows={2}
-                  className={inputClass}
+                  className={`${inputClass} mt-2`}
                 />
               </label>
               <button
@@ -224,7 +223,7 @@ function TerritoryDetail({ id, deletedView }: { id: string; deletedView: boolean
               </button>
             </div>
           )}
-          <div className="flex flex-wrap justify-end gap-4">
+          <div className="flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
             {canWrite && deleted && (
               <button
                 type="button"
@@ -236,7 +235,7 @@ function TerritoryDetail({ id, deletedView }: { id: string; deletedView: boolean
                     '/customers/territories/' + item.id,
                   )
                 }
-                className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
+                className={`${primaryButtonClass} min-w-36`}
               >
                 กู้คืน
               </button>
@@ -245,7 +244,7 @@ function TerritoryDetail({ id, deletedView }: { id: string; deletedView: boolean
               <button
                 type="button"
                 onClick={() => setEditing(true)}
-                className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white"
+                className={`${primaryButtonClass} min-w-36`}
               >
                 แก้ไข
               </button>
@@ -329,7 +328,7 @@ function TerritoryForm({
             maxLength={500}
             onChange={(event) => setName(event.target.value)}
             aria-invalid={Boolean(error)}
-            className={`${inputClass} h-11`}
+            className={`${inputClass} mt-2 h-11`}
           />
         </label>
         <div className="text-sm poppins-medium text-[#344256]">
@@ -350,7 +349,7 @@ function TerritoryForm({
             maxLength={4000}
             rows={3}
             onChange={(event) => setNotes(event.target.value)}
-            className={`${inputClass} min-h-24 resize-y`}
+            className={`${inputClass} mt-2 min-h-24 resize-y`}
           />
         </label>
         <div className="text-sm poppins-medium text-[#344256] sm:col-span-2">
@@ -392,20 +391,16 @@ function TerritoryForm({
           {error}
         </p>
       )}
-      <div className="flex justify-end gap-4">
+      <div className="flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
         <button
           type="button"
           disabled={busy}
           onClick={onCancel}
-          className="w-36 rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-sm poppins-medium text-[#344256] hover:bg-gray-50"
+          className={`${secondaryButtonClass} min-w-36`}
         >
           ยกเลิก
         </button>
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
-        >
+        <button type="submit" disabled={busy} className={`${primaryButtonClass} min-w-36`}>
           {busy ? 'กำลังบันทึก...' : 'บันทึก'}
         </button>
       </div>
@@ -551,10 +546,10 @@ function TerritoryCustomers({ territoryId }: { territoryId: string }) {
             columns={['code', 'name', 'province', 'status']}
             className="w-full min-w-[640px] text-left text-sm poppins-regular text-[#344256]"
           >
-            <thead className="bg-[#f7f9fc] text-[#65758b]">
+            <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
               <tr>
                 {['รหัสลูกค้า', 'ชื่อสถานประกอบการ / บริษัท', 'จังหวัด', 'สถานะ'].map((label) => (
-                  <th key={label} scope="col" className="px-4 py-3 poppins-medium">
+                  <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
                     {label}
                   </th>
                 ))}
@@ -573,7 +568,7 @@ function TerritoryCustomers({ territoryId }: { territoryId: string }) {
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') router.push('/customers/' + customer.id);
                     }}
-                    className="cursor-pointer border-t border-[#edf1f5] hover:bg-blue-50/40"
+                    className="cursor-pointer border-t border-[#edf0f4] hover:bg-[#fafbfc]"
                   >
                     <td className="whitespace-nowrap px-4 py-3 poppins-medium text-[#1a58a7]">
                       {customer.code}
@@ -594,23 +589,25 @@ function TerritoryCustomers({ territoryId }: { territoryId: string }) {
           label="กำลังโหลดลูกค้า..."
         />
         {!loading && !error && !rows.length && <NotFoundComponent title="ยังไม่มีลูกค้าในเขตนี้" />}
-        <PaginationControls
-          page={Math.floor(offset / pageSize) + 1}
-          pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
-          total={result?.pagination.total ?? 0}
-          count={rows.length}
-          pageSize={pageSize}
-          onChange={(page) => {
-            setLoading(true);
-            setOffset((page - 1) * pageSize);
-          }}
-          onPageSizeChange={(size) => {
-            setLoading(true);
-            setPageSize(size);
-            setOffset(0);
-          }}
-          disabled={loading}
-        />
+        <div className="border-t border-[#edf0f4] p-3">
+          <PaginationControls
+            page={Math.floor(offset / pageSize) + 1}
+            pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
+            total={result?.pagination.total ?? 0}
+            count={rows.length}
+            pageSize={pageSize}
+            onChange={(page) => {
+              setLoading(true);
+              setOffset((page - 1) * pageSize);
+            }}
+            onPageSizeChange={(size) => {
+              setLoading(true);
+              setPageSize(size);
+              setOffset(0);
+            }}
+            disabled={loading}
+          />
+        </div>
       </div>
     </div>
   );

@@ -28,6 +28,7 @@ import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 import StatusBadge from '@/components/ui/status-badge';
 import ProductRecordHistory from './product-record-history';
+import { primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
 
 const requiredFields = new Set([
   'รหัสสินค้าภายในบริษัท',
@@ -571,7 +572,7 @@ export default function Page() {
         </h2>
         <Link
           href="/products"
-          className="rounded-md border border-[#d9e3ee] px-4 py-2 text-sm poppins-medium text-[#1a58a7] hover:bg-blue-50"
+          className={secondaryButtonClass}
         >
           กลับรายการสินค้า
         </Link>
@@ -595,12 +596,10 @@ export default function Page() {
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1a58a7] [&::-webkit-details-marker]:hidden">
             <h3 className="text-base poppins-semibold text-[#1a58a7]">{section.title}</h3>
             <svg
-              width="23"
-              height="13"
               viewBox="0 0 23 13"
               fill="none"
               aria-hidden="true"
-              className="shrink-0 -rotate-90 transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none"
+              className="h-4 w-4 shrink-0 -rotate-90 transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none"
             >
               <path
                 d="M1.5 1.5L11.5 11.5L21.5 1.5"
@@ -707,7 +706,7 @@ export default function Page() {
                 type="button"
                 onClick={cancelEdit}
                 disabled={busy}
-                className="rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-sm poppins-medium text-[#344256] hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
+                className={`${secondaryButtonClass} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]`}
               >
                 ยกเลิก
               </button>
@@ -715,7 +714,7 @@ export default function Page() {
                 type="button"
                 onClick={saveEdit}
                 disabled={busy || conflict}
-                className="rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
+                className={`${primaryButtonClass} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]`}
               >
                 บันทึก
               </button>
@@ -725,7 +724,7 @@ export default function Page() {
               type="button"
               onClick={beginEdit}
               disabled={busy}
-              className="rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white hover:bg-[#174a8b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]"
+              className={`${primaryButtonClass} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a58a7]`}
             >
               แก้ไข
             </button>
@@ -922,12 +921,10 @@ function ProductHistory({ productId, revision }: { productId: string; revision: 
       <summary className="flex cursor-pointer list-none items-center justify-between text-base poppins-semibold text-[#1a58a7] [&::-webkit-details-marker]:hidden">
         ประวัติการแก้ไขสินค้า
         <svg
-          width="23"
-          height="13"
           viewBox="0 0 23 13"
           fill="none"
           aria-hidden="true"
-          className="-rotate-90 transition-transform group-open:rotate-0"
+          className="h-4 w-4 -rotate-90 transition-transform group-open:rotate-0"
         >
           <path
             d="M1.5 1.5L11.5 11.5L21.5 1.5"
@@ -1191,12 +1188,10 @@ function LotHistory({
           {currentOnly ? 'ล็อตสินค้าคงเหลือ' : 'ประวัติล็อตสินค้า'}
         </h3>
         <svg
-          width="23"
-          height="13"
           viewBox="0 0 23 13"
           fill="none"
           aria-hidden="true"
-          className="shrink-0 -rotate-90 transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none"
+          className="h-4 w-4 shrink-0 -rotate-90 transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none"
         >
           <path
             d="M1.5 1.5L11.5 11.5L21.5 1.5"
@@ -1370,7 +1365,7 @@ function LotHistory({
                                     setDestroyError('');
                                     setDestroyConfirm(true);
                                   }}
-                                  className="rounded-lg bg-red-600 px-4 py-2 text-sm poppins-medium text-white hover:bg-red-700 disabled:opacity-50"
+                                  className="rounded-lg bg-red-600 px-5 py-2.5 text-sm poppins-medium text-white hover:bg-red-700 disabled:opacity-50"
                                 >
                                   {destroyPending?.lotId === lot.id ? 'ลองอีกครั้ง' : 'ทำลายแล้ว'}
                                 </button>

@@ -4,9 +4,8 @@ import { useId, useRef, useState } from 'react';
 import SearchCombobox from '@/components/ui/search-combobox';
 import { Get } from '@/service/http';
 import type { CustomerOption } from '@/types/api/customer-options';
+import { inputClass } from '@/components/ui/form-classes';
 
-const inputClass =
-  'block h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#8994a5] focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
 
 // Picking a group asks the API for its next free number; the user may still edit it.
 // The server re-checks duplicates when the customer is saved.

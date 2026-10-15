@@ -16,7 +16,7 @@ export async function expensesHandler(
     if (!user?.userRole) throw new RecordError(401, 'กรุณาเข้าสู่ระบบ');
     const actor: Actor = { id: user.id, name: user.name, roleId: user.userRole.roleId };
     if (target.fileId) {
-      const result = await readExpenseFile(target.fileId);
+      const result = await readExpenseFile(actor, target.fileId);
       return new Response(result.bytes, {
         headers: {
           'Content-Type': result.file.type,

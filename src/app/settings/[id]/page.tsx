@@ -13,6 +13,7 @@ import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 import StatusBadge from '@/components/ui/status-badge';
 import SearchCombobox from '@/components/ui/search-combobox';
+import { inputClass, primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
 export default function Page() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -162,7 +163,7 @@ export default function Page() {
     timeZone: 'Asia/Bangkok',
   });
   return (
-    <section className="flex flex-1 flex-col gap-5 p-6">
+    <section className="flex min-w-0 w-full flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
       <ConfirmationDialog
         isOpen={confirmDelete}
         title={`ลบ${entity.title}นี้?`}
@@ -189,7 +190,7 @@ export default function Page() {
       </Link>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="m-0 text-xl poppins-semibold">{row.name}</h1>
+          <h2 className="m-0 text-lg poppins-semibold text-[#344256]">{row.name}</h2>
           <p className="text-sm text-[#718096]">
             {row.code} · แก้ไขล่าสุด {date.format(new Date(row.updatedAt))}
           </p>
@@ -197,7 +198,7 @@ export default function Page() {
         {config.canWrite && (
           <button
             onClick={() => setEdit(true)}
-            className="rounded bg-[#1a58a7] px-4 py-2 text-sm text-white"
+            className={primaryButtonClass}
           >
             แก้ไขข้อมูล
           </button>
@@ -208,7 +209,7 @@ export default function Page() {
           {error}
         </p>
       )}
-      <dl className="grid max-w-4xl gap-4 rounded-xl border border-[#d9e3ee] bg-white p-5 sm:grid-cols-2">
+      <dl className="grid gap-4 rounded-lg border border-[#d9e3ee] p-4 sm:grid-cols-2 md:p-6">
         <div>
           <dt className="text-xs text-[#718096]">รหัส / เลขอ้างอิง</dt>
           <dd className="m-0 mt-1 break-words text-sm">{row.code || '-'}</dd>
@@ -245,21 +246,21 @@ export default function Page() {
         </div>
       </dl>
       {config.canWrite && (
-        <div className="max-w-4xl rounded-xl border border-red-200 p-5">
-          <h2 className="text-sm poppins-semibold text-red-700">ลบรายการ</h2>
+        <div className="rounded-lg border border-red-200 p-4 md:p-6">
+          <h3 className="text-base poppins-semibold text-red-700">ลบรายการ</h3>
           <label className="block text-sm">
             เหตุผล
             <input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               maxLength={1000}
-              className="mt-2 h-10 w-full rounded border border-[#d9e3ee] px-3"
+              className={`${inputClass} mt-2`}
             />
           </label>
           <button
             disabled={busy || Boolean(notice)}
             onClick={() => setConfirmDelete(true)}
-            className="mt-4 rounded border border-red-300 px-4 py-2 text-sm text-red-700 disabled:opacity-50"
+            className="mt-4 rounded-lg border border-red-300 px-5 py-2.5 text-sm poppins-medium text-red-700 disabled:opacity-50"
           >
             {busy ? 'กำลังลบ...' : 'ลบรายการ'}
           </button>
@@ -421,7 +422,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
     }
   }
   return (
-    <section className="flex flex-1 flex-col gap-5 p-6">
+    <section className="flex min-w-0 w-full flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
       <ConfirmationDialog
         isOpen={pendingEdit !== null}
         variant="primary"
@@ -449,13 +450,13 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
       <Link href={entity.page} className="text-sm text-[#1a58a7]">
         ← {entity.title}
       </Link>
-      <h1 className="m-0 text-xl poppins-semibold">
+      <h2 className="m-0 text-lg poppins-semibold text-[#344256]">
         {record ? 'แก้ไข' + entity.title : entity.action}
-      </h1>
+      </h2>
       <form
         noValidate
         onSubmit={save}
-        className="max-w-3xl rounded-xl border border-[#d9e3ee] bg-white p-5 shadow-xs"
+        className="rounded-lg border border-[#d9e3ee] p-4 md:p-6"
       >
         {error && (
           <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">
@@ -479,7 +480,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
               maxLength={500}
               value={values['code']}
               onChange={(event) => changeValue('code', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
+              className={inputClass}
             />
             {fieldErrors['code'] && (
               <p
@@ -504,7 +505,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
               maxLength={500}
               value={values['name']}
               onChange={(event) => changeValue('name', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
+              className={inputClass}
             />
             {fieldErrors['name'] && (
               <p
@@ -548,7 +549,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
               maxLength={500}
               value={values['category']}
               onChange={(event) => changeValue('category', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
+              className={inputClass}
             />
             {fieldErrors['category'] && (
               <p
@@ -571,7 +572,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
               value={values['description']}
               maxLength={4000}
               onChange={(event) => changeValue('description', event.target.value)}
-              className="min-h-24 w-full rounded-md border border-[#d9e3ee] bg-white p-3 text-sm aria-invalid:border-red-600"
+              className={`${inputClass} min-h-24`}
             />
             {fieldErrors['description'] && (
               <p
@@ -593,7 +594,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
               maxLength={500}
               value={values['owner']}
               onChange={(event) => changeValue('owner', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
+              className={inputClass}
             />
             {fieldErrors['owner'] && (
               <p
@@ -615,7 +616,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
               maxLength={500}
               value={values['value']}
               onChange={(event) => changeValue('value', event.target.value)}
-              className="h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm aria-invalid:border-red-600"
+              className={inputClass}
             />
             {fieldErrors['value'] && (
               <p
@@ -636,7 +637,7 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
               value={values['notes']}
               maxLength={4000}
               onChange={(event) => changeValue('notes', event.target.value)}
-              className="min-h-24 w-full rounded-md border border-[#d9e3ee] bg-white p-3 text-sm aria-invalid:border-red-600"
+              className={`${inputClass} min-h-24`}
             />
             {fieldErrors['notes'] && (
               <p
@@ -649,13 +650,13 @@ function EditForm({ record, onSaved }: { record: RecordRow; onSaved: (row: Recor
             )}
           </label>
         </fieldset>
-        <div className="mt-6 flex justify-end gap-3 border-t border-[#e3e9f0] pt-4">
-          <Link href={entity.page} className="rounded border border-[#d9e3ee] px-4 py-2 text-sm">
+        <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
+          <Link href={entity.page} className={secondaryButtonClass}>
             ยกเลิก
           </Link>
           <button
             disabled={busy || Boolean(createdId)}
-            className="rounded bg-[#1a58a7] px-4 py-2 text-sm text-white disabled:opacity-50"
+            className={primaryButtonClass}
           >
             {busy ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
           </button>

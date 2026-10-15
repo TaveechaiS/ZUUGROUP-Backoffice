@@ -11,9 +11,16 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import ListRequestState from '@/components/ui/list-request-state';
+import { DateInput } from '@/components/sales/document-ui';
+import { filterClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const router = useRouter();
+  const [search, setSearch] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const sort = useTableSort(() => setPage(1));
@@ -23,15 +30,33 @@ export default function Page() {
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
+    Get<{ filters?: { categories: { id: string; name: string }[] } }>(
+      '/api/inventory?view=products&projection=summary&metadata=true&limit=1&offset=0',
+      controller.signal,
+    )
+      .then((value) => {
+        if (!controller.signal.aborted) setCategories(value.filters?.categories ?? []);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
+  useEffect(() => {
+    const controller = new AbortController();
     const timer = setTimeout(() => {
       setLoading(true);
       setError('');
       Get<PageData<LotRow>>(
         withTableSort(
-          '/api/inventory?view=receipt-items&limit=' +
-            pageSize +
-            '&offset=' +
-            (page - 1) * pageSize,
+          '/api/inventory?' +
+            new URLSearchParams({
+              view: 'receipt-items',
+              search,
+              categoryId,
+              from,
+              to,
+              limit: String(pageSize),
+              offset: String((page - 1) * pageSize),
+            }),
           {
             key: sort.key,
             direction: sort.direction,
@@ -57,100 +82,162 @@ export default function Page() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [page, pageSize, retry, sort.key, sort.direction]);
+  }, [search, categoryId, from, to, page, pageSize, retry, sort.key, sort.direction]);
   const rows = result?.data ?? [];
   return (
-    <section className="min-w-0 space-y-6 px-4 py-6 text-[#344256] md:px-6 md:py-8">
-      <h2 className="text-lg poppins-semibold text-[#1a58a7]">ประวัติการเติมสต็อก</h2>
+    <section
+      aria-label="ประวัติการเติมสต็อก"
+      className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
+    >
       <ListRequestState error={error} retry={() => setRetry((value) => value + 1)} />
-      {loading ? (
-        <LoadingComponent isVisible />
-      ) : (
-        !error && (
-          <div className="overflow-x-auto rounded-lg border border-[#d9e3ee]">
-            <SortableTable
-              sort={sort}
-              columns={[
-                'receiptCode',
-                'createdAt',
-                'productName',
-                'receivedQuantity',
-                rows.some((lot) => lot.totalCost !== undefined) ? 'totalCost' : null,
-              ]}
-              className="w-full whitespace-nowrap text-left text-sm"
-            >
-              <thead className="bg-[#f7f9fc] text-[#65758b]">
-                <tr>
-                  {['ID', 'วันและเวลา', 'สินค้า', 'จำนวนรับเข้า', 'ต้นทุนรวมล็อต'].map((label) => (
-                    <th key={label} scope="col" className="px-4 py-4 poppins-semibold">
-                      {label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((lot) => {
-                  const href = '/products/stock/receipts/' + encodeURIComponent(lot.id);
-                  return (
-                    <tr
-                      key={lot.id}
-                      tabIndex={0}
-                      aria-label={'ดูรายละเอียด ' + lot.receiptCode + ' ' + lot.productName}
-                      onClick={(event) => {
-                        if ((event.target as HTMLElement).closest('a, button')) return;
-                        router.push(href);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.target !== event.currentTarget) return;
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          router.push(href);
-                        }
-                      }}
-                      className="cursor-pointer border-t border-[#d9e3ee] align-top hover:bg-blue-50 focus-visible:bg-blue-50 focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
+      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2 lg:grid-cols-4">
+        <label className="text-xs text-[#53647c]">
+          ค้นหา
+          <input
+            className={`mt-1.5 ${filterClass}`}
+            value={search}
+            placeholder="สินค้า ID รับเข้า หรือเลขล็อต"
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </label>
+        <label className="text-xs text-[#53647c]">
+          หมวดหมู่
+          <select
+            className={`mt-1.5 ${filterClass}`}
+            value={categoryId}
+            onChange={(e) => {
+              setCategoryId(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">ทั้งหมด</option>
+            {categories.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="text-xs text-[#53647c]">
+          ตั้งแต่วันที่
+          <DateInput
+            label="ตั้งแต่วันที่"
+            value={from}
+            max={to || undefined}
+            required={false}
+            onChange={(value) => {
+              setFrom(value);
+              setPage(1);
+            }}
+          />
+        </div>
+        <div className="text-xs text-[#53647c]">
+          ถึงวันที่
+          <DateInput
+            label="ถึงวันที่"
+            value={to}
+            min={from || undefined}
+            required={false}
+            onChange={(value) => {
+              setTo(value);
+              setPage(1);
+            }}
+          />
+        </div>
+      </div>
+      <div
+        className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"
+        aria-busy={loading}
+      >
+        <LoadingComponent isVisible={loading && !error} variant="content" />
+        <SortableTable
+          sort={sort}
+          columns={[
+            'receiptCode',
+            'createdAt',
+            'productName',
+            'receivedQuantity',
+            rows.some((lot) => lot.totalCost !== undefined) ? 'totalCost' : null,
+          ]}
+          className="w-full min-w-[760px] border-collapse whitespace-nowrap text-left text-sm"
+        >
+          <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
+            <tr>
+              {['ID', 'วันและเวลา', 'สินค้า', 'จำนวนรับเข้า', 'ต้นทุนรวมล็อต'].map((label) => (
+                <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
+                  {label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((lot) => {
+              const href = '/products/stock/receipts/' + encodeURIComponent(lot.id);
+              return (
+                <tr
+                  key={lot.id}
+                  tabIndex={0}
+                  aria-label={'ดูรายละเอียด ' + lot.receiptCode + ' ' + lot.productName}
+                  onClick={(event) => {
+                    if ((event.target as HTMLElement).closest('a, button')) return;
+                    router.push(href);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      router.push(href);
+                    }
+                  }}
+                  className="cursor-pointer border-t border-[#edf0f4] hover:bg-[#fafbfc] focus-visible:bg-blue-50 focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
+                >
+                  <td className="px-4 py-3">
+                    <Link href={href} className="text-[#1a58a7] hover:underline">
+                      {lot.receiptCode}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">{dateTime(lot.createdAt)}</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={'/products/' + encodeURIComponent(lot.productCode)}
+                      className="text-[#1a58a7] hover:underline"
                     >
-                      <td className="px-4 py-4 poppins-medium">
-                        <Link href={href} className="text-[#1a58a7] hover:underline">
-                          {lot.receiptCode}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-4">{dateTime(lot.createdAt)}</td>
-                      <td className="px-4 py-4">
-                        <Link
-                          href={'/products/' + encodeURIComponent(lot.productCode)}
-                          className="text-[#1a58a7] hover:underline"
-                        >
-                          {lot.productCode} · {lot.productName}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-4">
-                        {lot.receivedQuantity.toLocaleString('th-TH')} {lot.unit}
-                      </td>
-                      <td className="px-4 py-4">
-                        {lot.totalCost !== undefined ? money(lot.totalCost) : '—'}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </SortableTable>
-            {!rows.length && <NotFoundComponent title="ยังไม่มีประวัติการเติมสต็อก" />}
-            <PaginationControls
-              page={page}
-              pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
-              total={result?.pagination.total ?? 0}
-              count={rows.length}
-              onChange={setPage}
-              pageSize={pageSize}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setPage(1);
-              }}
-              disabled={loading}
-            />
-          </div>
-        )
-      )}
+                      {lot.productCode} · {lot.productName}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    {lot.receivedQuantity.toLocaleString('th-TH')} {lot.unit}
+                  </td>
+                  <td className="px-4 py-3">
+                    {lot.totalCost !== undefined ? money(lot.totalCost) : '—'}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </SortableTable>
+        {!loading && !error && !rows.length && (
+          <NotFoundComponent title="ยังไม่มีประวัติการเติมสต็อก" />
+        )}
+        <div className="border-t border-[#edf0f4] p-3">
+          <PaginationControls
+            page={page}
+            pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
+            total={result?.pagination.total ?? 0}
+            count={rows.length}
+            onChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+            disabled={loading}
+          />
+        </div>
+      </div>
     </section>
   );
 }

@@ -10,9 +10,8 @@ import LoadingComponent from '@/components/ui/loading-component';
 import ListRequestState from '@/components/ui/list-request-state';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+import { inputClass, primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
 
-const inputClass =
-  'mt-2 block h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#8994a5] focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
 const initial = {
   purchaseOrderLineId: '',
   productId: '',
@@ -236,7 +235,7 @@ export default function Page() {
           <form onSubmit={prepare} noValidate>
             <fieldset
               disabled={busy || Boolean(pending) || Boolean(savedCode)}
-              className="min-w-0 space-y-6 border-0 p-0"
+              className="min-w-0 space-y-9 border-0 p-0"
             >
               {sections.map((section) => (
                 <details
@@ -257,12 +256,10 @@ export default function Page() {
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1a58a7] [&::-webkit-details-marker]:hidden">
                     <h3 className="text-base poppins-semibold text-[#1a58a7]">{section.title}</h3>
                     <svg
-                      width="23"
-                      height="13"
                       viewBox="0 0 23 13"
                       fill="none"
                       aria-hidden="true"
-                      className="shrink-0 -rotate-90 transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none"
+                      className="h-4 w-4 shrink-0 -rotate-90 transition-transform duration-200 group-open:rotate-0 motion-reduce:transition-none"
                     >
                       <path
                         d="M1.5 1.5L11.5 11.5L21.5 1.5"
@@ -301,7 +298,7 @@ export default function Page() {
                               id="stock-purchaseOrderLineId"
                               value={values.purchaseOrderLineId}
                               onChange={(event) => change(key, event.target.value)}
-                              className={inputClass}
+                              className={`${inputClass} mt-2`}
                             >
                               <option value="">ไม่อ้างใบสั่งซื้อ</option>
                               {options.openLines.map((line) => (
@@ -316,7 +313,7 @@ export default function Page() {
                               id="stock-productId"
                               readOnly
                               value={orderLine.productName}
-                              className={inputClass + ' bg-blue-50'}
+                              className={inputClass + ' mt-2 bg-blue-50'}
                             />
                           ) : key === 'productId' || key === 'warehouseId' ? (
                             <SelectField
@@ -334,7 +331,6 @@ export default function Page() {
                                 value={idParts?.[1] ?? 'GR'}
                                 className={
                                   inputClass
-                                    .replace('mt-2', 'mt-0')
                                     .replace('w-full', 'w-16')
                                     .replace('bg-white', 'bg-blue-50') + ' shrink-0 text-center'
                                 }
@@ -346,7 +342,6 @@ export default function Page() {
                                 value={idParts?.[2] ?? ''}
                                 className={
                                   inputClass
-                                    .replace('mt-2', 'mt-0')
                                     .replace('w-full', 'w-24')
                                     .replace('bg-white', 'bg-blue-50') + ' shrink-0 text-center'
                                 }
@@ -367,7 +362,7 @@ export default function Page() {
                                   if (idPrefix && Number(idParts?.[3]) > 0)
                                     change('code', idPrefix + idParts![3].padStart(5, '0'));
                                 }}
-                                className={inputClass.replace('mt-2', 'mt-0') + ' min-w-0 flex-1'}
+                                className={inputClass + ' min-w-0 flex-1'}
                               />
                             </div>
                           ) : key === 'unitCost' ? (
@@ -375,7 +370,7 @@ export default function Page() {
                               id="stock-unitCost"
                               readOnly
                               value={unitCost}
-                              className={inputClass + ' bg-blue-50'}
+                              className={inputClass + ' mt-2 bg-blue-50'}
                             />
                           ) : key === 'notes' ? (
                             <textarea
@@ -383,7 +378,7 @@ export default function Page() {
                               value={values[key]}
                               onChange={(event) => change(key, event.target.value)}
                               rows={3}
-                              className={inputClass + ' h-auto resize-y'}
+                              className={inputClass + ' mt-2 h-auto resize-y'}
                             />
                           ) : (
                             <input
@@ -400,7 +395,7 @@ export default function Page() {
                               }
                               value={values[key]}
                               onChange={(event) => change(key, event.target.value)}
-                              className={inputClass}
+                              className={`${inputClass} mt-2`}
                             />
                           )}
                           {isDate && values[key] && (
@@ -430,26 +425,22 @@ export default function Page() {
                 {error}
               </p>
             )}
-            <div className="mt-6 flex flex-wrap justify-end gap-4">
-              <div className="w-36 text-right">
-                <button
-                  type="button"
-                  disabled={busy || Boolean(pending)}
-                  onClick={() => setAlert('cancel')}
-                  className="w-full rounded-lg border border-[#d9e3ee] px-5 py-2.5 text-sm poppins-medium hover:bg-gray-50 disabled:opacity-50"
-                >
-                  ยกเลิก
-                </button>
-              </div>
-              <div className="w-36 text-right">
-                <button
-                  type="submit"
-                  disabled={busy || Boolean(savedCode)}
-                  className="w-full rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white hover:bg-[#174a8b] disabled:opacity-50"
-                >
-                  {busy ? 'กำลังบันทึก…' : pending ? 'ลองบันทึกอีกครั้ง' : 'บันทึก'}
-                </button>
-              </div>
+            <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
+              <button
+                type="button"
+                disabled={busy || Boolean(pending)}
+                onClick={() => setAlert('cancel')}
+                className={secondaryButtonClass}
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="submit"
+                disabled={busy || Boolean(savedCode)}
+                className={primaryButtonClass}
+              >
+                {busy ? 'กำลังบันทึก…' : pending ? 'ลองบันทึกอีกครั้ง' : 'บันทึก'}
+              </button>
             </div>
           </form>
         )

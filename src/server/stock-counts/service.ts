@@ -118,7 +118,9 @@ export async function stockCountRead(actor: Actor, params: URLSearchParams, sess
   return getPrismaClient().$transaction(
     async (tx) => {
       if (sessionId) {
-        const match = /^[0-9a-f-]{36}$/i.test(sessionId)
+        const match = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          sessionId,
+        )
           ? Prisma.sql`(s.id=${sessionId}::uuid OR s.code=${sessionId})`
           : Prisma.sql`s.code=${sessionId}`;
         const row = (
@@ -136,9 +138,12 @@ export async function stockCountRead(actor: Actor, params: URLSearchParams, sess
       }
       const { offset, limit, search } = page(params),
         like = likeOf(search),
-        status = params.get('status') ?? '';
+        status = params.get('status') ?? '',
+        warehouseCode = params.get('warehouseCode') ?? '';
       if (status && !STATUSES.includes(status)) throw new RecordError(400, 'สถานะไม่ถูกต้อง');
-      const where = Prisma.sql`s.deleted_at IS NULL AND (s.code ILIKE ${like} OR s.name ILIKE ${like}) ${status ? Prisma.sql`AND s.status=${status}` : Prisma.empty}`;
+      if (warehouseCode && !['MAIN', 'MARKETING', 'DISPOSAL'].includes(warehouseCode))
+        throw new RecordError(400, 'คลังสินค้าไม่ถูกต้อง');
+      const where = Prisma.sql`s.deleted_at IS NULL AND (s.code ILIKE ${like} OR s.name ILIKE ${like}) ${status ? Prisma.sql`AND s.status=${status}` : Prisma.empty} ${warehouseCode ? Prisma.sql`AND w.code=${warehouseCode}` : Prisma.empty}`;
       const order = sqlTableOrder(
         params,
         {

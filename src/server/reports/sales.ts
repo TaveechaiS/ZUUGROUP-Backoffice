@@ -42,9 +42,11 @@ const views: Record<
 > = {
   summary: {
     select: Prisma.sql`s.sold_on::text AS "soldOn",count(DISTINCT s.order_id)::int AS orders,sum(s.quantity)::int AS quantity,sum(s.total)::numeric(14,2)::text AS total,${net(Prisma.sql`sum(s.total)`)}::text AS net`,
-    from: (base) => base,
+    from: (base) =>
+      Prisma.sql`${base} LEFT JOIN customers c ON c.id=s.customer_id LEFT JOIN products p ON p.id=s.product_id`,
     group: Prisma.sql`s.sold_on`,
-    search: () => Prisma.sql`true`,
+    search: (like) =>
+      Prisma.sql`(c.name ILIKE ${like} OR c.code ILIKE ${like} OR s.product_name ILIKE ${like} OR p.code ILIKE ${like})`,
     sort: {
       soldOn: Prisma.sql`s.sold_on`,
       orders: Prisma.sql`count(DISTINCT s.order_id)`,

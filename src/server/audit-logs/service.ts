@@ -6,7 +6,7 @@ import { readWithConnectionRetry } from '@/server/db/prisma';
 import { paginationResult } from '@/server/pagination';
 import { auditQuery } from '@/server/validation/audit';
 export async function paginatedAuditEvents(params: URLSearchParams): Promise<AuditListResponse> {
-  const { offset, limit, q, action } = auditQuery(params);
+  const { offset, limit, q, action, occurredAt } = auditQuery(params);
   const sort = tableSort(params, [
     'occurredAt',
     'action',
@@ -25,6 +25,7 @@ export async function paginatedAuditEvents(params: URLSearchParams): Promise<Aud
     : [{ occurredAt: 'desc' }, { id: 'desc' }];
   const where: Prisma.AuditEventWhereInput = {
     ...(action ? { action } : {}),
+    ...(Object.keys(occurredAt).length ? { occurredAt } : {}),
     ...(q
       ? {
           OR: [

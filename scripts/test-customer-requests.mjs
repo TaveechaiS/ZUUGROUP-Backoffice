@@ -228,6 +228,24 @@ try {
           403,
         );
       });
+      await test('TASK-296 คำขอลูกค้า: ช่วงวันที่ส่งคำขอ (เวลาไทย) และช่วงผิด 400', async () => {
+        const day = (offset) => {
+          const d = new Date();
+          d.setUTCDate(d.getUTCDate() + offset);
+          return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(d);
+        };
+        const today = day(0);
+        const read = (p) =>
+          req.customerRequestList(admin, new URLSearchParams({ search: prefix, ...p }));
+        const total = (await read({})).pagination.total;
+        assert.ok(total >= 2);
+        assert.equal((await read({ from: today, to: today })).pagination.total, total);
+        assert.equal((await read({ from: day(1) })).pagination.total, 0);
+        assert.equal((await read({ to: day(-1) })).pagination.total, 0);
+        await rejects(() => read({ from: today, to: day(-1) }), 400);
+        await rejects(() => read({ to: '2026-99-01' }), 400);
+      });
+
       throw rollback;
     },
     { timeout: 180000, maxWait: 10000 },

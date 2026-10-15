@@ -8,9 +8,8 @@ import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sort
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
+import { filterClass, inputClass, primaryButtonClass } from '@/components/ui/form-classes';
 
-const inputClass =
-  'h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm poppins-regular text-[#344256] outline-none focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
 const apiPath = '/api/sales-territories';
 
 export default function Page({
@@ -108,37 +107,37 @@ export default function Page({
   const detailPath = (id: string) =>
     '/customers/territories/' + id + (tab === 'deleted' ? '?deleted=true' : '');
   return (
-    <section className="min-w-0 space-y-6 p-4 md:p-6" aria-label="เขตขาย">
-      <h2 className="text-lg poppins-semibold text-[#1a58a7]">เขตขาย</h2>
+    <section
+      className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
+      aria-label="เขตขาย"
+    >
       {canWrite && (
-        <div
-          role="tablist"
-          aria-label="มุมมองเขตขาย"
-          className="flex gap-x-4 border-b border-[#e4e9f0]"
-        >
-          {(
-            [
-              ['active', 'เขตขาย'],
-              ['deleted', 'ลบแล้ว'],
-            ] as const
-          ).map(([value, text]) => (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={tab === value}
-              onClick={() => {
-                setTab(value);
-                setOffset(0);
-              }}
-              className={`-mb-px min-h-10 border-b-2 px-1 pb-3 text-sm transition ${tab === value ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
-            >
-              {text}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9e3ee]">
+          <div role="tablist" aria-label="มุมมองเขตขาย" className="flex flex-wrap gap-5">
+            {(
+              [
+                ['active', 'เขตขาย'],
+                ['deleted', 'ลบแล้ว'],
+              ] as const
+            ).map(([value, text]) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={tab === value}
+                onClick={() => {
+                  setTab(value);
+                  setOffset(0);
+                }}
+                className={`border-b-2 px-1 py-3 text-sm ${tab === value ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
+              >
+                {text}
+              </button>
+            ))}
+          </div>
         </div>
       )}
-      <div className="min-w-0 space-y-6">
+      <div className="flex min-w-0 flex-col gap-5">
         {canWrite && tab === 'active' && (
           <div className="min-w-0 rounded-lg border border-[#d9e3ee] p-4 md:p-6">
             <div id="add-territory" className="flex min-w-0 scroll-mt-6 flex-col gap-2">
@@ -178,11 +177,7 @@ export default function Page({
                   )}
                 </fieldset>
                 <div className="flex min-h-11 justify-end gap-3">
-                  <button
-                    type="submit"
-                    disabled={busy || success}
-                    className="rounded-md bg-[#1a58a7] px-4 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
-                  >
+                  <button type="submit" disabled={busy || success} className={primaryButtonClass}>
                     {busy ? 'กำลังบันทึก...' : 'บันทึก'}
                   </button>
                 </div>
@@ -190,18 +185,20 @@ export default function Page({
             </div>
           </div>
         )}
-        <label className="block min-w-0 space-y-2 text-sm poppins-medium text-[#344256]">
-          ค้นหา
-          <input
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setOffset(0);
-            }}
-            placeholder="ค้นหาชื่อเขต"
-            className={inputClass}
-          />
-        </label>
+        <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3">
+          <label className="text-xs text-[#53647c]">
+            ค้นหา
+            <input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setOffset(0);
+              }}
+              placeholder="ค้นหาชื่อเขต"
+              className={`mt-1.5 ${filterClass}`}
+            />
+          </label>
+        </div>
         {error && (
           <div role="alert" className="flex gap-3 text-sm poppins-regular text-red-600">
             {error}
@@ -215,15 +212,15 @@ export default function Page({
           </div>
         )}
         <div
-          className="relative min-h-80 min-w-0 overflow-x-auto rounded-lg border border-[#d9e3ee]"
+          className="relative min-h-52 min-w-0 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"
           aria-busy={loading}
         >
           <SortableTable
             sort={sort}
             columns={['name', 'managerName', 'salesCount', 'memberCount']}
-            className="w-full min-w-[580px] text-left text-sm poppins-regular text-[#344256]"
+            className="w-full min-w-[580px] border-collapse text-left text-sm"
           >
-            <thead className="bg-[#f8f9fb] text-[#65758b]">
+            <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
               <tr>
                 {['ชื่อเขต', 'ผู้จัดการ (Manager)', 'ฝ่ายขาย (Sales)', 'ลูกค้า'].map((label) => (
                   <th scope="col" key={label} className="px-4 py-3 poppins-semibold">
@@ -246,7 +243,7 @@ export default function Page({
                       router.push(detailPath(item.id));
                     }
                   }}
-                  className="cursor-pointer border-t border-[#d9e3ee] hover:bg-[#f8f9fb] focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
+                  className="cursor-pointer border-t border-[#edf0f4] hover:bg-[#fafbfc] focus-visible:bg-blue-50 focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
                 >
                   <td className="break-words px-4 py-3">{item.name}</td>
                   <td className="px-4 py-3">{String(item.managerName || '—')}</td>
@@ -267,19 +264,21 @@ export default function Page({
               onRefresh={() => setRefresh((value) => value + 1)}
             />
           )}
-          <PaginationControls
-            page={Math.floor(offset / pageSize) + 1}
-            pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
-            total={result?.pagination.total ?? 0}
-            count={rows.length}
-            onChange={(page) => setOffset((page - 1) * pageSize)}
-            pageSize={pageSize}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setOffset(0);
-            }}
-            disabled={loading || busy}
-          />
+          <div className="border-t border-[#edf0f4] p-3">
+            <PaginationControls
+              page={Math.floor(offset / pageSize) + 1}
+              pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
+              total={result?.pagination.total ?? 0}
+              count={rows.length}
+              onChange={(page) => setOffset((page - 1) * pageSize)}
+              pageSize={pageSize}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setOffset(0);
+              }}
+              disabled={loading || busy}
+            />
+          </div>
         </div>
       </div>
       <SuccessAlertComponent

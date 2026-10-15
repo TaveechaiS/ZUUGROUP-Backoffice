@@ -17,6 +17,7 @@ import {
   licenseExpiry,
 } from '@/config/customers';
 import type { CustomerDetailResponse } from '@/types/api/customers';
+import { inputClass, primaryButtonClass, secondaryButtonClass } from '@/components/ui/form-classes';
 
 type Customer = CustomerDetailResponse['data'];
 type TextKey = keyof typeof CUSTOMER_TEXT_FIELDS;
@@ -186,9 +187,9 @@ export default function Page({
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm poppins-medium text-[#1a58a7]">{customer.code}</p>
-          <h1 className="mt-1 text-xl poppins-semibold break-words text-[#26364b]">
+          <h2 className="mt-1 text-lg poppins-semibold break-words text-[#344256]">
             {customer.name}
-          </h1>
+          </h2>
           <p className="mt-2 text-sm poppins-regular text-[#718096]">
             {customer.codeGroup?.name ?? '—'}
           </p>
@@ -233,7 +234,7 @@ export default function Page({
           {customer.details.shippingAddresses.length ? (
             <div className="space-y-4">
               {customer.details.shippingAddresses.map((address, index) => (
-                <div key={address.id} className="rounded-md border border-[#e4e9f0] p-4">
+                <div key={address.id} className="rounded-lg border border-[#e3e9f0] p-4">
                   <p className="mb-3 text-sm poppins-semibold text-[#344256]">
                     ที่อยู่จัดส่งแห่งที่ {index + 1}
                     {address.isDefault && (
@@ -313,7 +314,7 @@ export default function Page({
       </div>
       {canWrite && !customer.deletedAt && (
         <div className="mt-6 rounded-lg border border-red-100 p-4 md:p-6">
-          <h2 className="text-base poppins-semibold text-red-600">ลบลูกค้า</h2>
+          <h3 className="text-base poppins-semibold text-red-600">ลบลูกค้า</h3>
           <p className="mt-2 text-sm poppins-regular text-[#65758b]">
             ลูกค้าจะถูกซ่อนจากรายการและเลือกใช้ในเอกสารใหม่ไม่ได้ Admin กู้คืนได้ในแท็บ ลบแล้ว
           </p>
@@ -327,7 +328,7 @@ export default function Page({
               onChange={(event) => setReason(event.target.value)}
               maxLength={500}
               rows={2}
-              className="mt-2 block w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none focus:border-[#1a58a7]"
+              className={`mt-2 ${inputClass}`}
             />
           </label>
           <button
@@ -361,13 +362,13 @@ export default function Page({
           router.push(customer.deletedAt ? `/customers/${customer.id}` : '/customers');
         }}
       />
-      <div className="mt-6 flex flex-wrap justify-end gap-4">
+      <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
         {canWrite && customer.deletedAt && (
           <button
             type="button"
             disabled={busy}
             onClick={() => void run('restore')}
-            className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-sm poppins-medium text-white disabled:opacity-50"
+            className={`${primaryButtonClass} min-w-36`}
           >
             กู้คืน
           </button>
@@ -375,14 +376,14 @@ export default function Page({
         {canWrite && !customer.deletedAt && (
           <Link
             href={`/customers/${customer.id}/edit`}
-            className="w-36 rounded-lg bg-[#1a58a7] px-5 py-2.5 text-center text-sm poppins-medium text-white!"
+            className={`${primaryButtonClass} min-w-36 text-center text-white!`}
           >
             แก้ไข
           </Link>
         )}
         <Link
           href={customer.deletedAt ? '/customers?tab=deleted' : '/customers'}
-          className="w-36 rounded-lg border border-[#d9e3ee] bg-white px-5 py-2.5 text-center text-sm poppins-medium text-[#344256] hover:bg-gray-50"
+          className={`${secondaryButtonClass} min-w-36`}
         >
           กลับ
         </Link>
@@ -403,7 +404,7 @@ function Box({
   return (
     <details open={open} className="group rounded-lg border border-[#d9e3ee] p-4 md:p-6">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1a58a7] [&::-webkit-details-marker]:hidden">
-        <h2 className="text-base poppins-semibold text-[#1a58a7]">{title}</h2>
+        <h3 className="text-base poppins-semibold text-[#1a58a7]">{title}</h3>
         <ChevronDown className="shrink-0 text-[#1A58A7] transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" />
       </summary>
       <div className="mt-4">{children}</div>

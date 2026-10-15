@@ -36,7 +36,7 @@ function amount(value: unknown, label: string) {
   return v;
 }
 const uuidOrCode = (value: string) =>
-  /^[0-9a-f-]{36}$/i.test(value)
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
     ? Prisma.sql`(pr.id=${value}::uuid OR pr.code=${value})`
     : Prisma.sql`pr.code=${value}`;
 const likeOf = (search: string) => '%' + search.replace(/[\\%_]/g, '\\$&') + '%';

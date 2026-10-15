@@ -8,6 +8,7 @@ import StatusBadge from '@/components/ui/status-badge';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import { SearchIcon } from '@/components/icons/status-icons';
+import { filterClass } from '@/components/ui/form-classes';
 import { Get } from '@/service/http';
 import { CUSTOMER_LIST_STATUSES, customerListStatus } from '@/config/customers';
 import type { CustomerListResponse } from '@/types/api/customers';
@@ -22,7 +23,7 @@ const columns = [
   'status',
 ];
 const money = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 2 });
-const cellClass = 'px-5 py-4 align-top';
+const cellClass = 'px-4 py-3';
 const ALL = '';
 
 export default function Page({
@@ -110,42 +111,40 @@ export default function Page({
     router.push(`/customers/${id}${tab === 'deleted' ? '?deleted=true' : ''}`);
 
   return (
-    <section aria-label="ลูกค้า" className="min-w-0 w-full px-4 py-6 md:px-6 md:py-8">
-      <div className="mb-6">
-        <h1 className="text-xl poppins-semibold text-[#26364b]">ลูกค้า</h1>
-      </div>
+    <section
+      aria-label="ลูกค้า"
+      className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
+    >
       {canWrite && (
-        <div
-          role="tablist"
-          aria-label="มุมมองลูกค้า"
-          className="mb-4 flex gap-x-4 border-b border-[#e4e9f0]"
-        >
-          {(
-            [
-              ['active', 'รายชื่อลูกค้า'],
-              ['deleted', 'ลบแล้ว'],
-            ] as const
-          ).map(([value, text]) => (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={tab === value}
-              onClick={() => {
-                setTab(value);
-                setOffset(0);
-              }}
-              className={`-mb-px min-h-10 border-b-2 px-1 pb-3 text-sm transition ${tab === value ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#8994a5] hover:text-[#1a58a7]'}`}
-            >
-              {text}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9e3ee]">
+          <div role="tablist" aria-label="มุมมองลูกค้า" className="flex flex-wrap gap-5">
+            {(
+              [
+                ['active', 'ทั้งหมด'],
+                ['deleted', 'ลบแล้ว'],
+              ] as const
+            ).map(([value, text]) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={tab === value}
+                onClick={() => {
+                  setTab(value);
+                  setOffset(0);
+                }}
+                className={`border-b-2 px-1 py-3 text-sm ${tab === value ? 'border-[#1a58a7] poppins-semibold text-[#1a58a7]' : 'border-transparent text-[#718096]'}`}
+              >
+                {text}
+              </button>
+            ))}
+          </div>
         </div>
       )}
-      <div className="mb-6 grid grid-cols-1 items-end gap-5 rounded-xl border border-[#e4e7ec] bg-white p-6 shadow-xs sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
-        <label className="min-w-0">
-          <span className="mb-2 block text-xs text-[#344256]">ค้นหาลูกค้า</span>
-          <div className="relative">
+      <div className="grid grid-cols-1 gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
+        <label className="min-w-0 text-xs text-[#53647c]">
+          ค้นหาลูกค้า
+          <div className="relative mt-1.5">
             <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
             <input
               type="search"
@@ -155,7 +154,7 @@ export default function Page({
                 setOffset(0);
               }}
               placeholder="รหัส ชื่อ ผู้ติดต่อ เบอร์โทร จังหวัด หรือเขตขาย"
-              className="h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white pl-10 pr-3 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#9ba7b6] focus:border-[#1a58a7]"
+              className={`${filterClass} pl-10`}
             />
           </div>
         </label>
@@ -191,7 +190,7 @@ export default function Page({
         />
       </div>
       {error && (
-        <div role="alert" className="mb-4 flex gap-3 text-sm poppins-regular text-red-600">
+        <div role="alert" className="flex gap-3 text-sm poppins-regular text-red-600">
           {error}
           <button type="button" onClick={() => setRefresh((v) => v + 1)} className="text-[#1a58a7]">
             ลองใหม่
@@ -199,90 +198,86 @@ export default function Page({
         </div>
       )}
       <div
-        className="relative min-h-80 overflow-hidden rounded-lg border border-[#d9e3ee] bg-white"
+        className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"
         aria-busy={loading}
       >
-        <div className="overflow-x-auto">
-          <SortableTable
-            sort={sort}
-            columns={columns}
-            className="w-full min-w-[1180px] border-collapse text-left text-sm poppins-regular text-[#344256]"
-          >
-            <thead className="border-b border-[#d9e3ee] bg-[#f7f9fc] text-[#65758b]">
-              <tr>
-                {[
-                  'รหัสลูกค้า',
-                  'ชื่อสถานประกอบการ / บริษัท',
-                  'ผู้ติดต่อหลัก',
-                  'เครดิต / วงเงิน',
-                  'จังหวัด',
-                  'เขตขาย',
-                  'สถานะ',
-                ].map((label) => (
-                  <th key={label} scope="col" className="px-5 py-3 poppins-medium">
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {!loading &&
-                !error &&
-                rows.map((customer) => (
-                  <tr
-                    key={customer.id}
-                    role="link"
-                    tabIndex={0}
-                    aria-label={`เปิดลูกค้า ${customer.code} ${customer.name}`}
-                    onClick={() => open(customer.id)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') open(customer.id);
-                    }}
-                    className="cursor-pointer border-b border-[#edf1f5] last:border-b-0 hover:bg-blue-50/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#1a58a7]"
-                  >
-                    <td className={`${cellClass} whitespace-nowrap poppins-medium text-[#1a58a7]`}>
-                      {customer.code}
-                    </td>
-                    <td className={cellClass}>
-                      <p className="poppins-medium">{customer.name}</p>
-                    </td>
-                    <td className={cellClass}>
-                      <p>{customer.contactName}</p>
-                      <p className="mt-1 whitespace-nowrap text-xs text-[#718096]">
-                        {customer.phone}
-                      </p>
-                    </td>
-                    <td className={`${cellClass} whitespace-nowrap`}>
-                      <p>
-                        {customer.creditDays === null
-                          ? '—'
-                          : customer.creditTermName ||
-                            (customer.creditDays ? `${customer.creditDays} วัน` : 'เงินสด')}
-                      </p>
-                      <p className="mt-1 text-xs text-[#718096]">
-                        วงเงิน:{' '}
-                        {customer.creditLimit === null
-                          ? '—'
-                          : `${money.format(Number(customer.creditLimit))} บาท`}
-                      </p>
-                    </td>
-                    <td className={`${cellClass} whitespace-nowrap`}>{customer.province || '—'}</td>
-                    <td className={`${cellClass} whitespace-nowrap`}>
-                      {customer.territoryName ?? '—'}
-                    </td>
-                    <td className={cellClass}>
-                      <StatusBadge value={customerListStatus(customer)} />
-                      {customer.deleteReason && (
-                        <p className="mt-2 text-xs text-[#718096]">
-                          เหตุผล: {customer.deleteReason}
-                        </p>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </SortableTable>
-        </div>
+        <SortableTable
+          sort={sort}
+          columns={columns}
+          className="w-full min-w-[1180px] border-collapse text-left text-sm poppins-regular text-[#344256]"
+        >
+          <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
+            <tr>
+              {[
+                'รหัสลูกค้า',
+                'ชื่อสถานประกอบการ / บริษัท',
+                'ผู้ติดต่อหลัก',
+                'เครดิต / วงเงิน',
+                'จังหวัด',
+                'เขตขาย',
+                'สถานะ',
+              ].map((label) => (
+                <th key={label} scope="col" className="px-4 py-3 poppins-semibold">
+                  {label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {!loading &&
+              !error &&
+              rows.map((customer) => (
+                <tr
+                  key={customer.id}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`เปิดลูกค้า ${customer.code} ${customer.name}`}
+                  onClick={() => open(customer.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') open(customer.id);
+                  }}
+                  className="cursor-pointer border-t border-[#edf0f4] hover:bg-[#fafbfc] focus-visible:bg-blue-50 focus-visible:outline-2 focus-visible:outline-[#1a58a7]"
+                >
+                  <td className={`${cellClass} whitespace-nowrap text-[#1a58a7]`}>
+                    {customer.code}
+                  </td>
+                  <td className={cellClass}>
+                    <p>{customer.name}</p>
+                  </td>
+                  <td className={cellClass}>
+                    <p>{customer.contactName}</p>
+                    <p className="mt-1 whitespace-nowrap text-xs text-[#718096]">
+                      {customer.phone}
+                    </p>
+                  </td>
+                  <td className={`${cellClass} whitespace-nowrap`}>
+                    <p>
+                      {customer.creditDays === null
+                        ? '—'
+                        : customer.creditTermName ||
+                          (customer.creditDays ? `${customer.creditDays} วัน` : 'เงินสด')}
+                    </p>
+                    <p className="mt-1 text-xs text-[#718096]">
+                      วงเงิน:{' '}
+                      {customer.creditLimit === null
+                        ? '—'
+                        : `${money.format(Number(customer.creditLimit))} บาท`}
+                    </p>
+                  </td>
+                  <td className={`${cellClass} whitespace-nowrap`}>{customer.province || '—'}</td>
+                  <td className={`${cellClass} whitespace-nowrap`}>
+                    {customer.territoryName ?? '—'}
+                  </td>
+                  <td className={cellClass}>
+                    <StatusBadge value={customerListStatus(customer)} />
+                    {customer.deleteReason && (
+                      <p className="mt-2 text-xs text-[#718096]">เหตุผล: {customer.deleteReason}</p>
+                    )}
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </SortableTable>
         <LoadingComponent
           isVisible={loading && !error}
           variant="content"
@@ -296,19 +291,21 @@ export default function Page({
             backLabel="แสดงทั้งหมด"
           />
         )}
-        <PaginationControls
-          page={Math.floor(offset / pageSize) + 1}
-          pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
-          total={result?.pagination.total ?? 0}
-          count={rows.length}
-          pageSize={pageSize}
-          onChange={(page) => setOffset((page - 1) * pageSize)}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setOffset(0);
-          }}
-          disabled={loading}
-        />
+        <div className="border-t border-[#edf0f4] p-3">
+          <PaginationControls
+            page={Math.floor(offset / pageSize) + 1}
+            pages={Math.max(1, Math.ceil((result?.pagination.total ?? 0) / pageSize))}
+            total={result?.pagination.total ?? 0}
+            count={rows.length}
+            pageSize={pageSize}
+            onChange={(page) => setOffset((page - 1) * pageSize)}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setOffset(0);
+            }}
+            disabled={loading}
+          />
+        </div>
       </div>
     </section>
   );
@@ -326,12 +323,12 @@ function FilterSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="min-w-0 text-xs text-[#344256]">
+    <label className="min-w-0 text-xs text-[#53647c]">
       {label}
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-10 w-full min-w-0 rounded-md border border-[#dfe5ee] bg-white px-3 text-sm poppins-regular text-[#6f7a8b] outline-none focus:border-[#1a58a7]"
+        className={`mt-1.5 ${filterClass}`}
       >
         <option value={ALL}>ทั้งหมด</option>
         {options.map((option) => (

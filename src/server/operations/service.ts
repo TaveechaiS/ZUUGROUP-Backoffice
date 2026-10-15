@@ -2,7 +2,13 @@ import 'server-only';
 import { sqlTableOrder } from '@/server/validation/table-sort';
 import { createHash, randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
-import { assertCustomerInScope, customerScope } from '@/server/access/scope';
+import {
+  assertCustomerInScope,
+  customerScope,
+  salesFilterOptions,
+  salesFilters,
+} from '@/server/access/scope';
+import { optionalRange } from '@/server/reports/range';
 import { getPrismaClient } from '@/server/db/prisma';
 import { RecordError, integer } from '@/server/validation/records';
 import {
@@ -476,6 +482,7 @@ export async function inventoryWrite(actor: Actor, raw: unknown) {
   });
 }
 export async function operationOptions(actor: Actor, scope?: 'receive') {
+  if (scope) allow(actor, ['ADMIN']);
   return getPrismaClient().$transaction(async (tx) => {
     const p = scope ? undefined : await policy(tx);
     const minimum = p ? addMonths(bangkokDay(), p.saleMonths) : '';
@@ -723,7 +730,11 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
           remaining === 'true' || warehouseCode
             ? Prisma.sql`AND (EXISTS(SELECT 1 FROM stock_balances sb JOIN warehouses wh ON wh.id=sb.warehouse_id WHERE sb.lot_id=l.id AND sb.quantity>0 ${warehouseCode ? Prisma.sql`AND wh.code=${warehouseCode}` : Prisma.empty}) ${remaining === 'true' && (!warehouseCode || warehouseCode === 'DISPOSAL') ? Prisma.sql`OR EXISTS(SELECT 1 FROM stock_movements sm JOIN warehouses dw ON dw.id=sm.warehouse_id WHERE sm.lot_id=l.id AND dw.code='DISPOSAL' AND sm.kind='ทำลายแล้ว')` : Prisma.empty})`
             : Prisma.empty;
-        const where = Prisma.sql`(p.name ILIKE ${like} OR p.code ILIKE ${like} OR l.lot_number ILIKE ${like}) ${category} ${warehouse} ${product} ${selectedLot} ${expiryFilter} ${dateFilter} ${activeScope}`;
+        const receiptRange =
+          view === 'receipt-items'
+            ? optionalRange(params, Prisma.sql`l.created_at`, true)
+            : Prisma.empty;
+        const where = Prisma.sql`(p.name ILIKE ${like} OR p.code ILIKE ${like} OR l.lot_number ILIKE ${like} OR EXISTS(SELECT 1 FROM stock_receipts sr WHERE sr.id=l.receipt_id AND sr.code ILIKE ${like})) ${category} ${warehouse} ${product} ${selectedLot} ${expiryFilter} ${dateFilter} ${activeScope} ${receiptRange}`;
         const sortColumns: Record<string, Prisma.Sql> = {
           receiptCode: Prisma.sql`(SELECT code FROM stock_receipts WHERE id=l.receipt_id)`,
           lotNumber: Prisma.sql`l.lot_number`,
@@ -1206,7 +1217,9 @@ export async function orderRead(actor: Actor, params: URLSearchParams, orderId?:
   return getPrismaClient().$transaction(
     async (tx) => {
       if (orderId) {
-        const match = /^[0-9a-f-]{36}$/i.test(orderId)
+        const match = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          orderId,
+        )
           ? Prisma.sql`o.id=${orderId}::uuid OR o.code=${orderId}`
           : Prisma.sql`o.code=${orderId}`;
         const row = (
@@ -1244,7 +1257,7 @@ export async function orderRead(actor: Actor, params: URLSearchParams, orderId?:
       const { offset, limit, search } = page(params),
         like = '%' + search.replace(/[\\%_]/g, '\\$&') + '%',
         status = params.get('status') ?? '';
-      const where = Prisma.sql`o.deleted_at IS NULL AND (o.code ILIKE ${like} OR o.name ILIKE ${like} OR c.name ILIKE ${like}) ${status ? Prisma.sql`AND o.status=${status}` : Prisma.empty} ${customerScope(actor, Prisma.sql`o.customer_id`)}`;
+      const where = Prisma.sql`o.deleted_at IS NULL AND (o.code ILIKE ${like} OR o.name ILIKE ${like} OR c.name ILIKE ${like}) ${status ? Prisma.sql`AND o.status=${status}` : Prisma.empty} ${optionalRange(params, Prisma.sql`o.created_at`, true)} ${salesFilters(actor, params, Prisma.sql`o.territory_id`, Prisma.sql`o.created_by_id`)} ${customerScope(actor, Prisma.sql`o.customer_id`)}`;
       const order = sqlTableOrder(
         params,
         {
@@ -1266,7 +1279,11 @@ export async function orderRead(actor: Actor, params: URLSearchParams, orderId?:
         tx,
         Prisma.sql`SELECT count(*)::int AS total FROM ${orderFrom} WHERE ${where}`,
       );
-      return { ...pageResult(rows, count[0].total, offset, limit), actor };
+      return {
+        ...pageResult(rows, count[0].total, offset, limit),
+        ...(await salesFilterOptions(tx, actor)),
+        actor,
+      };
     },
     { isolationLevel: 'RepeatableRead' },
   );

@@ -345,6 +345,28 @@ try {
         assert.equal(row.rls, true);
         assert.equal(row.client, false);
       });
+      await test('TASK-296 ใบสั่งซื้อ: ช่วงวันที่ (วันที่สั่ง) รวมวันต้น/ปลาย และช่วงผิด 400', async () => {
+        const read = (p) => buy.purchaseRead(admin, new URLSearchParams({ search: prefix, ...p }));
+        const all = await read({});
+        assert.ok(all.pagination.total >= 2);
+        const first = all.data[0].id;
+        const old = addDays(today, -5);
+        await tx.$executeRaw`UPDATE purchase_orders SET order_date=${old}::date WHERE id=${first}::uuid`;
+        const on = await read({ from: old, to: old });
+        assert.deepEqual(
+          on.data.map((r) => r.id),
+          [first],
+        );
+        assert.equal(
+          (await read({ from: addDays(old, 1) })).pagination.total,
+          all.pagination.total - 1,
+        );
+        assert.equal((await read({ to: addDays(old, -1) })).pagination.total, 0);
+        assert.equal((await read({ from: '', to: '' })).pagination.total, all.pagination.total);
+        await rejects(() => read({ from: today, to: old }), 400);
+        await rejects(() => read({ to: '2026-02-30' }), 400);
+      });
+
       throw rollback;
     },
     { timeout: 180000, maxWait: 10000 },

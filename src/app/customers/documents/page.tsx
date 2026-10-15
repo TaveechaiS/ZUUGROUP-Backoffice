@@ -10,6 +10,7 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import { Get } from '@/service/http';
 import type { CustomerDocumentPage } from '@/types/api/customer-documents';
 import { dateOnly, dateTime } from '@/components/sales/document-ui';
+import { filterClass } from '@/components/ui/form-classes';
 
 const size = (bytes: number) =>
   bytes >= 1048576
@@ -67,16 +68,13 @@ export default function Page() {
 
   const rows = result?.data ?? [];
   const total = result?.pagination.total ?? 0;
-  const control = 'mt-1.5 h-10 w-full rounded-md border border-[#d9e3ee] bg-white px-3 text-sm';
+  const control = `mt-1.5 ${filterClass}`;
 
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6">
-      <div>
-        <h1 className="text-xl poppins-semibold text-[#26364b]">เอกสารลูกค้า</h1>
-        <p className="mt-1 text-sm text-[#718096]">
-          รวมไฟล์แนบจากข้อมูลลูกค้า เพิ่มหรือลบไฟล์ได้จากหน้าแก้ไขลูกค้า
-        </p>
-      </div>
+      <p className="text-sm text-[#718096]">
+        รวมไฟล์แนบจากข้อมูลลูกค้า เพิ่มหรือลบไฟล์ได้จากหน้าแก้ไขลูกค้า
+      </p>
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
       <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2">
         <label className="text-xs text-[#53647c]">
@@ -141,7 +139,7 @@ export default function Page() {
           <tbody>
             {!error &&
               rows.map((row) => (
-                <tr key={row.id} className="border-t border-[#edf0f4]">
+                <tr key={row.id} className="border-t border-[#edf0f4] hover:bg-[#fafbfc]">
                   <td className="px-4 py-3">
                     <Link
                       href={'/customers/' + encodeURIComponent(row.customerCode)}

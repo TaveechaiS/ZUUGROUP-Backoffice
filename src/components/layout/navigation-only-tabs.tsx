@@ -4,11 +4,11 @@ import { useId, useState, type KeyboardEvent } from 'react';
 import { RECORD_MODULES } from '@/features/records/types';
 
 function tabsFor(pathname: string, roleId: string): string[] {
-  if (pathname === '/users') return ['รายการปกติ', 'ลบแล้ว'];
+  if (pathname === '/users') return ['ทั้งหมด', 'ใช้งานอยู่', 'ระงับการใช้งาน', 'ลบแล้ว'];
   if (pathname === '/products') {
     return ['ทั้งหมด', 'สินค้าใกล้หมด', 'สินค้าหมด', ...(roleId === 'ADMIN' ? ['ลบแล้ว'] : [])];
   }
-  if (pathname === '/products/stock') return ['ทั้งหมด', 'ใกล้หมดอายุ', 'หมดอายุ'];
+  if (pathname === '/products/stock') return [];
   // Other stock pages have a single tab; create/detail pages have none.
   const pageDefinition = RECORD_MODULES.find(
     (item) => item.page === pathname && item.key !== 'orders',

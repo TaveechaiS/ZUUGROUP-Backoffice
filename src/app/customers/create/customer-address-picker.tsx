@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import SearchCombobox from '@/components/ui/search-combobox';
+import { inputClass } from '@/components/ui/form-classes';
 
 // TASK-270: province → district → sub-district from the bundled Thai address file; picking a
 // sub-district fills the postcode. Values that are not in the file (typed before) stay selectable.
@@ -30,8 +31,6 @@ function loadAddresses() {
   return dataset;
 }
 
-const inputClass =
-  'mt-2 block h-11 w-full rounded-md border border-[#d9e3ee] bg-white px-3 py-2.5 text-sm poppins-regular text-[#344256] outline-none placeholder:text-[#8994a5] focus:border-[#1a58a7] focus:ring-2 focus:ring-blue-100';
 
 export default function CustomerAddressPicker({
   value,
@@ -115,7 +114,7 @@ export default function CustomerAddressPicker({
           placeholder="เติมอัตโนมัติเมื่อเลือกตำบล / แขวง"
           onChange={(event) => onChange({ ...value, postcode: event.target.value })}
           aria-required={required}
-          className={inputClass}
+          className={`${inputClass} mt-2`}
         />
       </label>
     </>
