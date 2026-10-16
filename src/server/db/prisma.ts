@@ -30,7 +30,7 @@ export function getPrismaClient(): PrismaClient {
     }
 
     globalForPrisma.prismaClient = new PrismaClient({
-      adapter: new SerializedPrismaPg({ connectionString }),
+      adapter: new SerializedPrismaPg({ connectionString, keepAlive: true, max: 5 }),
     });
     globalForPrisma.prismaSchemaVersion = 'product-full-v1-pg-serial-v1-territory-members-v1';
   }
@@ -50,10 +50,12 @@ export function isClosedDatabaseConnection(error: unknown): boolean {
 export async function readWithConnectionRetry<T>(
   read: (client: PrismaClient) => Promise<T>,
 ): Promise<T> {
-  try {
-    return await read(getPrismaClient());
-  } catch (error) {
-    if (!isClosedDatabaseConnection(error)) throw error;
-    return read(getPrismaClient());
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await read(getPrismaClient());
+    } catch (error) {
+      if (attempt >= 3 || !isClosedDatabaseConnection(error)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 300));
+    }
   }
 }

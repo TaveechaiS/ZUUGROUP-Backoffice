@@ -14,7 +14,13 @@ import SuccessAlertComponent from '@/components/ui/success-alert-component';
 import SearchCombobox from '@/components/ui/search-combobox';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
-import { filterClass, inputClass, primaryButtonClass } from '@/components/ui/form-classes';
+import { SearchIcon } from '@/components/icons/status-icons';
+import {
+  filterGridClass,
+  filterClass,
+  inputClass,
+  primaryButtonClass,
+} from '@/components/ui/form-classes';
 export default function Page({
   searchParams,
 }: {
@@ -245,20 +251,24 @@ function ProductOptionPanel({ kind, selector }: { kind: ProductOptionKind; selec
           </form>
         </div>
       </div>
-      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2">
-        <label className="text-xs text-[#53647c]">
+      <div className={filterGridClass(1)}>
+        <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหา
-          <input
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setOffset(0);
-            }}
-            placeholder="ค้นหาชื่อหรือรหัส"
-            className={`mt-1.5 ${filterClass}`}
-          />
+          <div className="relative mt-1.5">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setOffset(0);
+              }}
+              placeholder="ค้นหาชื่อหรือรหัส"
+              className={`${filterClass} pl-10`}
+            />
+          </div>
         </label>
-        <label className="text-xs text-[#53647c]">
+        <label className="min-w-0 text-xs text-[#53647c]">
           สถานะ
           <select
             value={activeOnly}

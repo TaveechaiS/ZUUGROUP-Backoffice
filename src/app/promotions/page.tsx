@@ -13,7 +13,8 @@ import { PROMOTION_REWARD_TYPES, PROMOTION_STATUSES } from '@/config/promotions'
 import type { PromotionPage } from '@/types/api/promotions';
 import { dateOnly } from '@/components/sales/document-ui';
 import { conditionText, rewardText } from '@/components/promotions/promotion-form';
-import { filterClass } from '@/components/ui/form-classes';
+import { SearchIcon } from '@/components/icons/status-icons';
+import { filterGridClass, filterClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const router = useRouter();
@@ -89,20 +90,24 @@ export default function Page() {
         </div>
       </div>
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
-      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2">
-        <label className="text-xs text-[#53647c]">
+      <div className={filterGridClass(1)}>
+        <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหา
-          <input
-            className={control}
-            value={search}
-            placeholder="รหัส ชื่อโปรโมชัน หรือสินค้าที่ร่วม"
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-          />
+          <div className="relative mt-1.5">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
+            <input
+              type="search"
+              className={`${filterClass} pl-10`}
+              value={search}
+              placeholder="รหัส ชื่อโปรโมชัน หรือสินค้าที่ร่วม"
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
         </label>
-        <label className="text-xs text-[#53647c]">
+        <label className="min-w-0 text-xs text-[#53647c]">
           ประเภทรางวัล
           <select
             className={control}

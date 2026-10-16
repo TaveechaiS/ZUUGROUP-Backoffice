@@ -1,4 +1,5 @@
 'use client';
+import DateRangeInput from '@/components/ui/date-range-input';
 import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sortable-table';
 
 import { useEffect, useState } from 'react';
@@ -11,8 +12,8 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import ListRequestState from '@/components/ui/list-request-state';
-import { DateInput } from '@/components/sales/document-ui';
-import { filterClass } from '@/components/ui/form-classes';
+import { SearchIcon } from '@/components/icons/status-icons';
+import { filterGridClass, filterClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const router = useRouter();
@@ -90,20 +91,24 @@ export default function Page() {
       className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
     >
       <ListRequestState error={error} retry={() => setRetry((value) => value + 1)} />
-      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2 lg:grid-cols-4">
-        <label className="text-xs text-[#53647c]">
+      <div className={filterGridClass(2)}>
+        <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหา
-          <input
-            className={`mt-1.5 ${filterClass}`}
-            value={search}
-            placeholder="สินค้า ID รับเข้า หรือเลขล็อต"
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-          />
+          <div className="relative mt-1.5">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
+            <input
+              type="search"
+              className={`${filterClass} pl-10`}
+              value={search}
+              placeholder="สินค้า ID รับเข้า หรือเลขล็อต"
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
         </label>
-        <label className="text-xs text-[#53647c]">
+        <label className="min-w-0 text-xs text-[#53647c]">
           หมวดหมู่
           <select
             className={`mt-1.5 ${filterClass}`}
@@ -121,32 +126,15 @@ export default function Page() {
             ))}
           </select>
         </label>
-        <div className="text-xs text-[#53647c]">
-          ตั้งแต่วันที่
-          <DateInput
-            label="ตั้งแต่วันที่"
-            value={from}
-            max={to || undefined}
-            required={false}
-            onChange={(value) => {
-              setFrom(value);
-              setPage(1);
-            }}
-          />
-        </div>
-        <div className="text-xs text-[#53647c]">
-          ถึงวันที่
-          <DateInput
-            label="ถึงวันที่"
-            value={to}
-            min={from || undefined}
-            required={false}
-            onChange={(value) => {
-              setTo(value);
-              setPage(1);
-            }}
-          />
-        </div>
+        <DateRangeInput
+          from={from}
+          to={to}
+          onChange={(nextFrom, nextTo) => {
+            setFrom(nextFrom);
+            setTo(nextTo);
+            setPage(1);
+          }}
+        />
       </div>
       <div
         className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"

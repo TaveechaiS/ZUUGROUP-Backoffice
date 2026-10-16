@@ -1,4 +1,5 @@
 'use client';
+import DateRangeInput from '@/components/ui/date-range-input';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,12 +9,12 @@ import StatusBadge from '@/components/ui/status-badge';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import { SearchIcon } from '@/components/icons/status-icons';
-import { filterClass } from '@/components/ui/form-classes';
+import { filterGridClass, filterClass } from '@/components/ui/form-classes';
 import { Get } from '@/service/http';
 import { QUOTE_DISPLAY_STATUSES } from '@/config/quotes';
 import type { QuotePage as BaseQuotePage } from '@/types/api/quotes';
 import type { SalesFilterOptions } from '@/types/api/operations';
-import { DateInput, dateOnly, money } from '@/components/sales/document-ui';
+import { dateOnly, money } from '@/components/sales/document-ui';
 
 const columns = ['code', 'customerName', 'territoryName', 'validUntil', 'amount', 'status'];
 const cellClass = 'px-4 py-3';
@@ -125,9 +126,7 @@ export default function Page() {
           ))}
         </div>
       </div>
-      <div
-        className={`grid grid-cols-1 gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2 ${result?.filters ? 'lg:grid-cols-5' : 'lg:grid-cols-3'}`}
-      >
+      <div className={filterGridClass(result?.filters ? 3 : 1)}>
         <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหาใบเสนอราคา
           <div className="relative mt-1.5">
@@ -184,32 +183,15 @@ export default function Page() {
             </select>
           </label>
         )}
-        <div className="min-w-0 text-xs text-[#53647c]">
-          ตั้งแต่วันที่
-          <DateInput
-            label="ตั้งแต่วันที่"
-            value={from}
-            max={to || undefined}
-            required={false}
-            onChange={(value) => {
-              setFrom(value);
-              setOffset(0);
-            }}
-          />
-        </div>
-        <div className="min-w-0 text-xs text-[#53647c]">
-          ถึงวันที่
-          <DateInput
-            label="ถึงวันที่"
-            value={to}
-            min={from || undefined}
-            required={false}
-            onChange={(value) => {
-              setTo(value);
-              setOffset(0);
-            }}
-          />
-        </div>
+        <DateRangeInput
+          from={from}
+          to={to}
+          onChange={(nextFrom, nextTo) => {
+            setFrom(nextFrom);
+            setTo(nextTo);
+            setOffset(0);
+          }}
+        />
       </div>
       {error && (
         <div role="alert" className="flex gap-3 text-sm poppins-regular text-red-600">

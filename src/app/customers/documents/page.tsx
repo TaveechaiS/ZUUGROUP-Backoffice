@@ -10,7 +10,8 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import { Get } from '@/service/http';
 import type { CustomerDocumentPage } from '@/types/api/customer-documents';
 import { dateOnly, dateTime } from '@/components/sales/document-ui';
-import { filterClass } from '@/components/ui/form-classes';
+import { SearchIcon } from '@/components/icons/status-icons';
+import { filterGridClass, filterClass } from '@/components/ui/form-classes';
 
 const size = (bytes: number) =>
   bytes >= 1048576
@@ -76,20 +77,24 @@ export default function Page() {
         รวมไฟล์แนบจากข้อมูลลูกค้า เพิ่มหรือลบไฟล์ได้จากหน้าแก้ไขลูกค้า
       </p>
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
-      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2">
-        <label className="text-xs text-[#53647c]">
+      <div className={filterGridClass(1)}>
+        <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหา
-          <input
-            className={control}
-            value={search}
-            placeholder="ชื่อหรือรหัสลูกค้า หรือชื่อไฟล์"
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-          />
+          <div className="relative mt-1.5">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
+            <input
+              type="search"
+              className={`${filterClass} pl-10`}
+              value={search}
+              placeholder="ชื่อหรือรหัสลูกค้า หรือชื่อไฟล์"
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
         </label>
-        <label className="text-xs text-[#53647c]">
+        <label className="min-w-0 text-xs text-[#53647c]">
           ประเภทเอกสาร
           <select
             className={control}

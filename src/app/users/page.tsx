@@ -12,7 +12,8 @@ import { Get } from '@/service/http';
 import ListRequestState from '@/components/ui/list-request-state';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
-import { filterClass } from '@/components/ui/form-classes';
+import { SearchIcon } from '@/components/icons/status-icons';
+import { filterGridClass, filterClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const sort = useTableSort();
@@ -61,20 +62,24 @@ export default function Page() {
         </div>
       </div>
       <ListRequestState error={error} retry={reload} />
-      <div className="grid gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2">
-        <label className="text-xs text-[#53647c]">
+      <div className={filterGridClass(1)}>
+        <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหา
-          <input
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setPage(1);
-            }}
-            placeholder="ชื่อ อีเมล หรือรหัสพนักงาน"
-            className={`mt-1.5 ${filterClass}`}
-          />
+          <div className="relative mt-1.5">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setPage(1);
+              }}
+              placeholder="ชื่อ อีเมล หรือรหัสพนักงาน"
+              className={`${filterClass} pl-10`}
+            />
+          </div>
         </label>
-        <label className="text-xs text-[#53647c]">
+        <label className="min-w-0 text-xs text-[#53647c]">
           บทบาท
           <select
             value={role}

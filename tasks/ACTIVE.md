@@ -1,5 +1,17 @@
 # งานที่กำลังทำ
 
+## TASK-299 — เปลี่ยนหน้าแล้วเด้งไป login ทั้งที่ token ยังอยู่ — 2026-10-16
+
+- IMPLEMENTED / WAITING_FOR_UAT (เจ้าของสั่ง "ยังไม่หาย ลองหา error"): src/proxy.ts หลังต่ออายุ session ส่ง cookie ใหม่ต่อให้ server render (requestHeaders cookie = request.cookies.toString()) — เดิมส่ง cookie เก่าจึง getUser ด้วย refresh token ที่ถูกใช้แล้ว → redirect /login. src/server/auth/current-user.ts ลอง getUser ซ้ำ 1 ครั้งเมื่อเชื่อมต่อ Supabase ไม่ได้ และ console.warn ชื่อ/สถานะ error (ไม่มี token) เมื่อตรวจ session ไม่ผ่าน. TASK-297 เพิ่ม: กล่องช่วงวันที่กว้างตามเนื้อหา (w-fit). ⚠️ ต้องทดสอบโดยคุณ: ตั้ง JWT expiry ใน Supabase ชั่วคราวเป็น 60 วินาที (หรือรอเกิน 1 ชม.) แล้วกดเปลี่ยนหน้า ต้องไม่เด้ง login; ถ้ายังเด้ง ส่งบรรทัด "getCurrentUser failed ..." จาก terminal ของ next dev มาให้.
+
+## TASK-298 — DB connection ถูกปิด (P1017) ทำให้หน้าเว็บ error — 2026-10-16
+
+- IMPLEMENTED / WAITING_FOR_UAT (S, แก้ตาม error ที่เจ้าของส่ง): src/server/db/prisma.ts เปิด TCP keepAlive ของ pg pool และ readWithConnectionRetry ลองใหม่สูงสุด 3 ครั้งเมื่อ P1017. รอบ 2 (ยังเกิดซ้ำ): ตรวจพบ DATABASE_URL ใช้ Supabase pooler session mode (5432) — เมื่อ client เต็ม pool size pooler ตัด connection ใหม่ → P1017; จำกัด pg pool max 5 + เว้น 300/600ms ก่อนลองใหม่. แนะนำเจ้าของเปลี่ยน DATABASE_URL เป็น transaction mode (6543) หรือเพิ่ม Pool size ใน Supabase. ⚠️ ต้องทดสอบโดยคุณ: เปิดเว็บค้างไว้/พักเครื่อง 10–15 นาที แล้วกดเปลี่ยนหน้า ต้องไม่ขึ้น "Server has closed the connection".
+
+## TASK-297 — ช่องช่วงวันที่ในตัวกรองเป็นช่องเดียว — 2026-10-16
+
+- IMPLEMENTED / WAITING_FOR_UAT (16 ต.ค. 2569; OWNER_APPROVED): DateRangeInput ช่องเดียว h-10 + CalendarIcon แทนช่องวันที่คู่ 10 ที่. tsc/eslint/route test/next build ผ่าน. ดู tasks/TASK-297-date-range-input.md.
+
 ## TASK-296 — ตัวกรองทุกหน้ารายการ — 2026-10-15
 
 - IMPLEMENTED / WAITING_FOR_UAT (15 ต.ค. 2569; OWNER_APPROVED ทำทั้ง 2 ระยะ ค้นหาแรก วันที่ท้าย): ช่วงวันที่ 9 หน้า, เขตขาย/ผู้ขาย orders/quotes/billing, คลัง stock-counts, ช่องทาง follow-ups, ค้นหาสรุปยอดขาย, กล่องตัวกรอง /products/stock, ตั้งค่า แสดงเฉพาะใช้งาน. เทสต์ 17 ชุด + tsc/eslint/next build ผ่าน. ดู tasks/TASK-296-filters.md.

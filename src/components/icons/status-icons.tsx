@@ -83,3 +83,20 @@ export function LoadingIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 20 22"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M14 1V5M6 1V5M1 9H19M3 3H17C18.1046 3 19 3.89543 19 5V19C19 20.1046 18.1046 21 17 21H3C1.89543 21 1 20.1046 1 19V5C1 3.89543 1.89543 3 3 3Z" />
+    </svg>
+  );
+}

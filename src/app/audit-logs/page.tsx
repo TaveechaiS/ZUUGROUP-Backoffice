@@ -1,4 +1,5 @@
 'use client';
+import DateRangeInput from '@/components/ui/date-range-input';
 import PaginationControls from '@/components/ui/pagination-controls';
 import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sortable-table';
 import { useSearchParams } from 'next/navigation';
@@ -9,8 +10,8 @@ import ListRequestState from '@/components/ui/list-request-state';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import type { AuditRow, AuditFiltersResponse } from '@/types/api/audit';
-import { filterClass, primaryButtonClass } from '@/components/ui/form-classes';
-import { DateInput } from '@/components/sales/document-ui';
+import { SearchIcon } from '@/components/icons/status-icons';
+import { filterGridClass, filterClass, primaryButtonClass } from '@/components/ui/form-classes';
 
 const actionNames: Record<string, string> = {
   ADMIN_RECOVERED: 'กู้คืนบัญชี Admin',
@@ -94,22 +95,23 @@ export default function Page() {
           reload();
         }}
       />
-      <form
-        onSubmit={search}
-        className="grid items-end gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 md:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
-      >
-        <label className="text-xs text-[#53647c]">
+      <form onSubmit={search} className={`${filterGridClass(3)} items-end`}>
+        <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหา
-          <input
-            name="q"
-            value={q}
-            onChange={(event) => setQ(event.target.value)}
-            maxLength={100}
-            placeholder="เหตุการณ์ รหัสคำขอ หรือผู้ทำรายการ"
-            className={`mt-1.5 ${filterClass}`}
-          />
+          <div className="relative mt-1.5">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8994a5]" />
+            <input
+              type="search"
+              name="q"
+              value={q}
+              onChange={(event) => setQ(event.target.value)}
+              maxLength={100}
+              placeholder="เหตุการณ์ รหัสคำขอ หรือผู้ทำรายการ"
+              className={`${filterClass} pl-10`}
+            />
+          </div>
         </label>
-        <label className="text-xs text-[#53647c]">
+        <label className="min-w-0 text-xs text-[#53647c]">
           ประเภทการทำรายการ
           <select
             name="action"
@@ -125,31 +127,15 @@ export default function Page() {
             ))}
           </select>
         </label>
-        <div className="text-xs text-[#53647c]">
-          ตั้งแต่วันที่
-          <DateInput
-            label="ตั้งแต่วันที่"
-            value={from}
-            max={to || undefined}
-            required={false}
-            onChange={(value) => {
-              setFrom(value);
-            }}
-          />
-        </div>
-        <div className="text-xs text-[#53647c]">
-          ถึงวันที่
-          <DateInput
-            label="ถึงวันที่"
-            value={to}
-            min={from || undefined}
-            required={false}
-            onChange={(value) => {
-              setTo(value);
-            }}
-          />
-        </div>
-        <button className={primaryButtonClass}>ค้นหา</button>
+        <DateRangeInput
+          from={from}
+          to={to}
+          onChange={(nextFrom, nextTo) => {
+            setFrom(nextFrom);
+            setTo(nextTo);
+          }}
+        />
+        <button className={`${primaryButtonClass} h-10 w-full`}>ค้นหา</button>
       </form>
       <div
         className="relative min-h-52 overflow-x-auto rounded-lg border border-[#e3e9f0] bg-white"

@@ -8,7 +8,7 @@ import StatusBadge from '@/components/ui/status-badge';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import { SearchIcon } from '@/components/icons/status-icons';
-import { filterClass } from '@/components/ui/form-classes';
+import { filterGridClass, filterClass } from '@/components/ui/form-classes';
 import { Get } from '@/service/http';
 import { CUSTOMER_LIST_STATUSES, customerListStatus } from '@/config/customers';
 import type { CustomerListResponse } from '@/types/api/customers';
@@ -141,7 +141,7 @@ export default function Page({
           </div>
         </div>
       )}
-      <div className="grid grid-cols-1 gap-3 rounded-lg border border-[#e3e9f0] bg-[#f8f9fb] p-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
+      <div className={filterGridClass(3)}>
         <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหาลูกค้า
           <div className="relative mt-1.5">

@@ -3,6 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import type { NextRequest } from 'next/server';
+import { isAuthRetryableFetchError, isAuthSessionMissingError } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { readWithConnectionRetry } from '@/server/db/prisma';
 import { canSeePage } from '@/config/access';
@@ -29,7 +30,10 @@ export const getCurrentUser = cache(async () => {
     return null;
   }
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getUser();
+  let { data, error } = await supabase.auth.getUser();
+  if (error && isAuthRetryableFetchError(error)) ({ data, error } = await supabase.auth.getUser());
+  if (error && !isAuthSessionMissingError(error))
+    console.warn('getCurrentUser failed', error.name, error.status, error.code);
   if (error || !data.user) return null;
 
   return findActiveUser(data.user.id);
