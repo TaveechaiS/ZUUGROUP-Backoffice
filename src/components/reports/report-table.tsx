@@ -10,15 +10,24 @@ import PaginationControls from '@/components/ui/pagination-controls';
 import { bangkokToday, money } from '@/components/sales/document-ui';
 import { Get } from '@/service/http';
 import { SearchIcon } from '@/components/icons/status-icons';
-import { filterGridClass, filterClass } from '@/components/ui/form-classes';
+import { filterGridClass, filterClass, secondaryButtonClass } from '@/components/ui/form-classes';
+import { downloadCsv } from '@/components/reports/csv';
 
 type Row = Record<string, unknown> & { id?: string };
 type Result = {
   data: Row[];
   pagination: { total: number };
-  summary?: { orders: number; quantity: number; total: string; net: string };
+  summary?: {
+    orders: number;
+    quantity: number;
+    total: string;
+    net: string;
+    cost?: string;
+    profit?: string;
+  };
   seesCost?: boolean;
   totalAmount?: string;
+  filters?: Record<string, { id: string; name: string }[]>;
 };
 export type ReportColumn = {
   key: string | null;
@@ -32,6 +41,9 @@ export type ReportFilter = {
   label: string;
   options: readonly string[] | [string, string][];
 };
+export type ReportRemoteFilter = { key: string; label: string; source: string };
+
+const CSV_LIMIT = 10000;
 
 export const count = (value: unknown) => Number(value ?? 0).toLocaleString('th-TH');
 
@@ -42,6 +54,7 @@ export default function ReportTable({
   searchPlaceholder,
   ranged = false,
   filters = [],
+  remoteFilters = [],
   summary = false,
   totalLabel,
   emptyTitle,
@@ -52,6 +65,7 @@ export default function ReportTable({
   searchPlaceholder?: string;
   ranged?: boolean;
   filters?: ReportFilter[];
+  remoteFilters?: ReportRemoteFilter[];
   summary?: boolean;
   totalLabel?: string;
   emptyTitle: string;
@@ -120,6 +134,55 @@ export default function ReportTable({
   const total = result?.pagination.total ?? 0;
   const shown = columns.filter((column) => !column.costOnly || result?.seesCost);
   const control = `mt-1.5 ${filterClass}`;
+  const [remoteOptions, setRemoteOptions] = useState<Result['filters']>();
+  if (result?.filters && result.filters !== remoteOptions) setRemoteOptions(result.filters);
+  const allFilters: ReportFilter[] = [
+    ...filters,
+    ...remoteFilters
+      .filter((filter) => remoteOptions?.[filter.source])
+      .map((filter) => ({
+        key: filter.key,
+        label: filter.label,
+        options: remoteOptions![filter.source].map(
+          (option) => [option.id, option.name] as [string, string],
+        ),
+      })),
+  ];
+  const [exporting, setExporting] = useState(false);
+  const [exportNote, setExportNote] = useState('');
+  async function exportCsv() {
+    setExporting(true);
+    setError('');
+    setExportNote('');
+    try {
+      const rows: Row[] = [];
+      let available = 0;
+      for (let offset = 0; offset < CSV_LIMIT; offset += 100) {
+        const query = new URLSearchParams({
+          search,
+          ...selected,
+          ...(ranged ? { from, to } : {}),
+          limit: '100',
+          offset: String(offset),
+        });
+        const value = await Get<Result>(
+          withTableSort(endpoint + '?' + query, { key: sort.key, direction: sort.direction }),
+        );
+        available = value.pagination.total;
+        rows.push(...value.data);
+        if (rows.length >= available || !value.data.length) break;
+      }
+      downloadCsv(title, shown, rows.slice(0, CSV_LIMIT));
+      if (available > CSV_LIMIT)
+        setExportNote(
+          `ส่งออก ${count(CSV_LIMIT)} จาก ${count(available)} รายการ (สูงสุด ${count(CSV_LIMIT)} รายการต่อไฟล์) กรุณาแบ่งช่วงวันที่หรือใช้ตัวกรองเพื่อส่งออกส่วนที่เหลือ`,
+        );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'ส่งออกไม่สำเร็จ');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <section
@@ -135,7 +198,7 @@ export default function ReportTable({
         </div>
       )}
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
-      <div className={filterGridClass(filters.length + (ranged ? 1 : 0))}>
+      <div className={filterGridClass(allFilters.length + (ranged ? 1 : 0))}>
         {searchPlaceholder && (
           <label className="min-w-0 text-xs text-[#53647c]">
             ค้นหา
@@ -154,7 +217,7 @@ export default function ReportTable({
             </div>
           </label>
         )}
-        {filters.map((filter) => (
+        {allFilters.map((filter) => (
           <label key={filter.key} className="text-xs text-[#53647c]">
             {filter.label}
             <select
@@ -193,12 +256,30 @@ export default function ReportTable({
         )}
       </div>
       {summary && result?.summary && (
-        <dl className="m-0 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <dl
+          className={`m-0 grid grid-cols-2 gap-3 ${result.summary.cost !== undefined ? 'lg:grid-cols-3 2xl:grid-cols-6' : 'lg:grid-cols-4'}`}
+        >
           {[
             ['คำสั่งซื้อ', count(result.summary.orders) + ' ใบ'],
             ['จำนวนสินค้า', count(result.summary.quantity) + ' ชิ้น'],
             ['ยอดขาย (รวม VAT)', money(result.summary.total) + ' บาท'],
             ['ยอดก่อน VAT', money(result.summary.net) + ' บาท'],
+            ...(result.summary.cost !== undefined && result.summary.profit !== undefined
+              ? [
+                  ['ต้นทุนขาย', money(result.summary.cost) + ' บาท'],
+                  [
+                    'กำไรขั้นต้น',
+                    `${money(result.summary.profit)} บาท (${
+                      Number(result.summary.net)
+                        ? (
+                            (Number(result.summary.profit) / Number(result.summary.net)) *
+                            100
+                          ).toFixed(1)
+                        : '0.0'
+                    }%)`,
+                  ],
+                ]
+              : []),
           ].map(([label, value]) => (
             <div key={label} className="rounded-lg border border-[#e3e9f0] bg-white p-4">
               <dt className="text-xs text-[#65758b]">{label}</dt>
@@ -262,6 +343,21 @@ export default function ReportTable({
             disabled={loading}
           />
         </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          disabled={exporting || loading || !total}
+          onClick={() => void exportCsv()}
+          className={secondaryButtonClass}
+        >
+          {exporting ? 'กำลังส่งออก...' : 'ส่งออก CSV'}
+        </button>
+        {exportNote && (
+          <p role="status" className="m-0 text-sm text-orange-600">
+            {exportNote}
+          </p>
+        )}
       </div>
     </section>
   );

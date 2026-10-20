@@ -11,7 +11,7 @@ import { reportRange, likeOf } from './range';
 export const FINANCE_REPORT_VIEWS = ['aging', 'payments', 'expenses'] as const;
 type View = (typeof FINANCE_REPORT_VIEWS)[number];
 
-const paid = Prisma.sql`COALESCE((SELECT sum(p.amount) FROM invoice_payments p WHERE p.invoice_id=i.id AND p.voided_at IS NULL),0)`;
+export const paid = Prisma.sql`COALESCE((SELECT sum(p.amount) FROM invoice_payments p WHERE p.invoice_id=i.id AND p.voided_at IS NULL),0)`;
 const bucket = (today: string, test: Prisma.Sql) =>
   Prisma.sql`COALESCE(sum(i.amount-${paid}) FILTER (WHERE ${test}),0)::numeric(14,2)::text`;
 

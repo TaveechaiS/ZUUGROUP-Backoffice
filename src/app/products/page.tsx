@@ -14,8 +14,13 @@ import { SearchIcon } from '@/components/icons/status-icons';
 import { filterGridClass, filterClass } from '@/components/ui/form-classes';
 import { useRouteData } from '@/components/ui/route-data';
 
+type Option = { id: string; name: string };
 type Result = PageData<StockProductRow> & {
-  filters: { categories: { id: string; name: string }[] };
+  filters: {
+    categories: Option[];
+    productTypes?: Option[];
+    brands?: Option[];
+  };
 };
 function ProductStockList({
   warehouseCode,
@@ -27,6 +32,8 @@ function ProductStockList({
   const [tab, setTab] = useState('');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [productType, setProductType] = useState('');
+  const [brand, setBrand] = useState('');
   const [expiry, setExpiry] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -47,6 +54,8 @@ function ProductStockList({
         metadata: metadata.current?.retry === retry ? 'false' : 'true',
         search,
         categoryId: category,
+        productTypeId: productType,
+        brandId: brand,
         expiry,
         warehouseCode: warehouseCode ?? '',
         stock: tab === 'deleted' ? '' : tab,
@@ -84,6 +93,8 @@ function ProductStockList({
     warehouseCode,
     search,
     category,
+    productType,
+    brand,
     expiry,
     tab,
     page,
@@ -122,7 +133,7 @@ function ProductStockList({
         </div>
       </div>
       <ListRequestState error={error} retry={() => setRetry((n) => n + 1)} />
-      <div className={filterGridClass(warehouseCode ? 2 : 1)}>
+      <div className={filterGridClass(warehouseCode ? 4 : 3)}>
         <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหา
           <div className="relative mt-1.5">
@@ -157,6 +168,31 @@ function ProductStockList({
             ))}
           </select>
         </label>
+        {(
+          [
+            ['ประเภทผลิตภัณฑ์', productType, setProductType, result?.filters.productTypes],
+            ['ยี่ห้อ', brand, setBrand, result?.filters.brands],
+          ] as const
+        ).map(([label, value, setValue, options]) => (
+          <label key={label} className="min-w-0 text-xs text-[#53647c]">
+            {label}
+            <select
+              className={control}
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">ทั้งหมด</option>
+              {options?.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ))}
         {warehouseCode && (
           <label className="min-w-0 text-xs text-[#53647c]">
             อายุสินค้า

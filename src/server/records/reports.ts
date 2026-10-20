@@ -157,31 +157,3 @@ export async function reportConfig(key: ReportKey) {
     data: { ...base, title: report.title, description: report.note, canWrite: false, metrics: [] },
   };
 }
-export async function dashboardData() {
-  return readWithConnectionRetry(async (db) => {
-    const [counts, activity] = await Promise.all([
-      db.$queryRaw<{ customers: number; orders: number; quotes: number; products: number }[]>(
-        Prisma.sql`SELECT (SELECT count(*)::int FROM customers WHERE deleted_at IS NULL) customers,(SELECT count(*)::int FROM sales_orders WHERE deleted_at IS NULL) orders,(SELECT count(*)::int FROM quotations WHERE deleted_at IS NULL) quotes,(SELECT count(*)::int FROM products WHERE deleted_at IS NULL) products`,
-      ),
-      db.$queryRaw<
-        {
-          id: string;
-          code: string;
-          name: string;
-          status: string;
-          module: string;
-          createdAt: Date;
-        }[]
-      >(
-        Prisma.sql`SELECT * FROM (SELECT id,code,name,status,'quotes'::text module,created_at AS "createdAt" FROM quotations WHERE deleted_at IS NULL UNION ALL SELECT id,code,name,status,'purchases'::text module,created_at AS "createdAt" FROM purchase_orders WHERE deleted_at IS NULL UNION ALL SELECT id,code,name,status,'billing'::text module,created_at AS "createdAt" FROM invoices WHERE deleted_at IS NULL) events ORDER BY "createdAt" DESC,id ASC LIMIT 10`,
-      ),
-    ]);
-    return {
-      data: {
-        counts: counts[0],
-        activity: activity.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
-        unavailable: ['ยอดขายรับรู้', 'ลูกหนี้สุทธิ', 'คงเหลือและ Lot'],
-      },
-    };
-  });
-}

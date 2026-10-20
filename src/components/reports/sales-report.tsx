@@ -8,6 +8,18 @@ const totals: ReportColumn[] = [
   { key: 'total', label: 'ยอดขาย (รวม VAT)', align: 'right', render: (r) => money(r.total) },
   { key: null, label: 'ยอดก่อน VAT', align: 'right', render: (r) => money(r.net) },
 ];
+const margin: ReportColumn[] = [
+  { key: 'cost', label: 'ต้นทุนขาย', align: 'right', costOnly: true, render: (r) => money(r.cost) },
+  {
+    key: 'profit',
+    label: 'กำไรขั้นต้น',
+    align: 'right',
+    costOnly: true,
+    render: (r) => (
+      <span className={Number(r.profit) < 0 ? 'text-red-600' : ''}>{money(r.profit)}</span>
+    ),
+  },
+];
 const orders: ReportColumn = {
   key: 'orders',
   label: 'คำสั่งซื้อ',
@@ -31,6 +43,7 @@ const views = {
       orders,
       { key: 'quantity', label: 'จำนวนสินค้า', align: 'right', render: (r) => count(r.quantity) },
       ...totals,
+      ...margin,
     ],
   },
   products: {
@@ -47,6 +60,7 @@ const views = {
       },
       orders,
       ...totals,
+      ...margin,
     ],
   },
   customers: {
@@ -58,6 +72,7 @@ const views = {
       { key: 'territoryName', label: 'เขตขาย', render: (r) => String(r.territoryName ?? '-') },
       orders,
       ...totals,
+      ...margin,
     ],
   },
   sellers: {
@@ -69,6 +84,7 @@ const views = {
       orders,
       { key: 'customers', label: 'ลูกค้า', align: 'right', render: (r) => count(r.customers) },
       ...totals,
+      ...margin,
     ],
   },
   details: {
@@ -109,6 +125,7 @@ const views = {
         render: (r) => (Number(r.discount) ? money(r.discount) : '—'),
       },
       { key: 'total', label: 'ยอดรวม (รวม VAT)', align: 'right', render: (r) => money(r.total) },
+      ...margin,
     ],
   },
 } satisfies Record<
@@ -119,6 +136,16 @@ const views = {
 export default function SalesReport({ view }: { view: keyof typeof views }) {
   const config = views[view];
   return (
-    <ReportTable key={view} endpoint={'/api/reports/sales/' + view} ranged summary {...config} />
+    <ReportTable
+      key={view}
+      endpoint={'/api/reports/sales/' + view}
+      ranged
+      summary
+      remoteFilters={[
+        { key: 'territoryId', label: 'เขตขาย', source: 'territories' },
+        { key: 'sellerId', label: 'ผู้ขาย', source: 'sellers' },
+      ]}
+      {...config}
+    />
   );
 }

@@ -56,6 +56,7 @@ export type CustomerListResponse = {
   filters?: {
     provinces: string[];
     territories: { id: string; name: string }[];
+    groups: { id: string; name: string }[];
     licenseStatuses: string[];
   };
   config?: { canWrite: boolean };

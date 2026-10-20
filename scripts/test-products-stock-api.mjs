@@ -40,6 +40,7 @@ const tx = {
     if (s.includes('FROM product_options'))
       return s.includes('count(*)') ? [{ total: 15 }] : optionRows;
     if (s.includes('FROM users')) return [];
+    if (s.includes('FROM purchase_order_lines')) return [];
     if (s.includes('FROM customers')) return [];
     if (s.includes('SELECT id,code,name FROM warehouses'))
       return [{ id, code: 'MAIN', name: 'Main' }];
@@ -158,25 +159,28 @@ await test('Table option endpoint default page size is 10', async () => {
   assert.deepEqual(calls[0].values.slice(-2), [10, 0]);
 });
 const admin = { id, name: 'Test', roleId: 'ADMIN' };
-await test('Receive bootstrap only executes products, warehouses, next ID queries', async () => {
+await test('Receive bootstrap only executes products, warehouses, open PO lines, next ID queries', async () => {
   const { data } = await inventory.operationOptions(admin, 'receive');
   assert.deepEqual(Object.keys(data).sort(), [
     'actor',
     'nextReceiptCode',
+    'openLines',
     'products',
     'warehouses',
   ]);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   assert.ok(
     !calls.some((q) => /customers|FROM users|inventory_policy|stock_balances/.test(q.text)),
   );
   assert.match(data.nextReceiptCode, /^GR-\d{4}-00001$/);
   metrics.receive = { queries: calls.length, bytes: Buffer.byteLength(JSON.stringify({ data })) };
 });
-await test('Receive bootstrap non-Admin has no next ID', async () => {
-  const { data } = await inventory.operationOptions({ ...admin, roleId: 'SALES' }, 'receive');
-  assert.equal(data.nextReceiptCode, undefined);
-  assert.equal(calls.length, 2);
+await test('Receive bootstrap is Admin-only and non-Admin runs no query', async () => {
+  await assert.rejects(
+    () => inventory.operationOptions({ ...admin, roleId: 'SALES' }, 'receive'),
+    (error) => error.status === 403,
+  );
+  assert.equal(calls.length, 0);
 });
 await test('Legacy options retain old fields and policy', async () => {
   const { data } = await inventory.operationOptions(admin);
@@ -234,12 +238,12 @@ await test('Marketing compact projection returns minimum days, no lot array or m
 const collection = JSON.parse(fs.readFileSync('postman/Zuugroup.postman_collection.json', 'utf8'));
 await test('Postman folders, 43 routes, bodies, variables and examples are valid', async () => {
   const flat = (items) => items.flatMap((x) => (x.item ? flat(x.item) : [x]));
-  const rows = flat(collection.item);
-  assert.equal(rows.length, 43);
   assert.deepEqual(
-    collection.item.map((x) => x.name),
+    collection.item.slice(0, 3).map((x) => x.name),
     ['auth', 'products', 'stock'],
   );
+  const rows = flat(collection.item.slice(0, 3));
+  assert.equal(rows.length, 43);
   const variables = new Set(collection.variable.map((x) => x.key));
   for (const row of rows) {
     assert.ok(row.request.url.startsWith('{{baseUrl}}/api/'));

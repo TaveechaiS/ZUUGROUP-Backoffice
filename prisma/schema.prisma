@@ -162,6 +162,7 @@ model StockMovement {
  warehouse Warehouse @relation(fields:[warehouseId],references:[id],onDelete:Restrict,onUpdate:NoAction)
  actor User @relation(fields:[actorUserId],references:[id],onDelete:Restrict,onUpdate:NoAction)
  @@index([lotId,occurredAt],map:"stock_movements_lot_date")
+ @@index([sourceId,kind],map:"stock_movements_source")
  @@map("stock_movements")
 }
 model ReceiptRevision {

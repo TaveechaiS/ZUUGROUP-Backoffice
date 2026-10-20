@@ -198,15 +198,46 @@ try {
         assert.equal(result.data[0].orders, 1);
         assert.equal(result.data[0].total, '190.00');
         assert.equal(result.data[0].net, '177.57');
-        assert.deepEqual(result.summary, {
-          orders: 1,
-          quantity: 2,
-          total: '190.00',
-          net: '177.57',
-        });
+        assert.deepEqual(
+          { ...result.summary },
+          {
+            orders: 1,
+            quantity: 2,
+            total: '190.00',
+            net: '177.57',
+            cost: '20.00',
+            profit: '157.57',
+          },
+        );
         assert.equal(result.range.from, today.slice(0, 8) + '01');
         assert.equal(result.range.to, today);
       });
+
+      await test('ยอดขาย: ต้นทุนขายจากล็อตที่ตัดจริง กำไรขั้นต้น = ยอดก่อน VAT − ต้นทุน เห็นเฉพาะ Admin/CFO', async () => {
+        const admin_ = await sales('products');
+        assert.equal(admin_.seesCost, true);
+        assert.equal(admin_.data[0].cost, '20.00');
+        assert.equal(admin_.data[0].profit, '157.57');
+        assert.equal(admin_.summary.cost, '20.00');
+        assert.equal(admin_.summary.profit, '157.57');
+        const hidden = await reports.salesReport(
+          manager,
+          'products',
+          new URLSearchParams({ search: prefix }),
+        );
+        assert.equal(hidden.seesCost, false);
+        assert.ok(!('cost' in hidden.data[0]) && !('cost' in hidden.summary));
+      });
+
+      await test('ยอดขาย: ส่วนลดท้ายบิลปัดแบบสะสม ผลรวมทุกบรรทัดเท่ายอดบิล', () =>
+        savepoint(async () => {
+          await tx.$executeRaw`INSERT INTO sales_order_lines(order_id,product_id,quantity,unit_price,discount,product_name) VALUES(${sold}::uuid,${p2}::uuid,2,100,10,'p2')`;
+          await tx.$executeRaw`UPDATE sales_orders SET bill_discount=0.01 WHERE id=${sold}::uuid`;
+          const rows = await tx.$queryRaw(
+            Prisma.sql`SELECT sum(s.total)::text AS total,count(*)::int AS lines FROM ${reports.sold} WHERE s.order_id=${sold}::uuid`,
+          );
+          assert.deepEqual({ ...rows[0] }, { total: '379.99', lines: 2 });
+        }));
 
       await test('ยอดขาย: ลูกค้า/ผู้ขาย/รายละเอียด ตรงกัน และคำสั่งซื้อยกเลิกไม่อยู่ในรายละเอียด', async () => {
         const customers = await sales('customers');

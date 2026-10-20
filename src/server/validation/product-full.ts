@@ -1,11 +1,11 @@
 import { ProductError, uuidPattern } from './products';
+import { type ProductDraft } from '@/types/api/product-full';
 import {
   PRODUCT_OPTION_FIELDS,
   PRODUCT_TEXT_FIELDS,
   PRODUCT_FILE_LIMIT,
   PRODUCT_IMAGE_TYPES,
-  type ProductDraft,
-} from '@/types/api/product-full';
+} from '@/config/products';
 
 export function fullDraft(body: unknown): ProductDraft {
   if (!body || typeof body !== 'object' || Array.isArray(body))

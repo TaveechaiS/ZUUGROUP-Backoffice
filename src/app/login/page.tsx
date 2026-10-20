@@ -16,11 +16,13 @@ export default async function LoginPage({
         ? 'กรุณากรอกอีเมลและรหัสผ่าน'
         : error === 'inactive'
           ? 'บัญชีนี้ยังไม่พร้อมใช้งาน กรุณาติดต่อ Admin'
-          : error === 'temporary'
-            ? 'ระบบเชื่อมต่อข้อมูลชั่วคราวไม่ได้ กรุณาลองเข้าสู่ระบบอีกครั้ง'
-            : error
-              ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
-              : '';
+          : error === 'expired'
+            ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่'
+            : error === 'temporary'
+              ? 'ระบบเชื่อมต่อข้อมูลชั่วคราวไม่ได้ กรุณาลองเข้าสู่ระบบอีกครั้ง'
+              : error
+                ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
+                : '';
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-blue-50 px-4 py-10">

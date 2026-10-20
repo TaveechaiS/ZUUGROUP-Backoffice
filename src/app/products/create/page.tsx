@@ -10,7 +10,7 @@ import {
   PRODUCT_TEXT_FIELDS,
   PRODUCT_FILE_LIMIT,
   PRODUCT_IMAGE_TYPES,
-} from '@/types/api/product-full';
+} from '@/config/products';
 import { PRODUCT_OPTION_KINDS, type ProductOptionKind } from '@/config/product-options';
 import type { ProductOption } from '@/types/api/product-options';
 import SuccessAlertComponent from '@/components/ui/success-alert-component';
@@ -58,7 +58,6 @@ const multilineFields = new Set([
   'รูปสินค้า',
   'เอกสารแนบ',
 ]);
-
 
 const productSections = [
   {
@@ -389,7 +388,11 @@ export default function Page() {
             ))}
           </div>
           <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
-            <button type="button" onClick={() => setAction('cancel')} className={secondaryButtonClass}>
+            <button
+              type="button"
+              onClick={() => setAction('cancel')}
+              className={secondaryButtonClass}
+            >
               ยกเลิก
             </button>
             <button type="submit" className={primaryButtonClass}>
@@ -783,12 +786,7 @@ function ProductOptionCombobox({
         aria-hidden="true"
         className="pointer-events-none absolute right-3 top-0 flex h-11 items-center opacity-30"
       >
-        <svg
-          className="h-4 w-4"
-          viewBox="0 0 14 8"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg className="h-4 w-4" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M1 1L7 7L13 1"
             stroke="#101828"

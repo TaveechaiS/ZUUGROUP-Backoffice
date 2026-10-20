@@ -6,14 +6,13 @@ import Image from 'next/image';
 import { useEffect, useRef, useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Delete, Get, Post, HttpError } from '@/service/http';
+import { type ProductDraft, type ProductHistoryEntry } from '@/types/api/product-full';
 import {
   PRODUCT_OPTION_FIELDS,
   PRODUCT_TEXT_FIELDS,
   PRODUCT_FILE_LIMIT,
   PRODUCT_IMAGE_TYPES,
-  type ProductDraft,
-  type ProductHistoryEntry,
-} from '@/types/api/product-full';
+} from '@/config/products';
 import type { ProductView } from '@/types/api/products';
 import type { ProductOption } from '@/types/api/product-options';
 import type { Pagination } from '@/types/api';
@@ -570,10 +569,7 @@ export default function Page() {
         <h2 className="text-lg poppins-semibold text-[#344256]">
           รายละเอียดสินค้า — {product.code}
         </h2>
-        <Link
-          href="/products"
-          className={secondaryButtonClass}
-        >
+        <Link href="/products" className={secondaryButtonClass}>
           กลับรายการสินค้า
         </Link>
       </div>

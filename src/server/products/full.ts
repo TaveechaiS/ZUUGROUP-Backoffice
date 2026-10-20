@@ -5,12 +5,12 @@ import { getPrismaClient } from '@/server/db/prisma';
 import { fullDraft } from '@/server/validation/product-full';
 import { ProductError, uuidPattern } from '@/server/validation/products';
 import {
-  PRODUCT_OPTION_FIELDS,
   type ProductDraft,
   type ProductFileView,
   type ProductDetails,
   type ProductEditContext,
 } from '@/types/api/product-full';
+import { PRODUCT_OPTION_FIELDS } from '@/config/products';
 import type { ProductOption } from '@/types/api/product-options';
 import { inspectProductFile, productStorage } from './storage';
 

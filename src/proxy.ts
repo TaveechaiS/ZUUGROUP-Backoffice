@@ -1,5 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { isAuthRetryableFetchError } from '@supabase/supabase-js';
+import { isSessionExpired } from '@/lib/auth/session-expiry';
 
 export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
@@ -54,7 +56,30 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  const path = request.nextUrl.pathname;
+  if (
+    !isAuthRetryableFetchError(error) &&
+    !((error?.status ?? 0) >= 500) &&
+    path !== '/login' &&
+    path !== '/api' &&
+    !path.startsWith('/api/')
+  ) {
+    const expired =
+      user && isSessionExpired((await supabase.auth.getSession()).data.session?.access_token);
+    if (!user || expired) {
+      if (expired) await supabase.auth.signOut({ scope: 'local' });
+      const redirect = NextResponse.redirect(
+        new URL(expired ? '/login?error=expired' : '/login', request.url),
+      );
+      response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+      redirect.headers.set('Cache-Control', 'private, no-store');
+      return redirect;
+    }
+  }
   response.headers.set('Cache-Control', 'private, no-store');
   return response;
 }

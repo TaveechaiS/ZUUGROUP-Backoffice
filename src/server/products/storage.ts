@@ -1,6 +1,6 @@
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
-import { PRODUCT_FILE_LIMIT, PRODUCT_IMAGE_TYPES } from '@/types/api/product-full';
+import { PRODUCT_FILE_LIMIT, PRODUCT_IMAGE_TYPES } from '@/config/products';
 import { ProductError } from '@/server/validation/products';
 export const PRODUCT_BUCKET = 'product-attachments';
 export function productStorage() {

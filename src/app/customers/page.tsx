@@ -39,6 +39,7 @@ export default function Page({
   const [status, setStatus] = useState(ALL);
   const [search, setSearch] = useState(typeof query.search === 'string' ? query.search : '');
   const [territoryId, setTerritoryId] = useState(ALL);
+  const [groupId, setGroupId] = useState(ALL);
   const [province, setProvince] = useState(ALL);
   const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -61,6 +62,7 @@ export default function Page({
       });
       if (search.trim()) params.set('search', search.trim());
       if (territoryId) params.set('territoryId', territoryId);
+      if (groupId) params.set('groupId', groupId);
       if (province) params.set('province', province);
       if (status) params.set('status', status);
       if (tab === 'deleted') params.set('deleted', 'true');
@@ -88,6 +90,7 @@ export default function Page({
   }, [
     search,
     territoryId,
+    groupId,
     province,
     status,
     tab,
@@ -141,7 +144,7 @@ export default function Page({
           </div>
         </div>
       )}
-      <div className={filterGridClass(3)}>
+      <div className={filterGridClass(4)}>
         <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหาลูกค้า
           <div className="relative mt-1.5">
@@ -167,6 +170,18 @@ export default function Page({
           }))}
           onChange={(value) => {
             setTerritoryId(value);
+            setOffset(0);
+          }}
+        />
+        <FilterSelect
+          label="กลุ่มลูกค้า"
+          value={groupId}
+          options={(filters?.groups ?? []).map((item) => ({
+            value: item.id,
+            label: item.name,
+          }))}
+          onChange={(value) => {
+            setGroupId(value);
             setOffset(0);
           }}
         />

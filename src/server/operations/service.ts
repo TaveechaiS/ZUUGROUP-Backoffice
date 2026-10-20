@@ -585,9 +585,9 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
       const p = await policy(tx);
       if (view === 'products' || view === 'lots' || view === 'receipt-items') {
         const categoryId = params.get('categoryId');
-        const category = categoryId
-          ? Prisma.sql`AND p.category_id=${id(categoryId)}::uuid`
-          : Prisma.empty;
+        const productTypeId = params.get('productTypeId');
+        const brandId = params.get('brandId');
+        const category = Prisma.sql`${categoryId ? Prisma.sql`AND p.category_id=${id(categoryId)}::uuid` : Prisma.empty} ${productTypeId ? Prisma.sql`AND p.details->'options'->>'ประเภทผลิตภัณฑ์'=${id(productTypeId, 'ประเภทผลิตภัณฑ์')}` : Prisma.empty} ${brandId ? Prisma.sql`AND p.details->'options'->>'ยี่ห้อ'=${id(brandId, 'ยี่ห้อ')}` : Prisma.empty}`;
         const warehouseCode = params.get('warehouseCode') ?? '';
         if (warehouseCode && !['MAIN', 'MARKETING', 'DISPOSAL'].includes(warehouseCode))
           throw new RecordError(400, 'คลังสินค้าไม่ถูกต้อง');
@@ -705,7 +705,18 @@ export async function inventoryRead(actor: Actor, params: URLSearchParams) {
             tx,
             Prisma.sql`SELECT id,name FROM product_categories ORDER BY name,id`,
           );
-          return { ...pageResult(data, count[0].total, offset, limit), filters: { categories } };
+          const options = await query<{ id: string; name: string; kind: string }>(
+            tx,
+            Prisma.sql`SELECT id,name,kind FROM product_options WHERE kind IN ('productType','brand') AND active ORDER BY name,id`,
+          );
+          return {
+            ...pageResult(data, count[0].total, offset, limit),
+            filters: {
+              categories,
+              productTypes: options.filter((o) => o.kind === 'productType'),
+              brands: options.filter((o) => o.kind === 'brand'),
+            },
+          };
         }
         const warehouseId = params.get('warehouseId');
         const warehouse = warehouseId

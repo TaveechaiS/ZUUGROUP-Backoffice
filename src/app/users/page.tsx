@@ -13,7 +13,7 @@ import ListRequestState from '@/components/ui/list-request-state';
 import LoadingComponent from '@/components/ui/loading-component';
 import NotFoundComponent from '@/components/ui/not-found-component';
 import { SearchIcon } from '@/components/icons/status-icons';
-import { filterGridClass, filterClass } from '@/components/ui/form-classes';
+import { filterGridClass, filterClass, secondaryButtonClass } from '@/components/ui/form-classes';
 
 export default function Page() {
   const sort = useTableSort();
@@ -30,6 +30,27 @@ export default function Page() {
   }).toString();
   const { pageSize, setPageSize, rows, total, page, pages, setPage, loading, error, reload } =
     useUsers('/api/users', filters, 'users');
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
+  async function exportCsv() {
+    if (exporting) return;
+    setExporting(true);
+    setExportError('');
+    try {
+      const csv = await Get<string>('/api/users/export?' + filters);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'zuugroup-users.csv';
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (caught) {
+      setExportError(caught instanceof Error ? caught.message : 'ส่งออกไม่สำเร็จ');
+    } finally {
+      setExporting(false);
+    }
+  }
   return (
     <section
       className="flex min-w-0 flex-1 flex-col gap-5 p-4 pb-10 text-[#26364b] md:p-6"
@@ -61,7 +82,13 @@ export default function Page() {
           ))}
         </div>
       </div>
-      <ListRequestState error={error} retry={reload} />
+      <ListRequestState
+        error={error || exportError}
+        retry={() => {
+          setExportError('');
+          reload();
+        }}
+      />
       <div className={filterGridClass(1)}>
         <label className="min-w-0 text-xs text-[#53647c]">
           ค้นหา
@@ -216,6 +243,16 @@ export default function Page() {
             disabled={loading}
           />
         </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          disabled={exporting || loading || !total}
+          onClick={() => void exportCsv()}
+          className={secondaryButtonClass}
+        >
+          {exporting ? 'กำลังส่งออก...' : 'ส่งออก CSV'}
+        </button>
       </div>
     </section>
   );

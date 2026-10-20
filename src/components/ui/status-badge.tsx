@@ -82,6 +82,8 @@ const statusTones: Record<string, StatusTone> = {
   ถูกปฏิเสธ: 'danger',
   ผิดพลาด: 'danger',
   เกินกำหนด: 'danger',
+  เกินวงเงิน: 'danger',
+  ใกล้เต็มวงเงิน: 'warning',
   IN_PROGRESS: 'info',
   กำลังจัดเตรียม: 'info',
   กำลังดำเนินการ: 'info',
@@ -108,6 +110,7 @@ function toneFor(value: string): StatusTone {
   if (mapped) return mapped;
   if (/^เหลือ \d+ วัน$/.test(label)) return 'info';
   if (label === 'หมดอายุวันนี้' || /^หมดอายุแล้ว \d+ วัน$/.test(label)) return 'danger';
+  if (/^เกินกำหนด \d+ วัน$/.test(label)) return 'danger';
   if (label.startsWith('รอ') || label.startsWith('ครบกำหนด')) return 'warning';
   if (label.startsWith('กำลัง')) return 'info';
   return 'neutral';

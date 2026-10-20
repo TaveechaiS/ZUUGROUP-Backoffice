@@ -231,7 +231,8 @@ export function AdminShell({
             {financeReportSection && <ReportSecondarySidebar parentHref="/reports/finance" />}
             {settingsSection && account?.roleId === 'ADMIN' && <SettingsSecondarySidebar />}
             <div className="flex min-w-0 flex-1 flex-col">
-              {showProductTable ||
+              {currentPath === '/' ||
+              showProductTable ||
               currentPath === '/products/stock' ||
               currentPath.startsWith('/products/stock/receipts/') ||
               (currentPath === '/products/stock/create' && account?.roleId === 'ADMIN') ||

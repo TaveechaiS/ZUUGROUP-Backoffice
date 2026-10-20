@@ -243,6 +243,15 @@ try {
         );
         const options = (await ops.operationOptions(salesUser)).data.customers.map((c) => c.id);
         assert.ok(options.includes(own) && !options.includes(foreign));
+        const filters = (
+          await customers.listCustomers(new URLSearchParams({ include: 'filters' }), false, salesUser)
+        ).filters;
+        const ids = filters.territories.map((t) => t.id);
+        assert.ok(ids.includes(mine) && !ids.includes(other));
+        const allIds = (
+          await customers.listCustomers(new URLSearchParams({ include: 'filters' }), false, manager)
+        ).filters.territories.map((t) => t.id);
+        assert.ok(allIds.includes(mine) && allIds.includes(other));
       });
 
       await test('Sales: คำสั่งซื้อ/ใบเสนอราคา/ติดตาม เฉพาะเขต; สร้างให้ลูกค้านอกเขตไม่ได้', async () => {

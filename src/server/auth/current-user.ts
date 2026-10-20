@@ -7,6 +7,7 @@ import { isAuthRetryableFetchError, isAuthSessionMissingError } from '@supabase/
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { readWithConnectionRetry } from '@/server/db/prisma';
 import { canSeePage } from '@/config/access';
+import { isSessionExpired } from '@/lib/auth/session-expiry';
 
 async function findActiveUser(providerUserId: string) {
   const account = await readWithConnectionRetry((prisma) =>
@@ -25,23 +26,33 @@ async function findActiveUser(providerUserId: string) {
   return account.user;
 }
 
-export const getCurrentUser = cache(async () => {
+const unavailable = (error: { status?: number } | null) =>
+  !!error && (isAuthRetryableFetchError(error) || (error.status ?? 0) >= 500);
+
+const readSessionUser = cache(async () => {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    return null;
+    return { user: null, unavailable: false };
   }
   const supabase = await createSupabaseServerClient();
   let { data, error } = await supabase.auth.getUser();
-  if (error && isAuthRetryableFetchError(error)) ({ data, error } = await supabase.auth.getUser());
+  if (unavailable(error)) ({ data, error } = await supabase.auth.getUser());
   if (error && !isAuthSessionMissingError(error))
     console.warn('getCurrentUser failed', error.name, error.status, error.code);
-  if (error || !data.user) return null;
-
-  return findActiveUser(data.user.id);
+  if (error || !data.user) return { user: null, unavailable: unavailable(error) };
+  if (isSessionExpired((await supabase.auth.getSession()).data.session?.access_token))
+    return { user: null, unavailable: false };
+  return { user: await findActiveUser(data.user.id), unavailable: false };
 });
+
+export const getCurrentUser = cache(async () => (await readSessionUser()).user);
 
 export async function getCurrentApiUser(request: NextRequest) {
   const authorization = request.headers.get('authorization');
-  if (authorization === null) return getCurrentUser();
+  if (authorization === null) {
+    const session = await readSessionUser();
+    if (session.unavailable) throw new Error('AUTH_UNAVAILABLE');
+    return session.user;
+  }
   const token = /^Bearer ([^\s]+)$/i.exec(authorization)?.[1];
   if (
     !token ||
@@ -51,7 +62,8 @@ export async function getCurrentApiUser(request: NextRequest) {
     return null;
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data.user) return null;
+  if (unavailable(error)) throw new Error('AUTH_UNAVAILABLE');
+  if (error || !data.user || isSessionExpired(token)) return null;
   return findActiveUser(data.user.id);
 }
 

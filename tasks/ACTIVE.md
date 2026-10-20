@@ -1,5 +1,37 @@
 # งานที่กำลังทำ
 
+## TASK-307 — ตัวกรองหน้าลูกค้าตามเขตของ Sales — 2026-10-20
+
+- IMPLEMENTED / WAITING_FOR_UAT: ตัวเลือกจังหวัด/เขต/สถานะใบอนุญาตใน /customers ของ Sales แสดงเฉพาะค่าจากลูกค้าและเขตของตน (src/server/customers/service.ts); Manager/Admin เห็นทั้งหมด; test-access เพิ่ม assert.
+
+## TASK-306 — กำไรขั้นต้น — 2026-10-19
+
+- IMPLEMENTED / WAITING_FOR_UAT (เจ้าของตอบ ก. ต้นทุนไม่รวม VAT; ใช้ stock_reservations.unit_cost snapshot ตอนเสร็จสิ้น; รายงานยอดขายทุกมุมมองมีต้นทุนขาย/กำไรขั้นต้นเฉพาะ Admin/CFO + การ์ดสรุป; แดชบอร์ด Admin กำไรขั้นต้นหักต้นทุนของแถม): ต้นทุนขาย = จำนวนใน stock_movements kind 'ขาย' × (total_cost/received_quantity ของล็อต); ของแถมนับต้นทุน รายได้ 0; เห็นเฉพาะ Admin/CFO ในแดชบอร์ด Admin และรายงานยอดขาย; ปิด OPEN วิธีคิดต้นทุนใน Specs.
+
+## TASK-304 — ข้อมูลตัวอย่างสมจริง — 2026-10-19
+
+- IMPLEMENTED (19 ต.ค. 2569 apply แล้ว: opening 14 ล็อต, PO 36, รับเข้า 80, ใบเสนอราคา 120, คำสั่งซื้อ 96, ใบแจ้งหนี้ 87, รับชำระ 71, ค่าใช้จ่าย 60, ติดตาม 48, ตรวจนับ 2; rehearsal ใน transaction rollback ก่อน apply; ทุกคำสั่งซื้อผ่านใบเสนอราคาเพราะคำสั่งซื้อตรงต้องรอ Manager; ใบเสนอราคารออนุมัติของ Sales ไม่ได้สร้างเพราะ Sales ไม่มีลูกค้าในเขต; เทสต์ 21 ชุดผ่านหลัง seed) (OWNER_APPROVED; ลง DB ปัจจุบัน เจ้าของรับทราบว่าลบสะอาดไม่ได้): scripts/seed-demo-business.mjs (--dry-run / --rehearse / --apply) ผ่าน service จริง, --dry-run, ทุกเอกสารมี DEMO, ย้อนหลัง 12 เดือน.
+
+## TASK-305 — ตัวชี้วัดเพิ่มในแดชบอร์ด Admin + index — 2026-10-19
+
+- IMPLEMENTED / WAITING_FOR_UAT (index stock_movements_source สร้างด้วย SQL ตรง เพราะ _prisma_migrations ไม่ได้บันทึก migration หลัง 20261003 — migrate deploy จะรันซ้ำทั้งชุด; test-dashboard-admin + 21 ชุดผ่าน; ตรวจทุกหมวดในเบราว์เซอร์แล้ว) (OWNER_APPROVED 19 ต.ค. 2569): ขอบเขต src/server/dashboard/admin.ts, src/types/api/admin-dashboard.ts, src/components/dashboard/admin-dashboard.tsx, scripts/test-dashboard-admin.mjs, prisma/schema.prisma (@@index StockMovement sourceId,kind), prisma/migrations/20261019_stock_movements_source. ตัวชี้วัด: วงเงินเครดิตที่ใช้/เกินวงเงิน, DSO + วันเฉลี่ยรับเงิน, ยอดเฉลี่ยต่อบิล, ลูกค้าซื้อซ้ำ/ใหม่, ส่วนลดรวม, ของแถม, สินค้าไม่เคลื่อนไหว >90 วัน + มูลค่า, PO รับช้าเฉลี่ย, ใบเสนอราคาค้าง/ใกล้หมดอายุ.
+
+## TASK-303 — แดชบอร์ดหลัก Admin ภาพรวมทั้งระบบ — 2026-10-19
+
+- IMPLEMENTED / WAITING_FOR_UAT (test-dashboard-admin 4 ชุด + เทสต์ทั้งชุด 21 ชุด, eslint/tsc/next build ผ่าน, EDITH ไม่มี blocking; เสนอ index stock_movements(source_id,kind) รออนุมัติ); แก้ 19 ต.ค.: admin-shell ไม่เคยแสดง children ที่ '/' (หน้าว่าง ตั้งแต่ TASK-301) — เพิ่ม currentPath === '/' และคง path / ตามเจ้าของ, ตรวจในเบราว์เซอร์แล้วแสดงครบ 6 หมวด (OWNER_APPROVED 19 ต.ค. 2569; ค่าเริ่มต้นคำถามค้าง: Admin เท่านั้น, เปิดหมวดยอดขาย/การเงินไว้): ขอบเขต src/server/dashboard/admin.ts, src/app/api/dashboard/admin/route.ts, src/types/api/admin-dashboard.ts, src/components/dashboard/admin-dashboard.tsx, src/app/page.tsx, src/config/audit.ts (ย้ายชื่อ action จาก src/app/audit-logs/page.tsx), scripts/test-dashboard-admin.mjs. 6 หมวด ยอดขาย/การเงิน/จัดซื้อ+คลัง/ลูกค้า/สินค้า+โปรโมชัน/ระบบ, ตัวเลือกช่วงเวลา, ขยายดูรายการโหลดเมื่อกด. API 403 ไม่ใช่ Admin. ไม่แก้ schema ไม่เพิ่ม dependency ไม่ทำกำไร/ต้นทุนขาย.
+
+## TASK-302 — ปิดงานค้าง — 2026-10-19
+
+- IMPLEMENTED / WAITING_FOR_UAT (OWNER_APPROVED A–H 19 ต.ค. 2569; EDITH ไม่มี blocking): A DB ผ่าน pooler 6543 (test-finance/billing/dashboard ผ่าน) + DIRECT_URL ใน .env.example. B test-api-contracts ผ่าน (day/addDays ย้ายไป src/server/validation/dates.ts, ค่าคงที่สินค้าไป src/config/products.ts, เทสต์รับ auth ระดับ collection/export const/ฟิลด์ที่ server ใส่ให้). C getCurrentApiUser throw เมื่อ Supabase เชื่อมต่อไม่ได้ → 503/500 ไม่ใช่ 401; proxy ไม่ redirect เมื่อ 5xx. D sold ปัดส่วนลดท้ายบิลแบบสะสม (test-reports +1). E scripts/check-legacy-rows.mjs (ผล: ไม่มีแถวเก่าขาดคอลัมน์). F+G ปุ่มส่งออก CSV ใต้ตารางฝั่งซ้ายทุกรายงาน + แจ้งเมื่อเกิน 10,000 แถว; /users ส่งออก CSV + เพิ่มผู้ใช้ใต้ตาราง. H ตัวกรอง ประเภทผลิตภัณฑ์/ยี่ห้อ (/products), กลุ่มลูกค้า (/customers), เขตขาย/ผู้ขาย (รายงานยอดขาย); คลังในรายงานคลังมีอยู่แล้ว. test-products-stock-api แก้ให้ตรงโค้ดปัจจุบันแล้ว (receive เฉพาะ Admin ตาม Specs, PO lines, Postman เฉพาะ folder auth/products/stock) — เทสต์ 20 ชุดผ่าน. ค้าง: DIRECT_URL host เป็น IPv6 เครื่องนี้เชื่อมไม่ได้ (migrate ต้องใช้ session pooler 5432).
+
+## TASK-301 — แดชบอร์ดใหม่ตาม Role — 2026-10-19
+
+- IMPLEMENTED / WAITING_FOR_UAT (OWNER_APPROVED 19 ต.ค. 2569; test-dashboard 4 ชุด, tsc/eslint/next build ผ่าน, EDITH ไม่มี blocking): ขอบเขต src/app/page.tsx, src/app/api/dashboard/route.ts, src/server/dashboard/, src/components/dashboard/, src/types/api/reports.ts (type Dashboard), scripts/test-dashboard.mjs. /api/dashboard ต้อง login (401); การ์ดยอดคำสั่งซื้อเดือนนี้เทียบเดือนก่อน/ลูกหนี้คงค้าง/เกินกำหนด/รับชำระเดือนนี้, กราฟยอดคำสั่งซื้อ 12 เดือน, อายุลูกหนี้, งานที่รอทำ, ล็อตใกล้หมดอายุ/สินค้าใกล้หมด, top 5 สินค้า/ลูกค้า, เอกสารล่าสุด. Sales เฉพาะเขตตน, การเงิน Admin/CFO, คลัง Admin. ไม่เพิ่ม dependency ไม่แสดงต้นทุน/กำไร.
+
+## TASK-300 — Session หมดอายุ 1 วันและเด้งไป login — 2026-10-19
+
+- IMPLEMENTED / WAITING_FOR_UAT (OWNER_APPROVED 19 ต.ค. 2569; test-session-expiry, tsc/eslint/next build ผ่าน; ค้าง: Supabase ล่มนานกว่า retry ยังทำให้ API 401 → เด้ง login เหมือนเดิม): ขอบเขต src/lib/auth/session-expiry.ts, src/proxy.ts, src/server/auth/current-user.ts, src/app/login/page.tsx, scripts/test-session-expiry.mjs. นับ 24 ชม. จากเวลา login ด้วยรหัสผ่าน (claim amr); หน้าใดไม่มี session/หมดอายุ → /login (หมดอายุ signOut local + ข้อความ "เซสชันหมดอายุ"); API คืน 401.
+
 ## TASK-299 — เปลี่ยนหน้าแล้วเด้งไป login ทั้งที่ token ยังอยู่ — 2026-10-16
 
 - IMPLEMENTED / WAITING_FOR_UAT (เจ้าของสั่ง "ยังไม่หาย ลองหา error"): src/proxy.ts หลังต่ออายุ session ส่ง cookie ใหม่ต่อให้ server render (requestHeaders cookie = request.cookies.toString()) — เดิมส่ง cookie เก่าจึง getUser ด้วย refresh token ที่ถูกใช้แล้ว → redirect /login. src/server/auth/current-user.ts ลอง getUser ซ้ำ 1 ครั้งเมื่อเชื่อมต่อ Supabase ไม่ได้ และ console.warn ชื่อ/สถานะ error (ไม่มี token) เมื่อตรวจ session ไม่ผ่าน. TASK-297 เพิ่ม: กล่องช่วงวันที่กว้างตามเนื้อหา (w-fit). ⚠️ ต้องทดสอบโดยคุณ: ตั้ง JWT expiry ใน Supabase ชั่วคราวเป็น 60 วินาที (หรือรอเกิน 1 ชม.) แล้วกดเปลี่ยนหน้า ต้องไม่เด้ง login; ถ้ายังเด้ง ส่งบรรทัด "getCurrentUser failed ..." จาก terminal ของ next dev มาให้.

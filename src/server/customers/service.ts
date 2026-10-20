@@ -45,6 +45,7 @@ export async function listCustomers(
   const allowed = new Set([
     'search',
     'territoryId',
+    'groupId',
     'province',
     'licenseStatus',
     'status',
@@ -65,6 +66,8 @@ export async function listCustomers(
   const pattern = '%' + search.replace(/[\\%_]/g, '\\$&') + '%';
   const territoryId = params.get('territoryId') ?? '';
   if (territoryId && !uuidPattern.test(territoryId)) throw new CustomerError('เขตขายไม่ถูกต้อง');
+  const groupId = params.get('groupId') ?? '';
+  if (groupId && !uuidPattern.test(groupId)) throw new CustomerError('กลุ่มลูกค้าไม่ถูกต้อง');
   const province = (params.get('province') ?? '').trim();
   // An empty license result is shown and filtered as ยังไม่ระบุ.
   const licenseStatus = (params.get('licenseStatus') ?? '').trim();
@@ -103,6 +106,7 @@ export async function listCustomers(
   const where = Prisma.sql`${deleted === 'true' ? Prisma.sql`c.deleted_at IS NOT NULL` : Prisma.sql`c.deleted_at IS NULL`} AND c.details IS NOT NULL
     ${statusFilter(status)}
     ${territoryId ? Prisma.sql`AND c.territory_id=${territoryId}::uuid` : Prisma.empty}
+    ${groupId ? Prisma.sql`AND c.group_id=${groupId}::uuid` : Prisma.empty}
     ${customerScope(scope, Prisma.sql`c.id`)}
     ${province ? Prisma.sql`AND c.province=${province}` : Prisma.empty}
     ${licenseStatus ? Prisma.sql`AND (c.license_status=${licenseStatus} OR (${licenseStatus}='ยังไม่ระบุ' AND c.license_status=''))` : Prisma.empty}
@@ -121,17 +125,21 @@ export async function listCustomers(
       };
       if (include.includes('filters')) {
         const provinces = await tx.$queryRaw<{ province: string }[]>(
-          Prisma.sql`SELECT DISTINCT province FROM customers WHERE deleted_at IS NULL AND details IS NOT NULL AND province<>'' ORDER BY province`,
+          Prisma.sql`SELECT DISTINCT province FROM customers WHERE deleted_at IS NULL AND details IS NOT NULL AND province<>'' ${customerScope(scope, Prisma.sql`id`)} ORDER BY province`,
         );
         const territories = await tx.$queryRaw<{ id: string; name: string }[]>(
-          Prisma.sql`SELECT id,name FROM sales_territories WHERE deleted_at IS NULL ORDER BY name,id`,
+          Prisma.sql`SELECT id,name FROM sales_territories WHERE deleted_at IS NULL ${scope.roleId === 'SALES' ? Prisma.sql`AND id IN (SELECT territory_id FROM sales_territory_sales WHERE user_id=${scope.id}::uuid)` : Prisma.empty} ORDER BY name,id`,
+        );
+        const groups = await tx.$queryRaw<{ id: string; name: string }[]>(
+          Prisma.sql`SELECT id,COALESCE(NULLIF(name,''),code) AS name FROM customer_groups WHERE deleted_at IS NULL ORDER BY 2,id`,
         );
         const statuses = await tx.$queryRaw<{ status: string }[]>(
-          Prisma.sql`SELECT DISTINCT CASE WHEN license_status='' THEN 'ยังไม่ระบุ' ELSE license_status END AS status FROM customers WHERE deleted_at IS NULL AND details IS NOT NULL ORDER BY 1`,
+          Prisma.sql`SELECT DISTINCT CASE WHEN license_status='' THEN 'ยังไม่ระบุ' ELSE license_status END AS status FROM customers WHERE deleted_at IS NULL AND details IS NOT NULL ${customerScope(scope, Prisma.sql`id`)} ORDER BY 1`,
         );
         result.filters = {
           provinces: provinces.map((row) => row.province),
           territories,
+          groups,
           licenseStatuses: statuses.map((row) => row.status),
         };
       }

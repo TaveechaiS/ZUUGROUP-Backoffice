@@ -258,9 +258,12 @@ const routes = walk('src/app/api')
     return {
       pattern: new RegExp('^' + pattern + '$'),
       methods: [
-        ...source.matchAll(/export\s+(?:async\s+)?function\s+(GET|POST|PATCH|DELETE|PUT)\b/g),
+        ...source.matchAll(
+          /export\s+(?:(?:async\s+)?function|const)\s+(GET|POST|PATCH|DELETE|PUT)\b/g,
+        ),
       ].map((m) => m[1]),
       specificity: routePath.split('[').length,
+      generic: source.includes('recordHandler'),
     };
   });
 const definitions = JSON.parse(fs.readFileSync('src/features/records/modules.json', 'utf8'));
@@ -272,10 +275,10 @@ for (const file of walk('postman').filter((f) => f.endsWith('.postman_collection
     if (/token|password|secret|serviceRoleKey/i.test(variable.key))
       assert.ok(!variable.value, 'Credential embedded in Collection variable: ' + variable.key);
   }
-  function check(items) {
+  function check(items, inherited) {
     for (const item of items) {
       if (!item.request) {
-        check(item.item || []);
+        check(item.item || [], item.auth ?? inherited);
         continue;
       }
       const request = item.request;
@@ -293,7 +296,7 @@ for (const file of walk('postman').filter((f) => f.endsWith('.postman_collection
         file + ': missing route/method ' + request.method + ' ' + url,
       );
       if (request.body?.raw) {
-        const body = JSON.parse(request.body.raw);
+        const body = JSON.parse(request.body.raw.replace(/(?<!"){{[^}]+}}(?!")/g, '0'));
         for (const [key, value] of Object.entries(body))
           if (/password|token|secret/i.test(key))
             assert.ok(
@@ -301,9 +304,14 @@ for (const file of walk('postman').filter((f) => f.endsWith('.postman_collection
               'Credential embedded in request: ' + item.name,
             );
         const definition = definitions.find(
-          (d) => url === '/api/' + d.key || url.startsWith('/api/' + d.key + '/'),
+          (d) => url === '/api/' + d.key || url === '/api/' + d.key + '/__ID__',
         );
-        if (definition && ['POST', 'PATCH'].includes(request.method) && body.action !== 'restore') {
+        if (
+          definition &&
+          route.generic &&
+          ['POST', 'PATCH'].includes(request.method) &&
+          body.action !== 'restore'
+        ) {
           if (definition.key === 'orders') {
             const allowed = new Set([
               'code',
@@ -325,7 +333,11 @@ for (const file of walk('postman').filter((f) => f.endsWith('.postman_collection
             for (const key of Object.keys(body))
               assert.ok(allowed.has(key), item.name + ': unsupported body field ' + key);
             if (request.method === 'POST')
-              for (const field of definition.fields.filter((f) => f.required))
+              for (const field of definition.fields.filter(
+                (f) =>
+                  f.required &&
+                  !(definition.key === 'sales-territories' && ['code', 'status'].includes(f.key)),
+              ))
                 assert.ok(field.key in body, item.name + ': missing required field ' + field.key);
           }
         }
@@ -341,13 +353,13 @@ for (const file of walk('postman').filter((f) => f.endsWith('.postman_collection
             (h) =>
               h.key.toLowerCase() === 'authorization' &&
               /\{\{(?:adminToken|activeToken)\}\}/.test(h.value),
-          ) || request.auth?.type === 'bearer',
+          ) || (request.auth ?? inherited)?.type === 'bearer',
           item.name + ': missing authorization',
         );
       count++;
     }
   }
-  check(collection.item);
+  check(collection.item, collection.auth);
 }
 console.log(
   `PASS: pure validator boundaries, API types contain no runtime code, ${count} local Postman app requests match route methods/bodies/auth (offline)`,

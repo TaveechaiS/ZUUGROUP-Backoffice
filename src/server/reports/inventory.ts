@@ -23,10 +23,10 @@ export const MOVEMENT_KINDS = [
   'ปรับยอด',
   'ทำลายแล้ว',
 ] as const;
-const EXPIRY_DAYS = 90;
-const LOW_STOCK = 50;
+export const EXPIRY_DAYS = 90;
+export const LOW_STOCK = 50;
 
-const stockByProduct = Prisma.sql`LEFT JOIN LATERAL (
+export const stockByProduct = Prisma.sql`LEFT JOIN LATERAL (
   SELECT
     COALESCE(sum(b.quantity) FILTER (WHERE w.code='MAIN'),0)::int AS main,
     COALESCE(sum(b.reserved) FILTER (WHERE w.code='MAIN'),0)::int AS reserved,

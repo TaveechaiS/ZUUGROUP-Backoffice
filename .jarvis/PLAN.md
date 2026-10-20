@@ -2,6 +2,12 @@
 
 สถานะ: IMPLEMENTED / WAITING_FOR_UAT — ทำครบ TASK-281–291 (14 ต.ค. 2569)
 รอบ 15 ต.ค. 2569 (commit ad80081): TASK-292 แก้ผลรีวิว EDITH, 293–294 ทุกหน้าใช้ design หน้าสินค้า, 295 จัดแท็บ (เอาปุ่มส่งออก/เพิ่มขวาแท็บออกชั่วคราว), 296 ตัวกรองทุกหน้า (ค้นหาแรก วันที่ท้าย) — IMPLEMENTED / WAITING_FOR_UAT. ค้าง: UAT หน้าจอจริง/มือถือ, เอาปุ่มส่งออก CSV/เพิ่ม กลับมาเมื่อเจ้าของสั่ง, migration 20261014 ต้องเช็คแถวเก่าก่อน deploy, CSV ตัด 10,000 แถวไม่แจ้ง, ปัดเศษส่วนลดในรายงาน.
+รอบ 16 ต.ค. 2569 (commit c4b2e4e): TASK-297 ช่องช่วงวันที่ช่องเดียว + กล่องตัวกรองทุกหน้าแบบ /customers, TASK-298 DB P1017 (keepAlive, pool max 5, retry+backoff), TASK-299 proxy ส่ง cookie ที่ต่ออายุแล้วให้ server render (แก้เด้ง login) — IMPLEMENTED / WAITING_FOR_UAT. ค้าง: เจ้าของเปลี่ยน DATABASE_URL เป็น pooler transaction mode 6543, ทดสอบ token หมดอายุ (JWT expiry 60s), วิเคราะห์ตัวกรองรอบใหม่ (ประเภท/ยี่ห้อสินค้า, กลุ่มลูกค้า, เขต/ผู้ขายในรายงาน ฯลฯ) รอเลือก.
+รอบ 20 ต.ค. 2569: TASK-307 ตัวกรองหน้าลูกค้าตามเขตของ Sales — IMPLEMENTED / WAITING_FOR_UAT. ค้าง: _prisma_migrations resolve 17 รายการ (เจ้าของรันเอง).
+รอบ 19 ต.ค. 2569 (4): TASK-305 ตัวชี้วัด+index, TASK-304 seed DEMO (apply แล้ว), TASK-306 กำไรขั้นต้น (unit_cost snapshot, ต้นทุนไม่รวม VAT) — IMPLEMENTED / WAITING_FOR_UAT. ค้าง: _prisma_migrations ไม่ sync ตั้งแต่ 20261003, ยังไม่ commit.
+รอบ 19 ต.ค. 2569 (3): TASK-303 แดชบอร์ดหลัก Admin (L) — IMPLEMENTED / WAITING_FOR_UAT. ค้าง: index stock_movements(source_id,kind) รออนุมัติ. ขั้น: 1 บันทึก 2 API+service+type+test 3 UI 4 ตรวจ test/lint/tsc/build 5 EDITH.
+รอบ 19 ต.ค. 2569 (2): TASK-302 ปิดงานค้าง A–H — IMPLEMENTED / WAITING_FOR_UAT. เทสต์ 20 ชุดผ่าน. ค้าง: migrate ผ่าน DIRECT_URL IPv6 จากเครื่องนี้ไม่ได้.
+รอบ 19 ต.ค. 2569: TASK-300 session หมดอายุ 24 ชม. นับจาก login + ทุกหน้าไม่มี session ไป /login, TASK-301 แดชบอร์ดใหม่ตาม Role (/api/dashboard ต้อง login) — IMPLEMENTED / WAITING_FOR_UAT.
 รอบก่อน: TASK-277–280 IMPLEMENTED / WAITING_FOR_UAT (ดู tasks/TASK-277..280)
 เจ้าของตอบแล้ว: TASK-275 ข้าม Manager (ตรงกับโค้ดเดิม ไม่ต้องแก้), ผูกโปรโมชัน ok, "ที่เหลือ OK หมดทำได้เลย"
 Design หลัก: หน้าสินค้า. ทุกตารางเดิมที่เกี่ยวข้องมี 0 แถว (ตรวจ 14 ต.ค.) ไม่ต้องย้ายข้อมูล
