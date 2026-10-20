@@ -1,21 +1,9 @@
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const seconds = (start) => `${((performance.now() - start) / 1000).toFixed(1)} วินาที`;
-
-export function seedChecks(cwd = root) {
-  if (!existsSync(path.join(cwd, 'scripts/snapshots/TASK-076-before.json'))) {
-    throw new Error(
-      'ไม่พบ scripts/snapshots/TASK-076-before.json ชุดตรวจ seed ต้องใช้ snapshot เฉพาะเครื่องจาก TASK-076',
-    );
-  }
-  return [
-    { name: 'ตรวจแผนข้อมูล seed (ไม่เขียนฐานข้อมูล)', args: ['scripts/test-business-seed.mjs'] },
-  ];
-}
 
 export async function runChecks(checks, { cwd = root, log = console.log } = {}) {
   const started = performance.now();
@@ -79,10 +67,8 @@ const coreChecks = [
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const args = process.argv.slice(2);
-    if (args.length && (args.length !== 1 || args[0] !== '--seed')) {
-      throw new Error('ใช้ npm run verify หรือ npm run verify:seed');
-    }
-    process.exitCode = await runChecks(args[0] === '--seed' ? seedChecks() : coreChecks);
+    if (args.length) throw new Error('ใช้ npm run verify');
+    process.exitCode = await runChecks(coreChecks);
   } catch (error) {
     console.error(`ตรวจไม่สำเร็จ: ${error.message}`);
     process.exitCode = 1;

@@ -16,13 +16,9 @@ npm run verify
 
 อย่ารันพร้อม dev/build/verify อีกชุดที่เขียน `.next` เดียวกัน หากขั้นใดล้มเหลวให้แก้สาเหตุจากผลขั้นนั้นแล้วรันใหม่ ไม่ควรลด assertion เพื่อให้ผ่าน
 
-## ตรวจแผน seed เพิ่มเติม
+## ข้อมูลตัวอย่าง
 
-```sh
-npm run verify:seed
-```
-
-เป็นชุดตรวจแยก ไม่รวม 10 ขั้นตอนข้างต้น ต้องมี `scripts/snapshots/TASK-076-before.json` จาก TASK-076 ในเครื่อง หากไม่พบจะขึ้นข้อความและจบด้วย exit code 1 โดยไม่ข้ามการตรวจ ชุดนี้จำลองแผนและตรวจ SQL ในหน่วยความจำ ไม่เขียนฐานข้อมูล ห้ามนำ snapshot ที่มีข้อมูลเฉพาะเครื่องเข้า Git
+ข้อมูลอ้างอิงปัจจุบัน: สินค้า `scripts/seed-product-stock-demo.mjs` (ตรวจด้วย `scripts/verify-product-stock-demo.mjs`), ลูกค้า `scripts/seed-customer-demo.mjs` และธุรกรรม DEMO `scripts/seed-demo-business.mjs` (TASK-304). สคริปต์ seed TASK-052/076 และ `npm run verify:seed` เลิกใช้แล้ว (TASK-309)
 
 ## ⚠️ ต้องทดสอบโดยคุณ
 

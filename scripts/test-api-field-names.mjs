@@ -4,7 +4,6 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
 import path from 'node:path';
-import { Prisma as RealPrisma } from '../src/generated/prisma/client.ts';
 function load(file, modules = {}) {
   const exports = {};
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
@@ -15,7 +14,8 @@ function load(file, modules = {}) {
     require: (name) => {
       if (name === 'server-only') return {};
       if (name === 'node:crypto') return { randomUUID: () => 'unused' };
-      if (name === '@/generated/prisma/client' && !(name in modules)) return { Prisma: RealPrisma };
+      if (name === '@/generated/prisma/client' && !(name in modules))
+        return { Prisma: { sql: () => ({}), raw: () => ({}), join: () => ({}), empty: {} } };
       if (name.startsWith('@/server/validation/'))
         return load('src/' + name.slice(2) + '.ts', modules);
       if (name.startsWith('.') && /validation|territory-sales/.test(file + name))

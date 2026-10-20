@@ -86,13 +86,13 @@ try {
       offset: '0',
     });
     const expected = await db.$queryRaw(
-      Prisma.sql`SELECT p.id,COALESCE(sum(b.quantity),0)::int AS quantity FROM products p LEFT JOIN product_lots l ON l.product_id=p.id LEFT JOIN stock_balances b ON b.lot_id=l.id LEFT JOIN warehouses w ON w.id=b.warehouse_id WHERE p.name LIKE '%(ข้อมูลตัวอย่าง)' ${warehouseCode ? Prisma.sql`AND w.code=${warehouseCode} AND b.quantity>0` : Prisma.empty} GROUP BY p.id`,
+      Prisma.sql`SELECT p.id,COALESCE(sum(b.quantity) FILTER (WHERE ${warehouseCode ? Prisma.sql`w.code=${warehouseCode}` : Prisma.sql`true`}),0)::int AS quantity FROM products p LEFT JOIN product_lots l ON l.product_id=p.id LEFT JOIN stock_balances b ON b.lot_id=l.id LEFT JOIN warehouses w ON w.id=b.warehouse_id WHERE p.name LIKE '%(ข้อมูลตัวอย่าง)' GROUP BY p.id ${warehouseCode && warehouseCode !== 'MAIN' ? Prisma.sql`HAVING COALESCE(sum(b.quantity) FILTER (WHERE w.code=${warehouseCode}),0)>0` : Prisma.empty}`,
     );
     assert.equal(body.pagination.total, expected.length);
     for (const row of body.data) {
       assert.equal(row.quantity, expected.find((r) => r.id === row.id).quantity);
-      assert.equal(row.reserved, 0);
-      assert.equal(row.available, row.quantity);
+      assert.ok(row.reserved >= 0 && row.reserved <= row.quantity);
+      assert.equal(row.available, row.quantity - row.reserved);
       assert.ok(!('unitCost' in row) && !('totalCost' in row));
     }
     console.log(

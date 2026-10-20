@@ -2,6 +2,18 @@
 
 สถานะ: IMPLEMENTED / WAITING_FOR_UAT — ทำครบ TASK-281–291 (14 ต.ค. 2569)
 
+# TASK-310 — เป้ายอดขาย (L) — พักไว้ตามเจ้าของ 20 ต.ค. 2569 (ยังไม่ทำ, คำถาม 4 ข้อยังไม่ตอบ)
+เป้าหมาย: ตั้งเป้ายอดขายรายคน/รายเดือน แล้ว Sales เห็นความคืบหน้าในแดชบอร์ด, Admin/Manager เห็นเทียบทุกคน
+ไม่ทำ: เป้ารายเขต/รายสินค้า, ค่าคอมมิชชัน, แจ้งเตือน
+## Phase 1: DB — [ ] รออนุมัติ
+- migration 20261020_sales_targets: sales_targets(id, user_id, month date วันที่ 1, amount numeric(14,2) >0, created_by_id, updated_at, UNIQUE(user_id,month)), RLS + REVOKE; schema.prisma; apply ผ่าน SQL + migrate resolve
+## Phase 2: API — [ ] รออนุมัติ
+- src/server/sales-targets/service.ts + route /api/sales-targets (GET ปี/เดือน, POST set/delete); Admin/Manager เขียน; Sales อ่านเฉพาะของตน; audit
+## Phase 3: UI — [ ] รออนุมัติ
+- หน้า /reports/sales/targets: ตารางพนักงานขาย × เดือน (เป้า/ทำได้/%) แก้ได้ในตาราง; แดชบอร์ด Sales การ์ด "เป้าเดือนนี้" + แถบความคืบหน้า; navigation + admin-shell allowlist
+## วิธีตรวจ
+- test-sales-targets ใหม่ (สิทธิ์, ทำได้ตรงรายงานผู้ขาย, unique), เทสต์ทั้งหมด, eslint, tsc, build
+
 # TASK-308 — ปรับระบบสำหรับ Role Sales (L) — IMPLEMENTED / WAITING_FOR_UAT; การ์ดมือถือ + เทสต์ 40 ชุดผ่าน; อนุมัติ 20 ต.ค. 2569 (ยอดของฉัน=คำสั่งซื้อที่ตนสร้าง, Sales เห็นรายงานคลังแบบจำนวน, ไม่ทดสอบผ่าน browser)
 เป้าหมาย: Sales ล็อกอินแล้วเห็นเฉพาะเมนู/ปุ่มที่ใช้ได้ มีแดชบอร์ด "งานของฉัน" และใช้งานหลักบนมือถือได้
 ไม่ทำ: เป้ายอดขาย (ต้องเพิ่มตาราง), Manager/CFO, เปลี่ยนกฎสิทธิ์ข้อมูลเดิม (เขตลูกค้า/ต้นทุน)

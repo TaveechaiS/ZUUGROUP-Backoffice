@@ -13,7 +13,6 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "verify": "node scripts/verify.mjs",
-    "verify:seed": "node scripts/verify.mjs --seed",
     "test:flows": "node scripts/test-record-flows.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -21,8 +20,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "recover:admin": "node scripts/recover-admin.mjs",
-    "seed:products": "node scripts/seed-product-master.mjs",
-    "seed:records": "node scripts/seed-operational-data.mjs"
+    "seed:products": "node scripts/seed-product-master.mjs"
   },
   "dependencies": {
     "@heroui/styles": "3.2.6",

@@ -1,5 +1,9 @@
 # งานที่กำลังทำ
 
+## TASK-309 — เลิกใช้ seed ชุดเก่า อิงข้อมูลปัจจุบัน — 2026-10-20
+
+- IMPLEMENTED: ตรวจก่อนลบ พบว่าสินค้า 12 รายการ (SEED149) และลูกค้า 15 รายที่ DEMO ใช้มาจาก seed-product-stock-demo/seed-customer-demo จึงเก็บไว้; ลบเฉพาะ seed TASK-052/076 ที่ไม่มีใครใช้ + test-business-seed + verify:seed/seed:records; verify-product-stock-demo ปรับตามกฎปัจจุบัน (MAIN แสดงสินค้า 0, มียอดจอง). snapshot TASK-076 เป็นไฟล์เฉพาะเครื่องนอก git ไม่ได้ลบ.
+
 ## TASK-308 — ปรับระบบสำหรับ Role Sales — 2026-10-20
 
 - IMPLEMENTED / WAITING_FOR_UAT: ซ่อนเมนูหน้าสร้างเฉพาะ Admin (access.ts longest-prefix, stock/customer sidebar), แดชบอร์ด Sales งานของฉัน, test-sales-role ใหม่ + test-dashboard. มือถือ: ตารางรายการสินค้าในฟอร์มใบเสนอราคา/คำสั่งซื้อแสดงเป็นการ์ดต่อบรรทัดบนจอเล็ก (CSS อย่างเดียว). แก้เทสต์เก่าที่ล้าสมัย 10 ชุด (mock ไม่ตรงโค้ดปัจจุบัน) — รันครบ 40 ชุดผ่าน. ขอบเขตเดิม: เมนู/ปุ่มที่ Sales ใช้ไม่ได้, แดชบอร์ดงานของฉัน (ยอด = คำสั่งซื้อที่ตนสร้าง), layout มือถือของงานหลัก Sales. ไม่แตะกฎสิทธิ์ข้อมูลเดิม, ไม่ทำเป้ายอดขาย.
