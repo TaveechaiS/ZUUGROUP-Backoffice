@@ -11,6 +11,7 @@ import type { Dashboard, DashboardExpiringLot, DashboardTask } from '@/types/api
 import { dashboardSections } from './sections';
 
 const QUOTE_PENDING = 'รออนุมัติ';
+const QUOTE_EXPIRY_DAYS = 7;
 
 export async function dashboardData(actor: Actor): Promise<Dashboard> {
   const today = bangkokDay();
@@ -19,7 +20,12 @@ export async function dashboardData(actor: Actor): Promise<Dashboard> {
   const prevEnd = addMonths(today, -1);
   const trendStart = addMonths(monthStart, -11);
   const sections = dashboardSections(actor.roleId);
-  const scope = customerScope(actor, Prisma.sql`s.customer_id`);
+  const mine = actor.roleId === 'SALES';
+  const own = (alias: string) =>
+    mine
+      ? Prisma.sql`AND ${Prisma.raw(alias)}.created_by_id=${actor.id}::uuid`
+      : customerScope(actor, Prisma.sql`${Prisma.raw(alias)}.customer_id`);
+  const scope = own('s');
   return readWithConnectionRetry((db) =>
     db.$transaction(
       async (tx) => {
@@ -96,7 +102,7 @@ export async function dashboardData(actor: Actor): Promise<Dashboard> {
         const [work] = await tx.$queryRaw<
           { quotes: number; followToday: number; followLate: number; requests: number }[]
         >(
-          Prisma.sql`SELECT (SELECT count(*)::int FROM quotations q WHERE q.deleted_at IS NULL AND q.status=${QUOTE_PENDING} ${customerScope(actor, Prisma.sql`q.customer_id`)}) AS quotes,(SELECT count(*)::int FROM customer_follow_ups f WHERE f.deleted_at IS NULL AND f.status='รอติดตาม' AND f.next_on=${today}::date ${customerScope(actor, Prisma.sql`f.customer_id`)}) AS "followToday",(SELECT count(*)::int FROM customer_follow_ups f WHERE f.deleted_at IS NULL AND f.status='รอติดตาม' AND f.next_on<${today}::date ${customerScope(actor, Prisma.sql`f.customer_id`)}) AS "followLate",(SELECT count(*)::int FROM customer_create_requests r WHERE r.status='submitted') AS requests`,
+          Prisma.sql`SELECT (SELECT count(*)::int FROM quotations q WHERE q.deleted_at IS NULL AND q.status=${QUOTE_PENDING} ${own('q')}) AS quotes,(SELECT count(*)::int FROM customer_follow_ups f WHERE f.deleted_at IS NULL AND f.status='รอติดตาม' AND f.next_on=${today}::date ${customerScope(actor, Prisma.sql`f.customer_id`)}) AS "followToday",(SELECT count(*)::int FROM customer_follow_ups f WHERE f.deleted_at IS NULL AND f.status='รอติดตาม' AND f.next_on<${today}::date ${customerScope(actor, Prisma.sql`f.customer_id`)}) AS "followLate",(SELECT count(*)::int FROM customer_create_requests r WHERE r.status='submitted') AS requests`,
         );
         const tasks: DashboardTask[] = [
           {
@@ -121,6 +127,64 @@ export async function dashboardData(actor: Actor): Promise<Dashboard> {
             tone: 'danger',
           },
         ];
+        if (mine) {
+          const [my] = await tx.$queryRaw<
+            {
+              quotesReturned: number;
+              quotesExpiring: number;
+              ordersWaiting: number;
+              ordersReturned: number;
+              requestsReturned: number;
+              overdue: number;
+            }[]
+          >(
+            Prisma.sql`SELECT (SELECT count(*)::int FROM quotations q WHERE q.deleted_at IS NULL AND q.status='ส่งกลับแก้ไข' ${own('q')}) AS "quotesReturned",(SELECT count(*)::int FROM quotations q WHERE q.deleted_at IS NULL AND q.status='อนุมัติ' AND q.valid_until BETWEEN ${today}::date AND ${addDays(today, QUOTE_EXPIRY_DAYS)}::date AND NOT EXISTS (SELECT 1 FROM sales_orders so WHERE so.quotation_id=q.id AND so.deleted_at IS NULL) ${own('q')}) AS "quotesExpiring",(SELECT count(*)::int FROM sales_orders o WHERE o.deleted_at IS NULL AND o.workflow_managed AND o.status='รอตรวจ' ${own('o')}) AS "ordersWaiting",(SELECT count(*)::int FROM sales_orders o WHERE o.deleted_at IS NULL AND o.workflow_managed AND o.status='ส่งกลับแก้ไข' ${own('o')}) AS "ordersReturned",(SELECT count(*)::int FROM customer_create_requests r WHERE r.status='returned' AND r.actor_id=${actor.id}::uuid) AS "requestsReturned",(SELECT count(*)::int FROM invoices i WHERE i.deleted_at IS NULL AND i.status IN ('ค้างชำระ','ชำระบางส่วน') AND i.due_date<${today}::date ${customerScope(actor, Prisma.sql`i.customer_id`)}) AS overdue`,
+          );
+          tasks.push(
+            {
+              key: 'quotesReturned',
+              label: 'ใบเสนอราคาถูกส่งกลับแก้ไข',
+              count: my.quotesReturned,
+              href: '/quotes',
+              tone: 'danger',
+            },
+            {
+              key: 'quotesExpiring',
+              label: `ใบเสนอราคาอนุมัติแล้ว ใกล้หมดอายุ ≤${QUOTE_EXPIRY_DAYS} วัน`,
+              count: my.quotesExpiring,
+              href: '/quotes',
+              tone: 'warning',
+            },
+            {
+              key: 'ordersWaiting',
+              label: 'คำสั่งซื้อรอ Manager อนุมัติ',
+              count: my.ordersWaiting,
+              href: '/orders',
+              tone: 'info',
+            },
+            {
+              key: 'ordersReturned',
+              label: 'คำสั่งซื้อถูกส่งกลับแก้ไข',
+              count: my.ordersReturned,
+              href: '/orders',
+              tone: 'danger',
+            },
+            {
+              key: 'requestsReturned',
+              label: 'คำขอเพิ่มลูกค้าถูกส่งกลับแก้ไข',
+              count: my.requestsReturned,
+              href: '/customers/requests',
+              tone: 'danger',
+            },
+            {
+              key: 'overdue',
+              label: 'ใบแจ้งหนี้เกินกำหนด (ลูกค้าในเขต)',
+              count: my.overdue,
+              href: '/billing',
+              tone: 'danger',
+            },
+          );
+        }
         if (sections.customerRequests)
           tasks.push({
             key: 'requests',
@@ -153,6 +217,7 @@ export async function dashboardData(actor: Actor): Promise<Dashboard> {
 
         return {
           today,
+          mine,
           sales: {
             total: month.total,
             orders: month.orders,

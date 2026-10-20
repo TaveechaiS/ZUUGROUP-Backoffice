@@ -4,6 +4,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
 import crypto from 'node:crypto';
+import * as productConfig from '../src/config/products.ts';
 let values = [],
   refs = [],
   cursor = 0,
@@ -34,7 +35,7 @@ class HttpError extends Error {
     this.status = status;
   }
 }
-const config = {};
+const config = { ...productConfig };
 vm.runInNewContext(
   ts.transpileModule(fs.readFileSync('src/types/api/product-full.ts', 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS },
@@ -157,6 +158,7 @@ vm.runInNewContext(
       if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx };
       if (name === '@/service/http') return transport;
       if (name === '@/types/api/product-full') return config;
+      if (name === '@/config/products') return productConfig;
       if (name === 'next/navigation')
         return { useRouter: () => ({ replace: (url) => replaced.push(url), refresh() {} }) };
       if (name === '@/components/ui/route-data')

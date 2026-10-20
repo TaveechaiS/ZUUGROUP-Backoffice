@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
+import * as productConfig from '../src/config/products.ts';
+import * as formClasses from '../src/components/ui/form-classes.ts';
 const data = Array.from({ length: 25 }, (_, i) => ({
   id: String(i),
   kind: 'codeGroup',
@@ -63,6 +65,8 @@ vm.runInNewContext(code, {
         },
       };
     if (name === '@/types/api/product-full') return {};
+    if (name === '@/config/products') return productConfig;
+    if (name === '@/components/ui/form-classes') return formClasses;
     if (name === 'next/navigation') return { useRouter: () => ({}) };
     if (
       name === 'next/link' ||

@@ -133,14 +133,35 @@ try {
         assert.ok(data.sales.topProducts.length <= 5 && data.sales.topCustomers.length <= 5);
       });
 
-      await test('sales dashboard is scoped to own territory and hides finance/stock', async () => {
+      await test('sales dashboard shows own sales and own work, hides finance/stock', async () => {
         const data = await dashboardData(salesActor);
+        assert.equal(data.mine, true);
         assert.equal(data.finance, null);
         assert.equal(data.inventory, null);
-        assert.ok(!data.tasks.some((t) => ['requests', 'overdue'].includes(t.key)));
+        assert.ok(!data.tasks.some((t) => t.key === 'requests'));
+        assert.deepEqual(
+          [...data.tasks.map((t) => t.key)],
+          [
+            'quotes',
+            'followToday',
+            'followLate',
+            'quotesReturned',
+            'quotesExpiring',
+            'ordersWaiting',
+            'ordersReturned',
+            'requestsReturned',
+            'overdue',
+          ],
+        );
         assert.ok(data.activity.every((row) => row.module === 'quotes'));
-        const report = await salesReport(salesActor, 'summary', month);
+        const params = new URLSearchParams(month);
+        params.set('sellerId', salesActor.id);
+        const report = await salesReport(salesActor, 'summary', params);
         assert.equal(data.sales.total, report.summary.total);
+        const [own] =
+          await tx.$queryRaw`SELECT count(*)::int AS n FROM sales_orders o WHERE o.deleted_at IS NULL AND o.workflow_managed AND o.status='รอตรวจ' AND o.created_by_id=${salesActor.id}::uuid`;
+        assert.equal(data.tasks.find((t) => t.key === 'ordersWaiting').count, own.n);
+        assert.equal((await dashboardData(adminActor)).mine, false);
       });
 
       await test('route returns 401 without login and data with login', async () => {

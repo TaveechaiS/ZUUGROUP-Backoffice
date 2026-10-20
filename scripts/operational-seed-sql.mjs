@@ -52,7 +52,7 @@ export function operationalSeedSql() {
       const target =
         f.relation === 'warehouses'
           ? 'warehouses'
-          : modules.find((x) => x.key === f.relation).table;
+          : (modules.find((x) => x.key === f.relation)?.table ?? f.relation);
       const prefix = f.relation === 'warehouses' ? 'WH' : prefixes[f.relation],
         width = f.relation === 'warehouses' ? 2 : 3,
         active = f.relation === 'warehouses' ? 'true' : 'deleted_at IS NULL';

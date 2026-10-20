@@ -93,7 +93,9 @@ export default function RoleDashboard() {
     <section className="flex flex-1 flex-col gap-6 bg-[#f7f9fc] p-4 md:p-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="m-0 text-xl poppins-semibold text-[#26364b]">ภาพรวมระบบ</h2>
+          <h2 className="m-0 text-xl poppins-semibold text-[#26364b]">
+            {data.mine ? 'งานของฉัน' : 'ภาพรวมระบบ'}
+          </h2>
           <p className="m-0 mt-1 text-sm text-[#718096]">ข้อมูล ณ วันที่ {thaiDay(data.today)}</p>
         </div>
         <button
@@ -107,7 +109,7 @@ export default function RoleDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="ยอดคำสั่งซื้อเสร็จสิ้นเดือนนี้"
+          label={data.mine ? 'ยอดขายของฉันเดือนนี้' : 'ยอดคำสั่งซื้อเสร็จสิ้นเดือนนี้'}
           value={money(sales.total)}
           unit="บาท"
           hint="เทียบช่วงเดียวกันเดือนก่อน"
@@ -117,7 +119,7 @@ export default function RoleDashboard() {
           href="/reports/sales"
         />
         <StatCard
-          label="คำสั่งซื้อเสร็จสิ้นเดือนนี้"
+          label={data.mine ? 'คำสั่งซื้อของฉันที่เสร็จสิ้นเดือนนี้' : 'คำสั่งซื้อเสร็จสิ้นเดือนนี้'}
           value={sales.orders.toLocaleString('th-TH')}
           unit="รายการ"
           hint={`เดือนก่อนช่วงเดียวกัน ${sales.prevOrders.toLocaleString('th-TH')} รายการ`}
@@ -172,7 +174,7 @@ export default function RoleDashboard() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card
-          title="ยอดคำสั่งซื้อเสร็จสิ้น 12 เดือน"
+          title={data.mine ? 'ยอดขายของฉัน 12 เดือน' : 'ยอดคำสั่งซื้อเสร็จสิ้น 12 เดือน'}
           action={<CardLink href="/reports/sales">ดูรายงาน</CardLink>}
           className="lg:col-span-2"
         >

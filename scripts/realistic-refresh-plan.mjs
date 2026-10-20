@@ -148,6 +148,7 @@ export function buildRefreshPlan(snapshot) {
         if (row[key]) continue;
         const candidates =
           f.relation === 'warehouses' ? snapshot.masters.warehouses : snapshot.records[f.relation];
+        if (!candidates) continue;
         const preferred =
           f.key === 'customerId'
             ? originalCustomer

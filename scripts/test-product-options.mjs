@@ -17,6 +17,7 @@ let passed = 0;
 try {
   await db.$transaction(
     async (tx) => {
+      const [stockBefore] = await tx.$queryRaw`SELECT sum(b.quantity)::int AS quantity FROM stock_balances b JOIN product_lots l ON l.id=b.lot_id JOIN stock_receipts r ON r.id=l.receipt_id WHERE r.code='SEED149-20261005'`;
       const admin = await tx.user.findFirst({
         where: { deletedAt: null, status: 'ACTIVE', userRole: { is: { roleId: 'ADMIN' } } },
         include: { userRole: true },
@@ -182,7 +183,7 @@ try {
         assert.equal(rows[0].client_write, false);
         const totals =
           await tx.$queryRaw`SELECT sum(b.quantity)::int AS quantity FROM stock_balances b JOIN product_lots l ON l.id=b.lot_id JOIN stock_receipts r ON r.id=l.receipt_id WHERE r.code='SEED149-20261005'`;
-        assert.equal(totals[0].quantity, 950);
+        assert.equal(totals[0].quantity, stockBefore.quantity);
       });
       throw rollback;
     },

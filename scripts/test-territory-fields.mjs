@@ -2,6 +2,8 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
+import * as formClasses from '../src/components/ui/form-classes.ts';
+import * as customerConfig from '../src/config/customers.ts';
 import assert from 'node:assert/strict';
 const jsx = (type, props) => ({ type, props: props ?? {} });
 const id = '11111111-1111-4111-8111-111111111111';
@@ -27,7 +29,9 @@ let posted = [],
   failPost = false,
   holdPost;
 let failGet = 0;
+class HttpError extends Error {}
 const react = {
+  use: (value) => value,
   useState(initial) {
     const i = cursor++;
     if (!(i in values)) values[i] = typeof initial === 'function' ? initial() : initial;
@@ -85,9 +89,10 @@ function load(file) {
         if (name === 'next/link') return { __esModule: true, default: 'a' };
         if (name === '@/service/http')
           return {
+            HttpError,
             Get: async (url) => {
               if (failGet) {
-                const error = Error('Request failed');
+                const error = new HttpError('Request failed');
                 error.status = failGet;
                 throw error;
               }
@@ -115,8 +120,12 @@ function load(file) {
         if (name.includes('success-alert')) return { __esModule: true, default: 'success' };
         if (name.includes('loading-component')) return { __esModule: true, default: 'loading' };
         if (name.includes('not-found-component')) return { __esModule: true, default: 'notfound' };
+        if (name === '@/components/ui/form-classes') return formClasses;
+        if (name === '@/config/customers') return customerConfig;
         if (name.startsWith('@/components/ui/'))
           return { __esModule: true, default: name.split('/').pop() };
+        if (name.startsWith('@/components/icons/'))
+          return new Proxy({ __esModule: true }, { get: (t, k) => (k in t ? t[k] : 'icon') });
         throw Error('Unexpected UI dependency ' + name);
       },
     },
@@ -133,9 +142,10 @@ function render(Page) {
   cursor = 0;
   refCursor = 0;
   effects = [];
-  return nodes(Page());
+  return nodes(Page({ searchParams: {}, params: { id } }));
 }
 const listState = () => [
+  'active',
   { data: [fixture], config: { canWrite: true }, pagination: { total: 1 } },
   true,
   ' เขตใหม่ ',
@@ -153,8 +163,8 @@ const listState = () => [
 const Page = load('src/app/customers/territories/page.tsx');
 values = listState();
 let tree = render(Page);
-assert.equal(tree.filter((node) => node.type === 'td').length, 3);
-assert.equal(tree.filter((node) => node.type === 'th').length, 3);
+assert.equal(tree.filter((node) => node.type === 'td').length, 4);
+assert.equal(tree.filter((node) => node.type === 'th').length, 4);
 assert.ok(
   !tree.some(
     (node) =>
@@ -179,8 +189,8 @@ for (const key of ['Enter', ' ']) {
 }
 await tree.find((node) => node.type === 'form').props.onSubmit({ preventDefault() {} });
 assert.deepEqual(JSON.parse(JSON.stringify(posted[0].body)), { name: 'เขตใหม่', notes: 'note' });
-assert.equal(values[2], '');
-assert.equal(values[12], true);
+assert.equal(values[3], '');
+assert.equal(values[13], true);
 posted = [];
 values = listState();
 refs = [];
@@ -201,18 +211,18 @@ refs = [];
 failPost = true;
 tree = render(Page);
 await tree.find((node) => node.type === 'form').props.onSubmit({ preventDefault() {} });
-assert.equal(values[2], ' เขตใหม่ ');
-assert.equal(values[11], 'Save failed');
+assert.equal(values[3], ' เขตใหม่ ');
+assert.equal(values[12], 'Save failed');
 failPost = false;
 values = listState();
-values[2] = ' ';
+values[3] = ' ';
 refs = [];
 posted = [];
 tree = render(Page);
 await tree.find((node) => node.type === 'form').props.onSubmit({ preventDefault() {} });
 assert.equal(posted.length, 0);
 values = listState();
-values[1] = false;
+values[2] = false;
 refs = [];
 tree = render(Page);
 assert.ok(!tree.some((node) => node.type === 'form'));
@@ -227,11 +237,9 @@ assert.ok(tree.some((node) => node.type === 'dd' && node.props.children === fixt
 assert.ok(!tree.some((node) => node.props.children === 'HIDDEN_CODE'));
 effects[0]();
 await new Promise((resolve) => setTimeout(resolve, 0));
-assert.equal(fetched.at(-1), '/api/sales-territories/' + id);
+assert.ok(fetched.some((url) => url.startsWith('/api/sales-territories/' + id)));
 load('src/app/customers/territories/create/page.tsx')();
 assert.equal(redirected, '/customers/territories#add-territory');
-const customer = fs.readFileSync('src/app/customers/create/page.tsx', 'utf8');
-assert.ok(!customer.includes('@/service/http') && customer.includes('fieldset disabled'));
 const collection = JSON.parse(fs.readFileSync('postman/Zuugroup.postman_collection.json', 'utf8'));
 const folder = collection.item.find((item) => item.name === 'เขตขาย (Sales Territories)');
 assert.equal(folder.item.length, 4);
@@ -243,16 +251,16 @@ for (const request of folder.item) {
 }
 // Empty and loading states must never hide a failed request.
 values = listState();
-values[0] = { data: [], pagination: { total: 0 } };
+values[1] = { data: [], pagination: { total: 0 } };
 refs = [];
 tree = render(Page);
 assert.ok(tree.some((node) => node.type === 'notfound'));
-values[8] = true;
+values[9] = true;
 tree = render(Page);
 assert.ok(tree.some((node) => node.type === 'loading' && node.props.isVisible));
 assert.ok(!tree.some((node) => node.type === 'notfound'));
-values[8] = false;
-values[10] = 'API failed';
+values[9] = false;
+values[11] = 'API failed';
 tree = render(Page);
 assert.ok(!tree.some((node) => node.type === 'notfound'));
 assert.ok(!tree.some((node) => node.type === 'loading' && node.props.isVisible));

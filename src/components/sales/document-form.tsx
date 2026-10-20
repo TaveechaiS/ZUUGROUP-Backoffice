@@ -174,9 +174,9 @@ export default function DocumentForm({
           )}
         </Section>
         <Section title="รายการสินค้า" open>
-          <div className="overflow-x-auto rounded-lg border border-[#e3e9f0]">
-            <table className="w-full min-w-[900px] border-collapse text-left text-sm poppins-regular text-[#344256]">
-              <thead className="bg-[#f8f9fb] text-xs text-[#65758b]">
+          <div className="rounded-lg border border-[#e3e9f0] md:overflow-x-auto">
+            <table className="block w-full border-collapse text-left text-sm poppins-regular text-[#344256] md:table md:min-w-[900px]">
+              <thead className="hidden bg-[#f8f9fb] text-xs text-[#65758b] md:table-header-group">
                 <tr>
                   <th scope="col" className="w-12 px-4 py-3 poppins-semibold">
                     #
@@ -198,13 +198,19 @@ export default function DocumentForm({
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="block md:table-row-group">
                 {lines.map((line, index) => {
                   const selected = product(line.productId);
                   return (
-                    <tr key={index} className="border-t border-[#edf0f4]">
-                      <td className="px-4 py-3 align-top pt-6">{index + 1}</td>
-                      <td className="px-4 py-3 align-top">
+                    <tr
+                      key={index}
+                      className="grid grid-cols-2 gap-3 border-t border-[#edf0f4] p-4 first:border-t-0 md:table-row md:p-0 md:first:border-t"
+                    >
+                      <td className="order-1 self-center md:table-cell md:px-4 md:py-3 md:pt-6 md:align-top">
+                        <span className="md:hidden">สินค้าที่ </span>
+                        {index + 1}
+                      </td>
+                      <td className="order-3 col-span-2 min-w-0 md:table-cell md:px-4 md:py-3 md:align-top">
                         <select
                           required
                           aria-label={`สินค้า ${index + 1}`}
@@ -225,7 +231,8 @@ export default function DocumentForm({
                           </p>
                         )}
                       </td>
-                      <td className="px-4 py-3 align-top">
+                      <td className="order-4 min-w-0 md:table-cell md:px-4 md:py-3 md:align-top">
+                        <span className="mb-1 block text-xs text-[#65758b] md:hidden">จำนวน</span>
                         <input
                           required
                           type="number"
@@ -237,7 +244,10 @@ export default function DocumentForm({
                           className={`${inputClass} text-right`}
                         />
                       </td>
-                      <td className="px-4 py-3 align-top">
+                      <td className="order-5 min-w-0 md:table-cell md:px-4 md:py-3 md:align-top">
+                        <span className="mb-1 block text-xs text-[#65758b] md:hidden">
+                          ส่วนลด (บาท)
+                        </span>
                         <input
                           type="number"
                           min="0"
@@ -248,10 +258,11 @@ export default function DocumentForm({
                           className={`${inputClass} text-right`}
                         />
                       </td>
-                      <td className="px-4 py-3 pt-6 text-right align-top poppins-medium">
+                      <td className="order-6 col-span-2 flex justify-between poppins-medium md:table-cell md:px-4 md:py-3 md:pt-6 md:text-right md:align-top">
+                        <span className="text-[#65758b] poppins-regular md:hidden">รวม (บาท)</span>
                         {money(lineTotal(priced[index]))}
                       </td>
-                      <td className="px-4 py-3 pt-4 text-right align-top">
+                      <td className="order-2 text-right md:table-cell md:px-4 md:py-3 md:pt-4 md:align-top">
                         <button
                           type="button"
                           aria-label={`ลบสินค้าบรรทัด ${index + 1}`}
@@ -332,12 +343,7 @@ export default function DocumentForm({
         </p>
       )}
       <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-[#d9e3ee] pt-5">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={onCancel}
-          className={secondaryButton}
-        >
+        <button type="button" disabled={busy} onClick={onCancel} className={secondaryButton}>
           ยกเลิก
         </button>
         <button type="submit" disabled={busy} className={primaryButton}>

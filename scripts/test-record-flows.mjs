@@ -164,6 +164,7 @@ function load(file) {
     crypto: { randomUUID },
     require(name) {
       if (name in stubs) return stubs[name];
+      if (name === 'node:crypto') return { randomUUID };
       const target = name.startsWith('@/')
         ? path.resolve('src', name.slice(2) + '.ts')
         : path.resolve(path.dirname(file), name + '.ts');

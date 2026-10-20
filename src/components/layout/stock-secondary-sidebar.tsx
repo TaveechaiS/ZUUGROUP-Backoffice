@@ -4,14 +4,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ADMIN_PAGES, getAdminPage } from '@/config/navigation';
 import SecondarySidebarFrame from '@/components/layout/secondary-sidebar-frame';
+import { canSeePage } from '@/config/access';
 
-export default function StockSecondarySidebar() {
+export default function StockSecondarySidebar({ roleId }: { roleId: string }) {
   const pathname = usePathname();
   const parentHref = '/products/stock';
   const page = getAdminPage(pathname);
   const pages = [
     { href: parentHref, label: 'รายงานสต็อก' },
-    ...ADMIN_PAGES.filter((item) => item.parentHref === parentHref),
+    ...ADMIN_PAGES.filter(
+      (item) => item.parentHref === parentHref && canSeePage(item.href, roleId),
+    ),
   ];
 
   return (

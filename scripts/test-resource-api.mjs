@@ -25,6 +25,7 @@ function loader(stubs) {
       require(name) {
         if (name in stubs) return stubs[name];
         if (name.startsWith('@/server/validation/')) return load('src/' + name.slice(2) + '.ts');
+        if (name.startsWith('./')) return load(path.resolve(path.dirname(file), name + '.ts'));
         throw new Error('Unexpected runtime dependency: ' + name);
       },
     });
@@ -173,6 +174,7 @@ const userLoad = loader({
   'node:crypto': { randomUUID: () => 'offline-request' },
   'next/server': { NextResponse: { json: Response.json } },
   '@/server/users/service': { getUserById: async () => target() },
+  '@/server/users/territory': { assignUserTerritory: async () => {} },
   '@/server/auth/api-authorization': { authorizeUserManagement: async () => ({ user: actor }) },
   '@/lib/supabase/admin': {
     hasSupabaseAdminKey: () => false,

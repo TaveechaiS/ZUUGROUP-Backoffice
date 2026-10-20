@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ADMIN_PAGES } from '@/config/navigation';
+import { canSeePage } from '@/config/access';
 import SecondarySidebarFrame from '@/components/layout/secondary-sidebar-frame';
 
 export default function CustomerSecondarySidebar({ roleId }: { roleId: string }) {
@@ -25,6 +26,7 @@ export default function CustomerSecondarySidebar({ roleId }: { roleId: string })
   const pages = ADMIN_PAGES.filter(
     (page) =>
       page.parentHref === '/customers' &&
+      canSeePage(page.href, roleId) &&
       (!['/customers/create', '/customers/requests'].includes(page.href) ||
         ['ADMIN', 'SALES', 'MANAGER'].includes(roleId)) &&
       (page.href !== '/customers/dashboard/create' ||

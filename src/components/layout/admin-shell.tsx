@@ -212,7 +212,7 @@ export function AdminShell({
         >
           <div className="flex min-w-0 flex-1 flex-col md:flex-row">
             {productSection && <ProductSecondarySidebar roleId={account?.roleId ?? ''} />}
-            {stockSection && <StockSecondarySidebar />}
+            {stockSection && <StockSecondarySidebar roleId={account?.roleId ?? ''} />}
             {customerSection && <CustomerSecondarySidebar roleId={account?.roleId ?? ''} />}
             {userSection && account?.roleId === 'ADMIN' && <UserSecondarySidebar />}
             {promotionSection && <PromotionSecondarySidebar roleId={account?.roleId ?? ''} />}

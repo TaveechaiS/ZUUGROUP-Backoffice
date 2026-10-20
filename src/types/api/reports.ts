@@ -17,6 +17,7 @@ export type DashboardTask = {
 
 export type Dashboard = {
   today: string;
+  mine: boolean;
   sales: {
     total: string;
     orders: number;

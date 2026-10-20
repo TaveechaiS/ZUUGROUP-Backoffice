@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
+import * as formClasses from '../src/components/ui/form-classes.ts';
 let values = [],
   cursor = 0,
   effectIndex = 0;
@@ -44,6 +45,8 @@ vm.runInNewContext(
     exports,
     Intl,
     Date,
+    URL,
+    URLSearchParams,
     AbortController,
     setTimeout(fn) {
       const i = ++timerId;
@@ -85,8 +88,11 @@ vm.runInNewContext(
             };
           },
         };
+      if (name === '@/components/ui/form-classes') return formClasses;
       if (name === 'next/link' || name.startsWith('@/components/ui/'))
         return { default: () => null };
+      if (name.startsWith('@/components/icons/'))
+        return new Proxy({}, { get: () => () => null });
       throw Error(name);
     },
   },

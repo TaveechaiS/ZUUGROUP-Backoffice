@@ -4,6 +4,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
 import path from 'node:path';
+import { Prisma as RealPrisma } from '../src/generated/prisma/client.ts';
 function load(file, modules = {}) {
   const exports = {};
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
@@ -14,9 +15,10 @@ function load(file, modules = {}) {
     require: (name) => {
       if (name === 'server-only') return {};
       if (name === 'node:crypto') return { randomUUID: () => 'unused' };
+      if (name === '@/generated/prisma/client' && !(name in modules)) return { Prisma: RealPrisma };
       if (name.startsWith('@/server/validation/'))
         return load('src/' + name.slice(2) + '.ts', modules);
-      if (name.startsWith('.') && file.includes('validation'))
+      if (name.startsWith('.') && /validation|territory-sales/.test(file + name))
         return load(path.resolve(path.dirname(file), name + '.ts'), modules);
       if (!(name in modules)) throw new Error('Unexpected import: ' + name);
       return modules[name];
@@ -65,6 +67,8 @@ let userFixture = {
   deletedAt: instant,
   deletedByUser: { name: 'ผู้ลบ', employeeCode: 'EMP-001' },
   deleteReason: 'เหตุผล',
+  territorySalesMemberships: [],
+  managedTerritories: [],
 };
 let auditFixture = {
   id: fixture.id,

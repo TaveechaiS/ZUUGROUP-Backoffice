@@ -136,7 +136,7 @@ try {
         เงื่อนไขการสั่งจ่าย: 'Test condition',
       };
       for (const [label, kind] of Object.entries(
-        load('src/types/api/product-full.ts').PRODUCT_OPTION_FIELDS,
+        load('src/config/products.ts').PRODUCT_OPTION_FIELDS,
       ))
         fields[label] = pick(kind).id;
       const png = Buffer.from(
@@ -294,7 +294,7 @@ try {
         );
         await tx.$executeRaw`UPDATE product_options SET active=true WHERE id=${fields['กลุ่มรหัส']}::uuid`;
         const row = await tx.product.findUnique({ where: { id: product.id } });
-        for (const label of load('src/types/api/product-full.ts').PRODUCT_TEXT_FIELDS)
+        for (const label of load('src/config/products.ts').PRODUCT_TEXT_FIELDS)
           assert.equal(row.details.fields[label], fields[label] ?? '');
         assert.ok(!('ราคาต้นทุน' in row.details.fields));
         assert.ok(!('ภาษี' in row.details.fields));
@@ -415,7 +415,7 @@ try {
         assert.notEqual(after.version, before.version);
         assert.equal(after.unit, unit.name);
         assert.equal(after.salePrice, '88.50');
-        for (const label of load('src/types/api/product-full.ts').PRODUCT_TEXT_FIELDS)
+        for (const label of load('src/config/products.ts').PRODUCT_TEXT_FIELDS)
           assert.equal(after.details.fields[label], editFields[label]);
         assert.deepEqual(
           [...after.details.files.map((f) => f.id)].sort(),
