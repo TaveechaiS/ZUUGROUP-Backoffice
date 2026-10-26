@@ -35,7 +35,7 @@ const OPEN_QUOTES = ['รออนุมัติ', 'ส่งกลับแก
 
 const money = (value: Prisma.Sql) => Prisma.sql`COALESCE(${value},0)::numeric(14,2)::text`;
 const open = Prisma.sql`i.deleted_at IS NULL AND i.status IN ('ค้างชำระ','ชำระบางส่วน')`;
-const uninvoiced = Prisma.sql`o.deleted_at IS NULL AND o.workflow_managed AND o.status='เสร็จสิ้น' AND NOT EXISTS (SELECT 1 FROM invoices x WHERE x.sales_order_id=o.id AND x.status<>'ยกเลิก' AND x.deleted_at IS NULL)`;
+export const uninvoiced = Prisma.sql`o.deleted_at IS NULL AND o.workflow_managed AND o.status='เสร็จสิ้น' AND NOT EXISTS (SELECT 1 FROM invoices x WHERE x.sales_order_id=o.id AND x.status<>'ยกเลิก' AND x.deleted_at IS NULL)`;
 const openPurchase = Prisma.sql`po.deleted_at IS NULL AND po.status IN ('รอรับสินค้า','รับบางส่วน')`;
 const completed = Prisma.sql`(SELECT o.id,(SELECT (max(m.occurred_at) AT TIME ZONE 'Asia/Bangkok')::date FROM stock_movements m WHERE m.source_id=o.id AND m.kind='ขาย') AS sold_on FROM sales_orders o WHERE o.deleted_at IS NULL AND o.workflow_managed AND o.status='เสร็จสิ้น') d`;
 const owed = Prisma.sql`(SELECT i.customer_id,sum(i.amount-${paid}) AS amount FROM invoices i WHERE ${open} GROUP BY i.customer_id) w`;

@@ -243,7 +243,10 @@ export function TaskList({ tasks }: { tasks: DashboardTask[] }) {
             href={task.href}
             className="flex items-center justify-between gap-3 rounded-lg border border-[#e3e9f0] px-4 py-3 transition hover:border-[#1a58a7] hover:bg-[#f7f9fc]"
           >
-            <span className="text-sm text-[#344256]">{task.label}</span>
+            <span className="grid min-w-0 gap-0.5">
+              <span className="text-sm text-[#344256]">{task.label}</span>
+              {task.hint && <span className="text-xs text-[#718096]">{task.hint}</span>}
+            </span>
             <span
               className={`min-w-9 rounded-full px-2.5 py-0.5 text-center text-sm poppins-semibold ${task.count ? taskTones[task.tone] : 'bg-slate-50 text-slate-500'}`}
             >

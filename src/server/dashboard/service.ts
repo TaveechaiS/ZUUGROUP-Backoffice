@@ -7,11 +7,14 @@ import type { Actor } from '@/server/operations/service';
 import { paid } from '@/server/reports/finance';
 import { EXPIRY_DAYS, LOW_STOCK, stockByProduct } from '@/server/reports/inventory';
 import { sold } from '@/server/reports/sales';
+import { uninvoiced } from './admin';
 import type { Dashboard, DashboardExpiringLot, DashboardTask } from '@/types/api/reports';
 import { dashboardSections } from './sections';
 
 const QUOTE_PENDING = 'รออนุมัติ';
 const QUOTE_EXPIRY_DAYS = 7;
+const APPROVAL_LATE_DAYS = 2;
+const DUE_SOON_DAYS = 7;
 
 export async function dashboardData(actor: Actor): Promise<Dashboard> {
   const today = bangkokDay();
@@ -21,6 +24,8 @@ export async function dashboardData(actor: Actor): Promise<Dashboard> {
   const trendStart = addMonths(monthStart, -11);
   const sections = dashboardSections(actor.roleId);
   const mine = actor.roleId === 'SALES';
+  const manager = actor.roleId === 'MANAGER';
+  const cfo = actor.roleId === 'ACCOUNTING_CFO';
   const own = (alias: string) =>
     mine
       ? Prisma.sql`AND ${Prisma.raw(alias)}.created_by_id=${actor.id}::uuid`
@@ -67,11 +72,16 @@ export async function dashboardData(actor: Actor): Promise<Dashboard> {
           const [received] = await tx.$queryRaw<{ amount: string; count: number }[]>(
             Prisma.sql`SELECT COALESCE(sum(p.amount),0)::numeric(14,2)::text AS amount,count(*)::int AS count FROM invoice_payments p WHERE p.voided_at IS NULL AND p.paid_on BETWEEN ${monthStart}::date AND ${today}::date`,
           );
+          const [spent] = await tx.$queryRaw<{ amount: string; count: number }[]>(
+            Prisma.sql`SELECT COALESCE(sum(e.amount),0)::numeric(14,2)::text AS amount,count(*)::int AS count FROM expenses e WHERE e.deleted_at IS NULL AND e.status='บันทึกแล้ว' AND e.expense_date BETWEEN ${monthStart}::date AND ${today}::date`,
+          );
           const { current, d30, d60, d90, over90, ...totals } = debt;
           finance = {
             ...totals,
             receivedThisMonth: received.amount,
             paymentsThisMonth: received.count,
+            expensesThisMonth: spent.amount,
+            expenseCount: spent.count,
             aging: { current, d30, d60, d90, over90 },
           };
         }
@@ -185,6 +195,54 @@ export async function dashboardData(actor: Actor): Promise<Dashboard> {
             },
           );
         }
+        let team: Dashboard['team'] = null;
+        if (manager) {
+          const waiting = await tx.$queryRaw<
+            { kind: string; count: number; age: number | null; late: number }[]
+          >(
+            Prisma.sql`SELECT kind,count(*)::int AS count,round(avg(age),1)::float8 AS age,count(*) FILTER (WHERE age>${APPROVAL_LATE_DAYS})::int AS late FROM (SELECT 'orders'::text AS kind,${today}::date-(o.updated_at AT TIME ZONE 'Asia/Bangkok')::date AS age FROM sales_orders o WHERE o.deleted_at IS NULL AND o.workflow_managed AND o.status='รอตรวจ' UNION ALL SELECT 'quotes',${today}::date-(q.updated_at AT TIME ZONE 'Asia/Bangkok')::date FROM quotations q WHERE q.deleted_at IS NULL AND q.status=${QUOTE_PENDING}) w GROUP BY kind`,
+          );
+          const pending = (kind: string) =>
+            waiting.find((row) => row.kind === kind) ?? { count: 0, age: null, late: 0 };
+          const hint = (row: { age: number | null; late: number }) =>
+            row.age === null
+              ? undefined
+              : `รอเฉลี่ย ${row.age.toLocaleString('th-TH')} วัน${row.late ? ` · เกิน ${APPROVAL_LATE_DAYS} วัน ${row.late.toLocaleString('th-TH')} ใบ` : ''}`;
+          const orders = pending('orders');
+          const quotes = pending('quotes');
+          const quoteTask = tasks.find((task) => task.key === 'quotes')!;
+          Object.assign(quoteTask, {
+            count: quotes.count,
+            href: '/quotes?status=' + encodeURIComponent(QUOTE_PENDING),
+            tone: quotes.late ? 'danger' : 'warning',
+            hint: hint(quotes),
+          });
+          tasks.unshift({
+            key: 'ordersPending',
+            label: 'คำสั่งซื้อรออนุมัติ',
+            count: orders.count,
+            href: '/orders?status=' + encodeURIComponent('รอตรวจ'),
+            tone: orders.late ? 'danger' : 'warning',
+            hint: hint(orders),
+          });
+          const sellers = await tx.$queryRaw<NonNullable<Dashboard['team']>['sellers']>(
+            Prisma.sql`SELECT COALESCE(s.created_by_id::text,'') AS id,COALESCE(max(u.name),'-') AS name,count(DISTINCT s.order_id)::int AS orders,sum(s.total)::numeric(14,2)::text AS total FROM ${sold} LEFT JOIN users u ON u.id=s.created_by_id WHERE s.sold_on BETWEEN ${monthStart}::date AND ${today}::date GROUP BY s.created_by_id ORDER BY sum(s.total) DESC,s.created_by_id LIMIT 5`,
+          );
+          const territories = await tx.$queryRaw<NonNullable<Dashboard['team']>['territories']>(
+            Prisma.sql`SELECT COALESCE(t.id::text,'') AS id,COALESCE(max(t.name),'ยังไม่กำหนดเขต') AS name,count(DISTINCT s.order_id)::int AS orders,sum(s.total)::numeric(14,2)::text AS total FROM ${sold} LEFT JOIN customers c ON c.id=s.customer_id LEFT JOIN sales_territories t ON t.id=c.territory_id WHERE s.sold_on BETWEEN ${monthStart}::date AND ${today}::date GROUP BY t.id ORDER BY sum(s.total) DESC,t.id`,
+          );
+          const [returned] = await tx.$queryRaw<{ n: number }[]>(
+            Prisma.sql`SELECT count(*)::int AS n FROM customer_create_requests r WHERE r.status='returned' AND r.actor_id=${actor.id}::uuid`,
+          );
+          tasks.push({
+            key: 'requestsReturned',
+            label: 'คำขอเพิ่มลูกค้าถูกส่งกลับแก้ไข',
+            count: returned.n,
+            href: '/customers/requests',
+            tone: 'danger',
+          });
+          team = { sellers, territories };
+        }
         if (sections.customerRequests)
           tasks.push({
             key: 'requests',
@@ -202,6 +260,32 @@ export async function dashboardData(actor: Actor): Promise<Dashboard> {
             tone: 'danger',
           });
 
+        if (cfo) {
+          const [work] = await tx.$queryRaw<{ uninvoiced: number; dueSoon: number }[]>(
+            Prisma.sql`SELECT (SELECT count(*)::int FROM sales_orders o WHERE ${uninvoiced}) AS uninvoiced,(SELECT count(*)::int FROM invoices i WHERE i.deleted_at IS NULL AND i.status IN ('ค้างชำระ','ชำระบางส่วน') AND i.due_date BETWEEN ${today}::date AND ${addDays(today, DUE_SOON_DAYS)}::date) AS "dueSoon"`,
+          );
+          const keep = tasks.filter((task) => task.key === 'overdue');
+          tasks.splice(
+            0,
+            tasks.length,
+            {
+              key: 'uninvoiced',
+              label: 'คำสั่งซื้อเสร็จสิ้นที่ยังไม่วางบิล',
+              count: work.uninvoiced,
+              href: '/billing/create',
+              tone: 'warning',
+            },
+            ...keep,
+            {
+              key: 'dueSoon',
+              label: `ใบแจ้งหนี้ครบกำหนดภายใน ${DUE_SOON_DAYS} วัน`,
+              count: work.dueSoon,
+              href: '/billing',
+              tone: 'info',
+            },
+          );
+        }
+
         const activity = await tx.$queryRaw<
           {
             id: string;
@@ -218,6 +302,8 @@ export async function dashboardData(actor: Actor): Promise<Dashboard> {
         return {
           today,
           mine,
+          cfo,
+          team,
           sales: {
             total: month.total,
             orders: month.orders,

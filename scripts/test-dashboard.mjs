@@ -71,6 +71,7 @@ try {
       const { dashboardSections } = load('src/server/dashboard/sections.ts');
       const { salesReport } = load('src/server/reports/sales.ts');
       const { financeReport } = load('src/server/reports/finance.ts');
+      const { billingRead } = load('src/server/billing/service.ts');
       const { GET } = load('src/app/api/dashboard/route.ts');
       const { bangkokDay } = load('src/server/operations/domain.ts');
       const today = bangkokDay();
@@ -162,6 +163,48 @@ try {
           await tx.$queryRaw`SELECT count(*)::int AS n FROM sales_orders o WHERE o.deleted_at IS NULL AND o.workflow_managed AND o.status='รอตรวจ' AND o.created_by_id=${salesActor.id}::uuid`;
         assert.equal(data.tasks.find((t) => t.key === 'ordersWaiting').count, own.n);
         assert.equal((await dashboardData(adminActor)).mine, false);
+      });
+
+      await test('manager dashboard shows approvals and team sales matching sellers report', async () => {
+        const managerActor = { ...adminActor, roleId: 'MANAGER' };
+        const data = await dashboardData(managerActor);
+        assert.equal(data.mine, false);
+        assert.ok(data.team);
+        assert.equal(data.tasks[0].key, 'ordersPending');
+        assert.ok(data.tasks[0].href.startsWith('/orders?status='));
+        const [waiting] =
+          await tx.$queryRaw`SELECT count(*)::int AS n FROM sales_orders o WHERE o.deleted_at IS NULL AND o.workflow_managed AND o.status='รอตรวจ'`;
+        assert.equal(data.tasks[0].count, waiting.n);
+        const [quotes] =
+          await tx.$queryRaw`SELECT count(*)::int AS n FROM quotations q WHERE q.deleted_at IS NULL AND q.status='รออนุมัติ'`;
+        assert.equal(data.tasks.find((t) => t.key === 'quotes').count, quotes.n);
+        const sellers = await salesReport(managerActor, 'sellers', month);
+        const top = [...sellers.data].sort((a, b) => Number(b.total) - Number(a.total)).slice(0, 5);
+        assert.deepEqual(
+          data.team.sellers.map((r) => r.total),
+          top.map((r) => r.total),
+        );
+        assert.equal(
+          data.team.territories.reduce((n, r) => n + Number(r.total), 0).toFixed(2),
+          Number(data.sales.total).toFixed(2),
+        );
+        assert.ok(data.tasks.some((t) => t.key === 'requestsReturned'));
+        assert.ok(!data.tasks.some((t) => t.key === 'requests'));
+        assert.equal((await dashboardData(salesActor)).team, null);
+      });
+
+      await test('cfo dashboard shows billing work, expenses and no sales approvals', async () => {
+        const cfoActor = { ...adminActor, roleId: 'ACCOUNTING_CFO' };
+        const data = await dashboardData(cfoActor);
+        assert.equal(data.cfo, true);
+        assert.equal(data.team, null);
+        assert.deepEqual([...data.tasks.map((t) => t.key)], ['uninvoiced', 'overdue', 'dueSoon']);
+        const pending = await billingRead(cfoActor, new URLSearchParams({ view: 'uninvoiced' }));
+        if (pending.data.length < 200) assert.equal(data.tasks[0].count, pending.data.length);
+        assert.equal(data.tasks[1].count, data.finance.overdueInvoices);
+        const expenses = await financeReport(cfoActor, 'expenses', month);
+        assert.equal(data.finance.expensesThisMonth, expenses.totalAmount);
+        assert.equal((await dashboardData(adminActor)).cfo, false);
       });
 
       await test('route returns 401 without login and data with login', async () => {

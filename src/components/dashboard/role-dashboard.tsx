@@ -40,6 +40,7 @@ const icons = {
   received: 'M12 3v12m0 0-4-4m4 4 4-4M4 21h16',
   tasks: 'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',
   late: 'M12 8v4l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+  expense: 'M12 21V9m0 0-4 4m4-4 4 4M4 3h16',
 };
 
 function percentChange(current: string, previous: string) {
@@ -94,7 +95,13 @@ export default function RoleDashboard() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="m-0 text-xl poppins-semibold text-[#26364b]">
-            {data.mine ? 'งานของฉัน' : 'ภาพรวมระบบ'}
+            {data.mine
+              ? 'งานของฉัน'
+              : data.team
+                ? 'ทีมของฉัน'
+                : data.cfo
+                  ? 'งานการเงิน'
+                  : 'ภาพรวมระบบ'}
           </h2>
           <p className="m-0 mt-1 text-sm text-[#718096]">ข้อมูล ณ วันที่ {thaiDay(data.today)}</p>
         </div>
@@ -107,7 +114,7 @@ export default function RoleDashboard() {
         </button>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={`grid gap-4 sm:grid-cols-2 ${finance ? 'xl:grid-cols-5' : 'xl:grid-cols-4'}`}>
         <StatCard
           label={data.mine ? 'ยอดขายของฉันเดือนนี้' : 'ยอดคำสั่งซื้อเสร็จสิ้นเดือนนี้'}
           value={money(sales.total)}
@@ -146,6 +153,15 @@ export default function RoleDashboard() {
               tone="emerald"
               icon={<Icon d={icons.received} />}
               href="/billing"
+            />
+            <StatCard
+              label="ค่าใช้จ่ายเดือนนี้"
+              value={money(finance.expensesThisMonth)}
+              unit="บาท"
+              hint={`${finance.expenseCount.toLocaleString('th-TH')} รายการ`}
+              tone="orange"
+              icon={<Icon d={icons.expense} />}
+              href="/reports/finance/expenses"
             />
           </>
         ) : (
@@ -216,6 +232,38 @@ export default function RoleDashboard() {
           />
         </Card>
       </div>
+
+      {data.team && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card
+            title="ยอดขายเดือนนี้ตามคนขาย"
+            action={<CardLink href="/reports/sales/sellers">ดูรายงาน</CardLink>}
+          >
+            <RankList
+              rows={data.team.sellers.map((row) => ({
+                id: row.id,
+                name: row.name,
+                total: row.total,
+                detail: `${row.orders.toLocaleString('th-TH')} คำสั่งซื้อ`,
+              }))}
+              empty="ยังไม่มียอดขายเดือนนี้"
+              onRefresh={reload}
+            />
+          </Card>
+          <Card title="ยอดขายเดือนนี้ตามเขต">
+            <RankList
+              rows={data.team.territories.map((row) => ({
+                id: row.id,
+                name: row.name,
+                total: row.total,
+                detail: `${row.orders.toLocaleString('th-TH')} คำสั่งซื้อ`,
+              }))}
+              empty="ยังไม่มียอดขายเดือนนี้"
+              onRefresh={reload}
+            />
+          </Card>
+        </div>
+      )}
 
       {inventory && (
         <div className="grid gap-4 lg:grid-cols-2">

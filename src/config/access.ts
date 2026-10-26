@@ -14,6 +14,11 @@ export const PAGE_ROLES: Record<string, string[]> = {
   '/customers/groups/create': ['ADMIN'],
   '/customers/territories/create': ['ADMIN'],
   '/billing/create': ['ADMIN', 'ACCOUNTING_CFO'],
+  '/quotes/create': ['ADMIN', 'SALES'],
+  '/customers/create': ['ADMIN', 'SALES', 'MANAGER'],
+  '/customers/requests': ['ADMIN', 'SALES', 'MANAGER'],
+  '/customers/dashboard/create': ['ADMIN', 'SALES', 'MANAGER'],
+  '/orders/create': ['ADMIN', 'SALES'],
 };
 
 export function canSeePage(href: string, roleId: string) {

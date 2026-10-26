@@ -1,7 +1,7 @@
 'use client';
 import DateRangeInput from '@/components/ui/date-range-input';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SortableTable, { useTableSort, withTableSort } from '@/components/ui/sortable-table';
 import PaginationControls from '@/components/ui/pagination-controls';
@@ -21,10 +21,19 @@ const cellClass = 'px-4 py-3';
 const ALL = '';
 type QuotePage = BaseQuotePage & { filters?: SalesFilterOptions };
 
-export default function Page() {
+export default function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string | string[] }>;
+}) {
+  const initialStatus = use(searchParams).status;
   const router = useRouter();
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState(ALL);
+  const [status, setStatus] = useState(
+    (QUOTE_DISPLAY_STATUSES as readonly string[]).includes(String(initialStatus))
+      ? String(initialStatus)
+      : ALL,
+  );
   const [territoryId, setTerritoryId] = useState('');
   const [sellerId, setSellerId] = useState('');
   const [from, setFrom] = useState('');

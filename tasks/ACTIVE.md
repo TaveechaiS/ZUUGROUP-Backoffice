@@ -1,5 +1,13 @@
 # งานที่กำลังทำ
 
+## TASK-312 — ปรับระบบสำหรับ Role CFO — 2026-10-26
+
+- IMPLEMENTED / WAITING_FOR_UAT: test-cfo-role ใหม่ + test-dashboard CFO. ขอบเขต access.ts (หน้าลูกค้าที่ CFO ใช้ไม่ได้), แดชบอร์ดงานการเงิน (ยังไม่วางบิล, เกินกำหนด, ครบกำหนด ≤7 วัน, ค่าใช้จ่ายเดือนนี้; ตัดงานใบเสนอราคา/ติดตาม). ไม่แตะสิทธิ์ข้อมูลเดิม.
+
+## TASK-311 — ปรับระบบสำหรับ Role Manager — 2026-10-20
+
+- IMPLEMENTED / WAITING_FOR_UAT: access.ts ซ่อน /quotes/create /orders/create จาก Manager/CFO; แดชบอร์ดทีมของฉัน (task hint อายุรอ, ยอดตามคนขาย/เขต); /orders /quotes อ่าน ?status=; test-manager-role ใหม่ + test-dashboard. ขอบเขตเดิม: เมนู/ปุ่มที่ Manager ใช้ไม่ได้, แดชบอร์ดทีมของฉัน (ทั้งบริษัท; คำสั่งซื้อ/ใบเสนอราคารออนุมัติ, เกิน 2 วันสีแดง, ยอดแยกคนขาย/เขต), ?status= ในหน้า /orders /quotes. ไม่แตะสิทธิ์ข้อมูลเดิม.
+
 ## TASK-309 — เลิกใช้ seed ชุดเก่า อิงข้อมูลปัจจุบัน — 2026-10-20
 
 - IMPLEMENTED: ตรวจก่อนลบ พบว่าสินค้า 12 รายการ (SEED149) และลูกค้า 15 รายที่ DEMO ใช้มาจาก seed-product-stock-demo/seed-customer-demo จึงเก็บไว้; ลบเฉพาะ seed TASK-052/076 ที่ไม่มีใครใช้ + test-business-seed + verify:seed/seed:records; verify-product-stock-demo ปรับตามกฎปัจจุบัน (MAIN แสดงสินค้า 0, มียอดจอง). snapshot TASK-076 เป็นไฟล์เฉพาะเครื่องนอก git ไม่ได้ลบ.

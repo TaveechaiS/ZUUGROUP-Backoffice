@@ -13,11 +13,17 @@ export type DashboardTask = {
   count: number;
   href: string;
   tone: 'info' | 'warning' | 'danger';
+  hint?: string;
 };
 
 export type Dashboard = {
   today: string;
   mine: boolean;
+  cfo: boolean;
+  team: {
+    sellers: { id: string; name: string; orders: number; total: string }[];
+    territories: { id: string; name: string; orders: number; total: string }[];
+  } | null;
   sales: {
     total: string;
     orders: number;
@@ -33,6 +39,8 @@ export type Dashboard = {
     overdueInvoices: number;
     receivedThisMonth: string;
     paymentsThisMonth: number;
+    expensesThisMonth: string;
+    expenseCount: number;
     aging: { current: string; d30: string; d60: string; d90: string; over90: string };
   } | null;
   inventory: {
