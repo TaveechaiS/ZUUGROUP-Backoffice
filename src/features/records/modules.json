@@ -1,0 +1,856 @@
+[
+  {
+    "key": "customers",
+    "model": "Customer",
+    "table": "customers",
+    "page": "/customers",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "category",
+        "label": "กลุ่มลูกค้า",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "province",
+        "label": "จังหวัด",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "paymentTerms",
+        "label": "เงื่อนไขชำระเงิน",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "territoryId",
+        "label": "เขตขาย",
+        "type": "relation",
+        "relation": "sales-territories",
+        "required": true
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": ["category", "province", "owner", "paymentTerms"],
+    "title": "ลูกค้า",
+    "action": "เพิ่มลูกค้า",
+    "columns": ["ชื่อลูกค้า", "ประเภท / จังหวัด", "ผู้ดูแล", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "customer-groups",
+    "model": "CustomerGroup",
+    "table": "customer_groups",
+    "page": "/customers/groups",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "category",
+        "label": "ประเภทกลุ่ม",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "description",
+        "label": "คำอธิบาย",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": ["category", "description", "owner", null],
+    "title": "กลุ่มลูกค้า",
+    "action": "เพิ่มกลุ่มลูกค้า",
+    "columns": ["ชื่อกลุ่ม", "คำอธิบาย", "จำนวนลูกค้า", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "sales-territories",
+    "model": "SalesTerritory",
+    "table": "sales_territories",
+    "page": "/customers/territories",
+    "fields": [
+      {
+        "key": "managerId",
+        "label": "ผู้จัดการ (Manager)",
+        "type": "relation",
+        "relation": "users",
+        "required": false
+      },
+      {
+        "key": "salesId",
+        "label": "ฝ่ายขาย (Sales)",
+        "type": "relation",
+        "relation": "users",
+        "required": false
+      },
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "area",
+        "label": "พื้นที่ดูแล",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": ["area", null, "owner", null],
+    "title": "เขตและผู้แทนขาย",
+    "action": "เพิ่มเขต",
+    "columns": ["เขต / ผู้แทน", "พื้นที่ดูแล", "ลูกค้า", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "customer-documents",
+    "model": "CustomerDocument",
+    "table": "customer_documents",
+    "page": "/customers/documents",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "customerId",
+        "label": "ลูกค้า",
+        "type": "relation",
+        "relation": "customers",
+        "required": false
+      },
+      {
+        "key": "documentType",
+        "label": "ประเภทเอกสาร",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "dateText",
+        "label": "วันที่ตามเอกสาร",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "fileUrl",
+        "label": "ลิงก์ไฟล์",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": ["documentType", null, "owner", "dateText"],
+    "title": "เอกสารลูกค้า",
+    "action": "เพิ่มเอกสารลูกค้า",
+    "columns": ["ลูกค้า / เอกสาร", "ประเภท / วันที่", "ผู้ดูแล", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "customer-follow-ups",
+    "model": "CustomerFollowUp",
+    "table": "customer_follow_ups",
+    "page": "/customers/dashboard",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "customerId",
+        "label": "ลูกค้า",
+        "type": "relation",
+        "relation": "customers",
+        "required": false
+      },
+      {
+        "key": "category",
+        "label": "ประเภทลูกค้า",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "province",
+        "label": "จังหวัด",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "followUpText",
+        "label": "งานติดตาม",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": ["category", "province", "owner", "followUpText"],
+    "title": "ภาพรวมลูกค้า",
+    "action": "เพิ่มรายการติดตาม",
+    "columns": ["ลูกค้าติดตาม", "ประเภท / จังหวัด", "ผู้ดูแล", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "expenses",
+    "model": "Expense",
+    "table": "expenses",
+    "page": "/expenses",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "category",
+        "label": "หมวดค่าใช้จ่าย",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "description",
+        "label": "รายละเอียด",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "amount",
+        "label": "จำนวนเงิน",
+        "type": "number",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": ["category", "description", "owner", "amount"],
+    "title": "ค่าใช้จ่าย",
+    "action": "เพิ่มค่าใช้จ่าย",
+    "columns": ["รายการ / หมวด", "วันที่ / เอกสาร", "ผู้บันทึก", "ยอดเงิน / สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "purchases",
+    "model": "PurchaseOrder",
+    "table": "purchase_orders",
+    "page": "/purchases",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "supplierId",
+        "label": "ผู้ขาย",
+        "type": "relation",
+        "relation": "suppliers",
+        "required": false
+      },
+      {
+        "key": "description",
+        "label": "รายละเอียด",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "amount",
+        "label": "จำนวนเงิน",
+        "type": "number",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": [null, "description", "owner", "amount"],
+    "title": "จัดซื้อและรับเข้าสินค้า",
+    "action": "สร้างใบสั่งซื้อ",
+    "columns": ["เลขที่ / ผู้ขาย", "วันที่ / กำหนดรับ", "ผู้ทำรายการ", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "quotes",
+    "model": "Quotation",
+    "table": "quotations",
+    "page": "/quotes",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "customerId",
+        "label": "ลูกค้า",
+        "type": "relation",
+        "relation": "customers",
+        "required": false
+      },
+      {
+        "key": "description",
+        "label": "รายละเอียด",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "amount",
+        "label": "จำนวนเงิน",
+        "type": "number",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": [null, "description", "owner", "amount"],
+    "title": "ใบเสนอราคา",
+    "action": "สร้างใบเสนอราคา",
+    "columns": ["เลขที่ / ลูกค้า", "วันที่ / ผู้ดูแล", "จำนวนรายการ", "ยอด / สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "orders",
+    "model": "SalesOrder",
+    "table": "sales_orders",
+    "page": "/orders",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "customerId",
+        "label": "ลูกค้า",
+        "type": "relation",
+        "relation": "customers",
+        "required": false
+      },
+      {
+        "key": "description",
+        "label": "รายละเอียด",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "amount",
+        "label": "จำนวนเงิน",
+        "type": "number",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": [null, "description", "owner", "amount"],
+    "title": "คำสั่งซื้อและจัดส่ง",
+    "action": "สร้างคำสั่งซื้อ",
+    "columns": ["เลขที่ / ลูกค้า", "วันที่ / กำหนดส่ง", "ผู้ดูแล", "ยอด / สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "billing",
+    "model": "Invoice",
+    "table": "invoices",
+    "page": "/billing",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "customerId",
+        "label": "ลูกค้า",
+        "type": "relation",
+        "relation": "customers",
+        "required": false
+      },
+      {
+        "key": "dueText",
+        "label": "ข้อความครบกำหนด",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "amount",
+        "label": "ยอดหัวเอกสาร",
+        "type": "number",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": [null, "dueText", "owner", "amount"],
+    "title": "วางบิลและลูกหนี้",
+    "action": "เพิ่มรายการวางบิล",
+    "columns": ["เลขที่ / ลูกค้า", "ครบกำหนด / อายุหนี้", "ผู้ดูแล", "ยอดคงค้าง"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "promotions",
+    "model": "Promotion",
+    "table": "promotions",
+    "page": "/promotions",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "category",
+        "label": "ประเภท",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "description",
+        "label": "รายละเอียด",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "conditions",
+        "label": "เงื่อนไข",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": ["category", "description", "owner", "conditions"],
+    "title": "โปรโมชันและของแถม",
+    "action": "สร้างโปรโมชัน",
+    "columns": ["ชื่อโปรโมชัน", "ช่วงเวลา / กลุ่มสินค้า", "ผู้สร้าง", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "stock-counts",
+    "model": "StockCountSession",
+    "table": "stock_count_sessions",
+    "page": "/stock-counts",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "warehouseId",
+        "label": "คลัง",
+        "type": "relation",
+        "relation": "warehouses",
+        "required": false
+      },
+      {
+        "key": "description",
+        "label": "รายละเอียด",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "resultText",
+        "label": "ผลตรวจนับตามบันทึก",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": [null, "description", "owner", "resultText"],
+    "title": "ตรวจนับสินค้า",
+    "action": "เพิ่มใบบันทึกตรวจนับ",
+    "columns": ["ใบนับ / คลัง", "วันที่ / ผู้บันทึก", "รายการ", "สถานะ"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  },
+  {
+    "key": "settings",
+    "model": "SystemSetting",
+    "table": "system_settings",
+    "page": "/settings",
+    "fields": [
+      {
+        "key": "code",
+        "label": "รหัส / เลขอ้างอิง",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "name",
+        "label": "ชื่อ / หัวข้อ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "status",
+        "label": "สถานะ",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "category",
+        "label": "หมวดตั้งค่า",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "description",
+        "label": "คำอธิบาย",
+        "type": "textarea",
+        "required": false
+      },
+      {
+        "key": "owner",
+        "label": "ผู้ดูแล / ผู้บันทึก",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "value",
+        "label": "ค่า",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "notes",
+        "label": "หมายเหตุ",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "display": ["category", "description", "owner", "value"],
+    "title": "ตั้งค่าระบบ",
+    "action": "เพิ่มรายการตั้งค่า",
+    "columns": ["การตั้งค่า", "หมวด", "ผู้แก้ไข", "ค่าที่บันทึก"],
+    "tabs": ["ทั้งหมด"],
+    "filters": ["ทุกหมวด"],
+    "eyebrow": "",
+    "description": ""
+  }
+]

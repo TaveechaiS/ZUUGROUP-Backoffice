@@ -1,6 +1,2 @@
-import { ModuleListPage } from '@/components/pages/module-list-page';
-import { mockData } from './data';
-
-export default function Page() {
-  return <ModuleListPage href="/customers/groups" config={mockData} />;
-}
+import { redirect } from 'next/navigation';
+export default function Page() { redirect('/customers'); }

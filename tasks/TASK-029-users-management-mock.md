@@ -1,6 +1,6 @@
 # TASK-029 — เว็บ Mock สำหรับนำเสนอ (ทุกเมนู)
 
-**สถานะ:** READY_FOR_USER_TEST
+**สถานะ:** DONE — ผู้ใช้ยืนยันผ่านเมื่อ 2026-09-30
 **Phase:** งาน UI Mock เพื่อนำเสนอ (ไม่ใช่งานระบบจริง)
 **Specs:** [Project Specs §22.4](../docs/specs/2026-09-23-1550-project-specs.md)
 **Plan:** [แผนย่อย TASK-029](../docs/plans/2026-09-25-users-management-mock-plan.md)

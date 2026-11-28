@@ -1,0 +1,9 @@
+
+# TASK-235 — มาตรฐานLoading/NotFound — 6 ตุลาคม 2569
+
+APPROVED: docs/AGENTS/guide → inventoryหน้าข้อมูล → territory/list/detail+product-optionscontentLoading/empty → product/user/audit/order/stock/dashboard empty → genericrecordsdetailAPI404/linkedemptyและrootnot-foundสำหรับSSR → statechecksloading/empty/error/retryและscopedlint/type/build. ScopepathsตามACTIVEและTask235 คงbackend/DB/form/roles. ตรวจรับโหลดใช้componentกลาง ไม่พบข้อมูลหลังโหลดใช้NotFound และAPIerrorไม่แสดงempty. หน้าที่มีอยู่แล้วคงเดิม; หน้าตัวอย่างไม่fetchไม่เพิ่มfakeLoading.
+ผล TASK-235: IMPLEMENTED / WAITING_FOR_UAT. ตารางเขตและproduct-optionsใช้contentLoadingในrelative/min-h-80และNotFoundเมื่อemptyหลังโหลด. เติมemptyกลางให้products/users/audit/stock/orders/dashboardเอกสารล่าสุดและประวัติ/ล็อตสินค้า; CSRdetailgeneric11หน้ากับเขต/คำสั่งซื้อ/receiptแยกAPI404เป็นNotFoundไม่แทนerrorอื่น. rootnot-foundกลางรองรับSSRusers/productlayoutsที่thrownotFound; rootloadingเดิมรองรับSSR. กติกาถาวรAGENTSข้อ15อยู่นอกgeneratedNextblockและDATA-STATES-GUIDE. ข้อความอธิบายธุรกิจ/Comboboxและหน้าตัวอย่างไม่มีfetchคงเดิม ไม่เพิ่มfakeLoading.
+
+ตรวจผ่าน scopedESLint/type/build/diff, route77, actualUIloading/empty/error guards/404vs403/503/row/payload/lock/errorDraft, productedit regressionprefill/retry/stale/cancel/nonAdmin. ไม่API/DBwrite/commit/push; user225พักเดิม. ไม่มีbrowserตรวจภาพในsessionนี้.
+
+⚠️ ต้องทดสอบโดยคุณ: เปิดเขตขาย/ข้อมูลพื้นฐานสินค้าและรีโหลด ควรเห็นLoadingกลางตอนรอข้อมูล. ค้นคำที่ไม่มีรายการ ควรเห็นNotFoundกลางหลังโหลดเสร็จและปุ่มลองใหม่โหลดอีกครั้ง. เปิดIDUUIDที่ไม่มีอยู่หลังLoginควรเห็นNotFound. เมื่อAPIล้มเหลว/ไม่มีสิทธิ์ควรเห็นerrorเดิมไม่ใช่NotFound. ตรวจมือถือ/desktopว่ากล่องLoadingครอบเฉพาะตาราง และปุ่มค้นหา/เพิ่มเขตยังทำงานปกติ.

@@ -13,6 +13,14 @@
 
 ## เอกสารที่ต้องอ่านก่อนทำงาน
 
+### ชุดเตรียมก่อนข้อมูลจริง
+
+- [เปิดแบบฟอร์มกรอกข้อกำหนด](docs/forms/business-requirements.html) — เปิดด้วย Chrome/Edge แล้วส่งออกคำตอบเป็นไฟล์
+
+- [แบบฟอร์มข้อกำหนดทุกโมดูล](docs/BUSINESS-REQUIREMENTS-WORKBOOK.md)
+- [คู่มือใช้งาน](docs/USER-MANUAL.md)
+- [รายการตรวจรับรวมครั้งเดียว](docs/UAT-PREPARATION.md)
+
 1. [Project Specs](docs/specs/2026-09-23-1550-project-specs.md)
 2. [Project Plan](docs/plans/2026-09-23-1635-project-plan.md)
 3. [Code Style Guide](docs/specs/references/CODE_STYLE_GUIDE.md)
@@ -45,6 +53,10 @@
 - [ ] สำหรับงานที่เปลี่ยนพฤติกรรม: เตรียมหัวข้อ **⚠️ ต้องทดสอบโดยคุณ** พร้อมข้อมูลตัวอย่าง ขั้นตอน และผลที่คาดหวังแล้ว
 
 ## เริ่มระบบในเครื่อง
+
+### ตรวจโครงการก่อนส่งงาน
+
+รัน `npm run verify` เพื่อตรวจ lint, types, ชุดทดสอบ API/routes/flow ข้อมูล และ production build ตามลำดับ 10 ขั้นตอน โดยหยุดทันทีเมื่อไม่ผ่าน ดู [คู่มือ verify](docs/VERIFY-GUIDE.md) สำหรับรายละเอียดและชุดตรวจ seed เพิ่มเติม
 
 1. ติดตั้ง Node.js `24.21.0` และ npm ที่มากับ Node.js รุ่นนี้
 2. คัดลอก `.env.example` เป็น `.env.local`

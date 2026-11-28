@@ -4,9 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/config/app';
+import { canSeePage } from '@/config/access';
 import {
   ADMIN_PAGES,
   NAVIGATION_SECTIONS,
+  getAdminPage,
   type AdminPage,
 } from '@/config/navigation';
 
@@ -40,13 +42,30 @@ function NavigationIcon({ name }: { name: string }) {
   );
 }
 
-export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+export function Sidebar({
+  collapsed,
+  onToggle,
+  roleId,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+  roleId: string;
+}) {
   const currentPath = usePathname();
-  const mainPages = ADMIN_PAGES.filter((page) => !page.secondaryOnly && !page.hiddenFromSidebar);
+  const currentPage = getAdminPage(currentPath);
+  const activePath = currentPage?.parentHref ?? currentPage?.href ?? currentPath;
+  const allowedPages = ADMIN_PAGES.filter(
+    (page) =>
+      canSeePage(page.href, roleId) ||
+      (page.href === '/purchases' && canSeePage('/expenses', roleId)),
+  );
+  const linkFor = (href: string) =>
+    href === '/purchases' && !canSeePage(href, roleId) ? '/expenses' : href;
+  const mainPages = allowedPages.filter((page) => !page.secondaryOnly && !page.hiddenFromSidebar);
 
   return (
     <aside
-      className={`sticky inset-x-0 top-0 z-[5] block h-auto w-full overflow-visible bg-[var(--blue-700)] text-white md:fixed md:inset-y-0 md:right-auto md:flex md:h-full md:overflow-hidden ${collapsed ? 'md:w-[var(--collapsed-sidebar-width)]' : 'md:w-[var(--expanded-sidebar-width)]'}`}
+      className={`sticky inset-x-0 top-0 z-[5] block h-auto w-full print:hidden overflow-visible bg-blue-700 text-white md:fixed md:inset-y-0 md:right-auto md:flex md:h-full md:overflow-hidden ${collapsed ? 'md:w-[var(--collapsed-sidebar-width)]' : 'md:w-[var(--expanded-sidebar-width)]'}`}
       aria-label="เมนูหลัก"
     >
       <div
@@ -67,15 +86,15 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
             >
               <Image
                 aria-hidden="true"
-                className="block h-10.5 w-10.5 shrink-0 object-contain md:h-17.5 md:w-17.5"
+                className="block h-10.5 w-10.5 shrink-0 object-contain md:h-15 md:w-15"
                 src="/logo.png"
                 alt=""
-                width={70}
-                height={70}
+                width={60}
+                height={60}
               />
             </button>
             <span className={`grid gap-1 ${collapsed ? 'md:hidden' : ''}`}>
-              <strong className="text-lg leading-[1.1] poppins-bold text-white md:text-3xl">
+              <strong className="text-lg leading-[1.1] poppins-bold text-white md:text-2xl">
                 {APP_CONFIG.name}
               </strong>
               <small className="block text-xs leading-[1.3] poppins-regular text-white md:text-sm">
@@ -92,7 +111,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           aria-label="เมนูผู้ดูแลระบบ"
         >
           {NAVIGATION_SECTIONS.map((section) => {
-            const pages = ADMIN_PAGES.filter(
+            const pages = allowedPages.filter(
               (page) => page.section === section && !page.secondaryOnly && !page.hiddenFromSidebar,
             );
             return (
@@ -105,14 +124,12 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
                 </h2>
                 <ul className="m-0 flex list-none gap-1 p-0 md:grid md:gap-[3px]">
                   {pages.map((page: AdminPage) => {
-                    const active =
-                      page.href === currentPath ||
-                      (page.href !== '/' && currentPath.startsWith(`${page.href}/`));
+                    const active = page.href === activePath;
                     return (
                       <li key={page.href}>
                         <Link
-                          className={`flex min-h-[35px] items-center gap-[7px] whitespace-nowrap rounded-md border border-white/[0.15] px-2.5 text-xs poppins-regular text-white md:min-h-[43px] md:gap-[13px] md:rounded-sm md:border-0 md:px-3 md:text-sm ${active ? 'border-white bg-white/[0.13] md:shadow-[inset_3px_0_#fff]' : ''}`}
-                          href={page.href}
+                          className={`flex min-h-[35px] items-center gap-[7px] whitespace-nowrap rounded-md border border-white/15 px-2.5 text-xs poppins-regular text-white md:min-h-[43px] md:gap-[13px] md:rounded-sm md:border-0 md:px-3 md:text-sm ${active ? 'border-white bg-white/13 md:shadow-[inset_3px_0_#fff]' : ''}`}
+                          href={linkFor(page.href)}
                           aria-current={active ? 'page' : undefined}
                         >
                           <NavigationIcon name={page.icon} />
@@ -131,14 +148,12 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           aria-label="หมวดเมนู"
         >
           {mainPages.map((page) => {
-            const active =
-              page.href === currentPath ||
-              (page.href !== '/' && currentPath.startsWith(`${page.href}/`));
+            const active = page.href === activePath;
             return (
               <Link
                 className={`grid min-h-12 w-16.5 shrink-0 place-items-center rounded-[5px] text-white hover:bg-white/[0.14] ${active ? 'bg-white/[0.14]' : ''}`}
                 key={page.href}
-                href={page.href}
+                href={linkFor(page.href)}
                 title={page.label}
                 aria-label={page.label}
                 aria-current={active ? 'page' : undefined}

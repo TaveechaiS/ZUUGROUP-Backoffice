@@ -1,0 +1,7 @@
+
+# TASK-226 — เขตขายรูปแบบข้อมูลพื้นฐานสินค้า — 6 ตุลาคม 2569
+
+APPROVED: เอกสาร/ACTIVE → territories/page.tsx ใช้รูปแบบ product-options พร้อม inline create/edit (code/name/notes), selector รายการปกติ/ลบแล้ว, ค้นหา, ตารางเดิม+จัดการ, Pagination และรายละเอียดเดิม → version/confirmation/mutation lock/สิทธิ์/restore/error → UI render/payload checks/type/scoped lint/diff. ไฟล์หน้าเขตขายเท่านั้นและ scripts/test-territory-fields.mjs/docs/Task226. ไม่แก้หน้าอ้างอิงหรือ API/DB/user/customer. ตรวจรับ desktop/mobile มีฟอร์มด้านบนตารางด้านล่างเหมือนข้อมูลพื้นฐานสินค้า; บันทึกเพิ่ม/แก้ได้; ยกเลิกไม่ส่ง API; ไม่มีข้อมูลสมาชิกใน payload; กู้คืนยังเข้าถึงได้.
+ผล TASK-226: IMPLEMENTED / WAITING_FOR_UAT. รูปแบบหน้าเขตตาม product-options: ฟอร์มด้านบน/ค้นหา/ตาราง/Pagination และ inline create/edit พร้อม version/ยืนยัน/ยกเลิก/readonly/restore. type-check, scoped ESLint, actual UI/payload tests และ route77ผ่าน; ไม่ยิง HTTP/ไม่เขียนDBเพื่อทดสอบ. รักษาข้อมูลสมาชิกใน payload edit. TASK-225ยังพักตามเจ้าของ ไม่มีcommit/push.
+
+⚠️ ต้องทดสอบโดยคุณ: เปิดตั้งค่าระบบ → เขตขาย ทั้งdesktop/mobile เปรียบเทียบข้อมูลพื้นฐานสินค้า; ควรเห็นฟอร์มด้านบนและตารางด้านล่างสไตล์เดียวกัน. กรอกรหัส/ชื่อ/หมายเหตุแล้วบันทึกควรเพิ่มแถว; กดแก้ไขแล้วข้อมูลขึ้นฟอร์ม กดยกเลิกในกล่องยืนยันต้องไม่บันทึก กดยืนยันจึงอัปเดต. สมาชิกเขตเดิมต้องอยู่ครบ. ค้นหา/Sort/เปลี่ยนจำนวนต่อหน้าและเลือกเขตลบแล้วเพื่อกู้คืนควรทำงานเดิม. ยังไม่มีbrowserให้ตรวจภาพจริงในsessionนี้.

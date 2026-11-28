@@ -1,6 +1,5 @@
-import { ModuleListPage } from '@/components/pages/module-list-page';
-import { mockData } from './data';
+import { redirect } from 'next/navigation';
 
 export default function Page() {
-  return <ModuleListPage href="/reports/sales" config={mockData} />;
+  redirect('/reports/sales/summary');
 }

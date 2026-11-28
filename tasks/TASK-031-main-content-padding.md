@@ -1,6 +1,6 @@
 # TASK-031 — Padding กรอบเนื้อหาหลัก
 
-- **สถานะ:** READY_FOR_USER_TEST
+- **สถานะ:** DONE — ผู้ใช้ยืนยันผ่านเมื่อ 2026-09-30
 - **ผู้รับผิดชอบ:** AI
 - **Branch:** AI
 - **Specs:** Project Specs §22.10

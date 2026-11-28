@@ -1,0 +1,4 @@
+
+# TASK-225 — เปลี่ยนจุดเลือกเขต — 6 ตุลาคม 2569
+
+APPROVED ตามคำสั่งล่าสุด. 1) บันทึกขอบเขต ACTIVE/Specs/Plan 2) ถอน Manager/Sales picker จาก create/edit เขตและไม่ส่ง membership ใน payload 3) เพิ่ม Combobox เขตใน users create/profile และใช้ picker ลูกค้าที่มีอยู่ เปิด routes ที่จำเป็นใน Shell 4) บันทึก assignment transaction พร้อม lock/recheck/role/delete guard/audit รักษา Sales mirror เดิม 5) type-check/scoped lint/ทดสอบ validation และ transaction rollback. ไฟล์: territories create/detail, users create/detail/API/validation/service/types, ui/user-territory-picker, server/users/territory, admin-shell, scripts/test-user-territory. ตรวจรับ: สร้างเขตไม่มีเลือกคน; ลูกค้า/Sales/Managerเลือกและแก้เขตได้; Salesคนเดียวไม่ซ้ำเขต; เขตมีSalesหลายคน; Managerชนกันแจ้งข้อผิดพลาด; แก้ชื่อเขตไม่ล้างสมาชิก. ไม่สร้างผู้ใช้ Auth จริงเพื่อทดสอบ.

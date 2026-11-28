@@ -1,0 +1,7 @@
+import type { ReactNode } from 'react';
+import { requireActiveUser } from '@/server/auth/current-user';
+
+export default async function Layout({ children }: { children: ReactNode }) {
+  await requireActiveUser();
+  return children;
+}
